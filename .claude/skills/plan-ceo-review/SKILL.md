@@ -1,0 +1,1 @@
+/Users/charandeepkapoor/conductor/workspaces/delta saraswati/delta-saraswati/.claude/skills/gstack/plan-ceo-review/SKILL.md
