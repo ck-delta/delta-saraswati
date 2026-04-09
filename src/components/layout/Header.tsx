@@ -1,7 +1,8 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { User, Plus } from 'lucide-react';
+import { User, Plus, Menu } from 'lucide-react';
+import { useUIStore } from '@/stores/ui-store';
 
 // ---------------------------------------------------------------------------
 // Page title mapping
@@ -21,17 +22,27 @@ function getPageTitle(pathname: string): string {
 export default function Header() {
   const pathname = usePathname();
   const title = getPageTitle(pathname);
+  const setMobileMenuOpen = useUIStore((s) => s.setMobileMenuOpen);
 
   return (
     <header
-      className="sticky top-0 z-30 flex items-center justify-between px-6 h-14 border-b backdrop-blur-sm"
+      className="sticky top-0 z-30 flex items-center justify-between px-4 md:px-6 h-14 border-b backdrop-blur-sm"
       style={{
         backgroundColor: 'var(--sidebar)',
         borderColor: 'var(--sidebar-border)',
       }}
     >
-      {/* Left: Page title */}
+      {/* Left: Hamburger (mobile) + Page title */}
       <div className="flex items-center gap-3">
+        {/* Mobile hamburger menu */}
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg text-delta-text-secondary hover:bg-delta-surface hover:text-[var(--foreground)] transition-colors duration-150"
+          aria-label="Open menu"
+        >
+          <Menu size={20} />
+        </button>
+
         <h1 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
           {title}
         </h1>

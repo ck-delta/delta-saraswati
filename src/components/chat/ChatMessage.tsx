@@ -222,8 +222,8 @@ function ChatMessageInner({ message }: ChatMessageProps) {
       <div
         className={`max-w-[85%] md:max-w-[75%] ${
           isUser
-            ? 'rounded-2xl rounded-br-md bg-[#fd7d02]/10 px-4 py-3'
-            : 'rounded-2xl rounded-bl-md bg-[#1a1a1f] px-4 py-3'
+            ? 'rounded-2xl rounded-br-md bg-[#fd7d02]/10 px-4 py-3 animate-slide-in-right'
+            : 'rounded-2xl rounded-bl-md bg-[#1a1a1f] px-4 py-3 animate-fade-in-up'
         }`}
       >
         {/* Assistant label */}

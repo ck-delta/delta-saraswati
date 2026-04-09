@@ -14,7 +14,7 @@ export default function DailyPulseSummary() {
   const fetchDailyPulse = useMarketStore((s) => s.fetchDailyPulse);
 
   return (
-    <div className="rounded-xl border border-[#2a2a32] bg-[#1a1a1f] p-5">
+    <div className="rounded-xl border border-[#2a2a32] bg-[#1a1a1f] p-5 animate-fade-in">
       {/* ---- Header ---- */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">

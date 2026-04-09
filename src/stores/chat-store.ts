@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ChatMessage, Conversation, ChatRequest, StreamChunk } from '@/types/chat';
+import type { ChatMessage, Conversation, ChatRequest } from '@/types/chat';
 
 // ---------------------------------------------------------------------------
 // Chat Store — conversations, streaming, deep-think toggle, localStorage
@@ -211,11 +211,18 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
             const jsonStr = line.slice(6);
             if (jsonStr === '[DONE]') continue;
             try {
-              const chunk: StreamChunk = JSON.parse(jsonStr);
-              if (chunk.type === 'text') {
-                accumulated += chunk.content;
-              } else if (chunk.type === 'error') {
-                accumulated += `\n\n**Error:** ${chunk.content}`;
+              const parsed = JSON.parse(jsonStr);
+              // Handle Groq SSE format: {choices: [{delta: {content: "..."}}]}
+              if (parsed.choices?.[0]?.delta?.content) {
+                accumulated += parsed.choices[0].delta.content;
+              }
+              // Handle our custom format: {type: 'text', content: '...'}
+              else if (parsed.type === 'text' && parsed.content) {
+                accumulated += parsed.content;
+              }
+              // Handle error format
+              else if (parsed.type === 'error') {
+                accumulated += `\n\n⚠️ ${parsed.content}`;
               }
             } catch {
               // Not valid JSON — treat as raw text
@@ -234,7 +241,7 @@ export const useChatStore = create<ChatState & ChatActions>((set, get) => ({
       const assistantMsg: ChatMessage = {
         id: generateId(),
         role: 'assistant',
-        content: accumulated || 'No response received.',
+        content: accumulated.trim() || 'No response received. Please try again.',
         timestamp: Date.now(),
       };
 

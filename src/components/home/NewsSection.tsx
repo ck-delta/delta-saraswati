@@ -26,7 +26,7 @@ export default function NewsSection() {
   const hasMore = safeNews.length > visibleCount;
 
   return (
-    <div className="rounded-xl border border-[#2a2a32] bg-[#1a1a1f] p-5">
+    <div className="rounded-xl border border-[#2a2a32] bg-[#1a1a1f] p-5 animate-fade-in">
       {/* ---- Header ---- */}
       <div className="flex items-center gap-2">
         {/* Newspaper icon */}
@@ -93,7 +93,7 @@ function NewsItemRow({ item }: { item: NewsItem }) {
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#222228]"
+      className="group flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-[#222228] animate-slide-in-left"
     >
       {/* Sentiment dot */}
       {sentimentColor && (

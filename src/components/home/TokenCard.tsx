@@ -31,7 +31,7 @@ export default function TokenCard({ token, fearGreed }: TokenCardProps) {
   const tradeUrl = `https://www.delta.exchange/app/futures/trade/${token.symbol}`;
 
   return (
-    <div className="group relative flex flex-col gap-4 rounded-xl border border-[#2a2a32] bg-[#1a1a1f] p-5 transition-colors hover:border-[#3a3a42]">
+    <div className="card-glow group relative flex flex-col gap-4 rounded-xl border border-[#2a2a32] bg-[#1a1a1f] p-5 transition-colors hover:border-[#3a3a42] animate-fade-in-up hover-lift">
       {/* ---- Token header ---- */}
       <div className="flex items-center gap-3">
         <TokenIcon symbol={underlying} iconSrc={iconSrc} />
@@ -128,7 +128,7 @@ function TokenIcon({ symbol, iconSrc }: { symbol: string; iconSrc?: string }) {
 
   if (iconSrc) {
     return (
-      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#222228]">
+      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#222228] to-[#2a2a32] ring-1 ring-[#fd7d02]/20">
         <Image
           src={iconSrc}
           alt={symbol}
@@ -149,7 +149,7 @@ function TokenIcon({ symbol, iconSrc }: { symbol: string; iconSrc?: string }) {
   }
 
   return (
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#222228]">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#222228] to-[#2a2a32] ring-1 ring-[#fd7d02]/20">
       <span className="text-sm font-bold text-[#9ca3af]">{letter}</span>
     </div>
   );

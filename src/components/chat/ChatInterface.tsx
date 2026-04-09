@@ -35,7 +35,7 @@ export function ChatInterface() {
   );
 
   return (
-    <div className="flex h-full flex-col bg-[#101013]">
+    <div className="flex h-full flex-col bg-[#101013] bg-grid">
       {/* Message list (scrollable, fills available space) */}
       <ChatMessageList onQuickAction={handleQuickAction} />
 

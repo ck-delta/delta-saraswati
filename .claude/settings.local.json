@@ -20,7 +20,10 @@
       "Bash(npm list:*)",
       "Bash(vercel link:*)",
       "Bash(gh repo:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "mcp__beda7a91-042b-47a7-acea-e069bca217ba__get_project",
+      "mcp__beda7a91-042b-47a7-acea-e069bca217ba__web_fetch_vercel_url",
+      "mcp__beda7a91-042b-47a7-acea-e069bca217ba__list_deployments"
     ]
   }
 }

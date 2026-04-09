@@ -7,6 +7,7 @@ import { create } from 'zustand';
 interface UIState {
   theme: 'dark' | 'light';
   sidebarCollapsed: boolean;
+  mobileMenuOpen: boolean;
   hydrated: boolean;
 }
 
@@ -15,6 +16,7 @@ interface UIActions {
   setTheme: (theme: 'dark' | 'light') => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  setMobileMenuOpen: (open: boolean) => void;
   hydrate: () => void;
 }
 
@@ -46,6 +48,7 @@ export const useUIStore = create<UIState & UIActions>((set, get) => ({
   // ---------- State ----------
   theme: 'dark',
   sidebarCollapsed: false,
+  mobileMenuOpen: false,
   hydrated: false,
 
   // ---------- Actions ----------
@@ -72,6 +75,8 @@ export const useUIStore = create<UIState & UIActions>((set, get) => ({
     persistUI({ theme: get().theme, sidebarCollapsed: collapsed });
     set({ sidebarCollapsed: collapsed });
   },
+
+  setMobileMenuOpen: (open) => set({ mobileMenuOpen: open }),
 
   hydrate: () => {
     if (typeof window === 'undefined') return;

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import Sidebar from '@/components/layout/Sidebar';
+import Sidebar, { MobileSidebar } from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
 import './globals.css';
 
@@ -48,8 +48,11 @@ export default function RootLayout({
     >
       <body className="h-full bg-background text-foreground">
         <div className="flex h-full">
-          {/* Fixed left sidebar */}
+          {/* Fixed left sidebar (desktop only — hidden on mobile via Sidebar's own classes) */}
           <Sidebar />
+
+          {/* Mobile sidebar overlay */}
+          <MobileSidebar />
 
           {/* Main content area */}
           <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

@@ -41,13 +41,13 @@ export default function Home() {
   }, [fetchMarketData]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 bg-grid">
       {/* ================================================================
           Welcome Banner
           ================================================================ */}
       <section className="mb-8">
         <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-semibold text-white sm:text-2xl">
+          <h1 className="text-xl font-semibold text-white sm:text-2xl text-gradient">
             Delta Saraswati
           </h1>
           <p className="text-sm text-[#9ca3af]">

@@ -190,3 +190,141 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
+
+/* === Enhanced card styling === */
+.card-glow {
+  position: relative;
+}
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(253, 125, 2, 0.2), transparent 50%, rgba(253, 125, 2, 0.1));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* === Gradient text for headlines === */
+.text-gradient {
+  background: linear-gradient(135deg, #fd7d02 0%, #ff9a3c 50%, #fd7d02 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === Subtle grid background pattern === */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(42, 42, 50, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(42, 42, 50, 0.3) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* === Glass morphism effect === */
+.glass {
+  background: rgba(26, 26, 31, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* === Accent underline for active nav === */
+.nav-active {
+  position: relative;
+}
+.nav-active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #fd7d02;
+  border-radius: 1px;
+}
+
+/* === Better focus states === */
+*:focus-visible {
+  outline: 2px solid #fd7d02;
+  outline-offset: 2px;
+}
+
+/* === Trading badge styles === */
+.badge-buy {
+  background: rgba(0, 192, 118, 0.15);
+  color: #00c076;
+  border: 1px solid rgba(0, 192, 118, 0.3);
+}
+.badge-sell {
+  background: rgba(255, 77, 79, 0.15);
+  color: #ff4d4f;
+  border: 1px solid rgba(255, 77, 79, 0.3);
+}
+.badge-neutral {
+  background: rgba(156, 163, 175, 0.15);
+  color: #9ca3af;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+/* === Microanimations === */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(253, 125, 2, 0); }
+  50% { box-shadow: 0 0 16px 4px rgba(253, 125, 2, 0.15); }
+}
+@keyframes number-tick {
+  0% { transform: translateY(-100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade-in { animation: fade-in 0.4s ease-out both; }
+.animate-fade-in-up { animation: fade-in-up 0.5s ease-out both; }
+.animate-slide-in-left { animation: slide-in-left 0.3s ease-out both; }
+.animate-slide-in-right { animation: slide-in-right 0.3s ease-out both; }
+.animate-scale-in { animation: scale-in 0.3s ease-out both; }
+.animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
+.animate-number-tick { animation: number-tick 0.2s ease-out both; }
+
+/* Staggered delays for lists */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Smooth transitions for everything */
+.transition-smooth {
+  transition: all 0.2s ease;
+}

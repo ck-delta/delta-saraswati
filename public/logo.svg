@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <defs>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fd7d02" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#fd7d02" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer subtle glow circle -->
+  <circle cx="20" cy="20" r="19" fill="none" stroke="url(#glow)" stroke-width="0.5"/>
+  <!-- Main delta triangle -->
+  <path d="M20 5 L35 33 H5 Z" fill="none" stroke="#fd7d02" stroke-width="2.2" stroke-linejoin="round"/>
+  <!-- Inner flowing wave — Saraswati knowledge motif -->
+  <path d="M13 25 C15 21, 17 23, 20 19 C23 15, 25 17, 27 25" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Small lotus dot at the peak — wisdom -->
+  <circle cx="20" cy="10" r="1.8" fill="#fd7d02"/>
+  <!-- Subtle inner triangle echo -->
+  <path d="M20 13 L28 28 H12 Z" fill="none" stroke="#fd7d02" stroke-width="0.6" stroke-linejoin="round" opacity="0.35"/>
+</svg>
