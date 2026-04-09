@@ -10,6 +10,21 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+
+  /* Delta Exchange custom colors */
+  --color-delta-dark: #101013;
+  --color-delta-light: #fafafa;
+  --color-delta-surface: #1a1a1f;
+  --color-delta-surface-alt: #222228;
+  --color-delta-border: #2a2a32;
+  --color-delta-accent: #fd7d02;
+  --color-delta-accent-blue: #2894f9;
+  --color-delta-buy: #00c076;
+  --color-delta-sell: #ff4d4f;
+  --color-delta-text-secondary: #9ca3af;
+  --color-delta-text-muted: #6b7280;
+
+  /* shadcn color mappings */
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,73 +63,70 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* === DARK MODE (DEFAULT — matches Delta Exchange) === */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --background: #101013;
+  --foreground: #f5f5f5;
+  --card: #1a1a1f;
+  --card-foreground: #f5f5f5;
+  --popover: #1a1a1f;
+  --popover-foreground: #f5f5f5;
+  --primary: #fd7d02;
+  --primary-foreground: #ffffff;
+  --secondary: #222228;
+  --secondary-foreground: #f5f5f5;
+  --muted: #222228;
+  --muted-foreground: #9ca3af;
+  --accent: #fd7d02;
+  --accent-foreground: #ffffff;
+  --destructive: #ff4d4f;
+  --border: #2a2a32;
+  --input: #2a2a32;
+  --ring: #fd7d02;
+  --chart-1: #fd7d02;
+  --chart-2: #2894f9;
+  --chart-3: #00c076;
+  --chart-4: #ff4d4f;
+  --chart-5: #9ca3af;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #141417;
+  --sidebar-foreground: #f5f5f5;
+  --sidebar-primary: #fd7d02;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1a1a1f;
+  --sidebar-accent-foreground: #f5f5f5;
+  --sidebar-border: #2a2a32;
+  --sidebar-ring: #fd7d02;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* === LIGHT MODE === */
+.light {
+  --background: #fafafa;
+  --foreground: #101013;
+  --card: #ffffff;
+  --card-foreground: #101013;
+  --popover: #ffffff;
+  --popover-foreground: #101013;
+  --primary: #fd7d02;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f0f0;
+  --secondary-foreground: #101013;
+  --muted: #f0f0f0;
+  --muted-foreground: #6b7280;
+  --accent: #fd7d02;
+  --accent-foreground: #ffffff;
+  --destructive: #ff4d4f;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #fd7d02;
+  --sidebar: #f5f5f5;
+  --sidebar-foreground: #101013;
+  --sidebar-primary: #fd7d02;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f0f0f0;
+  --sidebar-accent-foreground: #101013;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #fd7d02;
 }
 
 @layer base {
@@ -127,4 +139,54 @@
   html {
     @apply font-sans;
   }
+}
+
+/* === Custom scrollbar (dark theme, thin) === */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a32;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a42;
+}
+
+/* === Price change colors === */
+.price-up {
+  color: #00c076;
+}
+.price-down {
+  color: #ff4d4f;
+}
+
+/* === Monospace for financial data === */
+.font-price {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* === Pulse animation for live data indicators === */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* === Shimmer loading effect === */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, #1a1a1f 25%, #2a2a32 50%, #1a1a1f 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
 }

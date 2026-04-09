@@ -1,65 +1,101 @@
-import Image from "next/image";
+'use client';
 
+import { useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { useMarketStore } from '@/stores/market-store';
+import { CACHE_TTL } from '@/lib/constants';
+import TokenCardGrid from '@/components/home/TokenCardGrid';
+import DailyPulseSummary from '@/components/home/DailyPulseSummary';
+import NewsSection from '@/components/home/NewsSection';
+
+/**
+ * Home / Daily Pulse page.
+ * Fetches market data, news, and daily pulse on mount.
+ * Auto-refreshes market data every 30 seconds.
+ */
 export default function Home() {
+  const fetchMarketData = useMarketStore((s) => s.fetchMarketData);
+  const fetchNews = useMarketStore((s) => s.fetchNews);
+  const fetchDailyPulse = useMarketStore((s) => s.fetchDailyPulse);
+
+  // Ref to track if initial fetch has fired (avoid double-fetch in StrictMode)
+  const didFetch = useRef(false);
+
+  // Initial data fetch
+  useEffect(() => {
+    if (didFetch.current) return;
+    didFetch.current = true;
+
+    fetchMarketData();
+    fetchNews();
+    fetchDailyPulse();
+  }, [fetchMarketData, fetchNews, fetchDailyPulse]);
+
+  // Auto-refresh market data every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchMarketData();
+    }, CACHE_TTL.MARKET_DATA);
+
+    return () => clearInterval(interval);
+  }, [fetchMarketData]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      {/* ================================================================
+          Welcome Banner
+          ================================================================ */}
+      <section className="mb-8">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-semibold text-white sm:text-2xl">
+            Delta Saraswati
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-sm text-[#9ca3af]">
+            Your AI Crypto Research Assistant — real-time market intelligence at your fingertips.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Live indicator */}
+        <div className="mt-3 flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-[#00c076] animate-pulse-dot" />
+          <span className="text-xs text-[#6b7280]">Live market data</span>
         </div>
-      </main>
+      </section>
+
+      {/* ================================================================
+          Token Card Grid (BTC, ETH, SOL)
+          ================================================================ */}
+      <section className="mb-8">
+        <TokenCardGrid />
+      </section>
+
+      {/* ================================================================
+          Two-column layout: Daily Pulse + News
+          ================================================================ */}
+      <section className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <DailyPulseSummary />
+        <NewsSection />
+      </section>
+
+      {/* ================================================================
+          Bottom CTA
+          ================================================================ */}
+      <section className="mb-6">
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-[#2a2a32] bg-[#1a1a1f] px-6 py-8 text-center">
+          <h2 className="text-lg font-semibold text-white">
+            Ready to dive deeper?
+          </h2>
+          <p className="max-w-md text-sm text-[#9ca3af]">
+            Ask Saraswati anything about the crypto markets — technical analysis, news summaries, whale activity, and more.
+          </p>
+          <Link
+            href="/chat"
+            className="mt-2 inline-flex h-10 items-center justify-center rounded-lg bg-[#fd7d02] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#e06d00]"
+          >
+            Start Exploring
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

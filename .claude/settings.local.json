@@ -10,7 +10,17 @@
       "Bash(cp -a delta-saraswati-app/. .)",
       "Bash(rm -rf delta-saraswati-app)",
       "Bash(npm install:*)",
-      "Bash(npx shadcn@latest init -y --defaults)"
+      "Bash(npx shadcn@latest init -y --defaults)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__beda7a91-042b-47a7-acea-e069bca217ba__list_teams",
+      "mcp__beda7a91-042b-47a7-acea-e069bca217ba__list_projects",
+      "mcp__beda7a91-042b-47a7-acea-e069bca217ba__deploy_to_vercel",
+      "Bash(npm list:*)",
+      "Bash(vercel link:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh api:*)"
     ]
   }
 }
