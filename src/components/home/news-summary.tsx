@@ -24,8 +24,8 @@ const SECTION_CONFIG: Record<string, { icon: typeof Activity; accent: string; bo
 
 // Left column sections
 const LEFT_SECTIONS = new Set(["Market Pulse", "Big Movers"]);
-// Right column sections
-const RIGHT_SECTIONS = new Set(["Macro Watch", "Derivatives Insight", "Signal"]);
+// Right column sections (Signal renders full-width below both columns)
+const RIGHT_SECTIONS = new Set(["Macro Watch", "Derivatives Insight"]);
 
 function formatInline(text: string): React.ReactNode {
   const parts: React.ReactNode[] = [];
@@ -126,7 +126,7 @@ function RenderSection({ section }: { section: Section }) {
                     <Sparkles className="size-3 text-amber-400" />
                     <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-amber-400">AI Signal</span>
                   </div>
-                  <p className="text-[14px] italic leading-relaxed font-medium text-amber-200/90">
+                  <p className="text-[15px] italic leading-relaxed font-medium text-amber-200/90">
                     {formatInline(item.content)}
                   </p>
                 </div>
@@ -137,7 +137,7 @@ function RenderSection({ section }: { section: Section }) {
           if (item.type === "bullet") {
             return (
               <div key={i} className={`flex gap-2 pl-1 py-1.5 border-l-2 ${config.border} ml-1 rounded-r hover:bg-white/[0.02] transition-colors`}>
-                <span className="text-[14px] leading-relaxed text-[#94A3B8] pl-2">
+                <span className="text-[15px] leading-relaxed text-[#94A3B8] pl-2">
                   {formatInline(item.content)}
                 </span>
               </div>
@@ -145,7 +145,7 @@ function RenderSection({ section }: { section: Section }) {
           }
 
           return (
-            <p key={i} className="text-[14px] leading-relaxed text-[#94A3B8]">
+            <p key={i} className="text-[15px] leading-relaxed text-[#94A3B8]">
               {formatInline(item.content)}
             </p>
           );
@@ -159,6 +159,7 @@ export function NewsSummary({ summary, generatedAt, isLoading, onRegenerate }: N
   const sections = summary ? parseSections(summary) : [];
   const leftSections = sections.filter(s => LEFT_SECTIONS.has(s.title));
   const rightSections = sections.filter(s => RIGHT_SECTIONS.has(s.title));
+  const signalSections = sections.filter(s => s.title === "Signal");
 
   // If parsing doesn't split cleanly, put first half left, second half right
   if (leftSections.length === 0 && rightSections.length === 0 && sections.length > 0) {
@@ -238,6 +239,16 @@ export function NewsSummary({ summary, generatedAt, isLoading, onRegenerate }: N
                 ))}
               </div>
             </div>
+
+            {/* Signal — full width below both columns */}
+            {signalSections.length > 0 && (
+              <div className="mt-5">
+                <div className="gradient-separator mb-5" />
+                {signalSections.map(section => (
+                  <RenderSection key={section.title} section={section} />
+                ))}
+              </div>
+            )}
 
             {/* Footer */}
             <div className="gradient-separator mt-5 mb-3" />

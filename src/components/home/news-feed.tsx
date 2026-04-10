@@ -128,7 +128,7 @@ export function NewsFeed({ headlines, isLoading }: NewsFeedProps) {
                     {/* Content */}
                     <div className="flex-1 min-w-0 space-y-2">
                       {/* Headline */}
-                      <p className="text-[14px] font-semibold leading-snug text-[#F1F5F9] group-hover:text-white transition-colors line-clamp-2">
+                      <p className="text-[15px] font-semibold leading-snug text-[#F1F5F9] group-hover:text-white transition-colors line-clamp-2">
                         {headline.title}
                       </p>
 

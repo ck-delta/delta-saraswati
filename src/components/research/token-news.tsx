@@ -92,7 +92,7 @@ export function TokenNews({ symbol }: TokenNewsProps) {
                   className="group flex items-start gap-3 rounded-lg px-3 py-3.5 -mx-1 transition-all hover:bg-white/[0.03]"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-[#F1F5F9] leading-snug line-clamp-2 group-hover:text-white transition-colors">
+                    <p className="text-[15px] font-medium text-[#F1F5F9] leading-snug line-clamp-2 group-hover:text-white transition-colors">
                       {headline.title}
                     </p>
                     <div className="flex items-center gap-2.5 mt-1.5">
