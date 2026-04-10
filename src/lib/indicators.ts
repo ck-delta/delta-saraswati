@@ -290,3 +290,50 @@ export function generateOverallSignal(
 
   return { signal, confidence, reasoning, watchNext };
 }
+
+// Classify derivatives positioning from price direction, OI change, and funding rate
+export function classifyDerivatives(
+  priceUp: boolean,
+  oiUp: boolean,
+  fundingPositive: boolean
+): { signal: string; description: string; color: "bullish" | "bearish" } {
+  if (priceUp && oiUp) {
+    return {
+      signal: "Long Buildup",
+      description: "OI rising with price — fresh long positioning entering the market.",
+      color: "bullish",
+    };
+  }
+  if (!priceUp && oiUp) {
+    return {
+      signal: "Short Buildup",
+      description: "OI rising as price falls — new short positions being opened.",
+      color: "bearish",
+    };
+  }
+  if (priceUp && !oiUp) {
+    return {
+      signal: "Short Covering",
+      description: "Price rising as OI drops — shorts exiting, fueling the rally.",
+      color: "bullish",
+    };
+  }
+  return {
+    signal: "Long Unwinding",
+    description: "Price falling as OI drops — longs exiting their positions.",
+    color: "bearish",
+  };
+}
+
+// Classify pivot-based buy/sell signal
+export function classifyPivotSignal(
+  price: number,
+  pivot: number,
+  r1: number,
+  s1: number
+): { signal: "Buy" | "Sell"; reason: string } {
+  if (price > r1) return { signal: "Buy", reason: "Above R1 — bullish breakout territory" };
+  if (price > pivot) return { signal: "Buy", reason: "Above Pivot — bullish bias" };
+  if (price < s1) return { signal: "Sell", reason: "Below S1 — bearish breakdown" };
+  return { signal: "Sell", reason: "Below Pivot — bearish bias" };
+}
