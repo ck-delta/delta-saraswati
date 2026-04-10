@@ -9,31 +9,83 @@ import { PriceChange } from "@/components/shared/price-change";
 import { Info, Zap } from "@/components/icons";
 import { motion } from "framer-motion";
 
+// SVG token icons
+function BtcIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <path d="M23.2 14.1c.3-2-1.2-3.1-3.3-3.8l.7-2.7-1.7-.4-.7 2.6c-.4-.1-.9-.2-1.4-.3l.7-2.6-1.7-.4-.7 2.7c-.3-.1-.7-.2-1-.3l-2.3-.6-.4 1.8s1.2.3 1.2.3c.7.2.8.6.8 1l-.8 3.2c0 0 .1 0 .1 0l-.1 0-1.1 4.5c-.1.2-.3.5-.8.4 0 0-1.2-.3-1.2-.3l-.8 1.9 2.2.5c.4.1.8.2 1.2.3l-.7 2.8 1.7.4.7-2.7c.5.1.9.2 1.4.3l-.7 2.7 1.7.4.7-2.8c2.9.5 5.1.3 6-2.3.7-2.1 0-3.3-1.5-4.1 1.1-.3 1.9-1 2.1-2.5zm-3.8 5.3c-.5 2.1-4 1-5.2.7l.9-3.7c1.1.3 4.8.8 4.3 3zm.5-5.4c-.5 1.9-3.4.9-4.3.7l.8-3.4c1 .2 4.1.7 3.5 2.7z" fill="currentColor"/>
+    </svg>
+  );
+}
+
+function EthIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <path d="M16 4l-8 12.8L16 20.5l8-3.7L16 4z" fill="currentColor" opacity="0.6"/>
+      <path d="M16 4l8 12.8-8 3.7V4z" fill="currentColor" opacity="0.8"/>
+      <path d="M16 22l-8-4.2L16 28l8-10.2L16 22z" fill="currentColor" opacity="0.6"/>
+      <path d="M16 22l8-4.2L16 28V22z" fill="currentColor" opacity="0.8"/>
+    </svg>
+  );
+}
+
+function GoldIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <path d="M6 24h20l-3-8H9l-3 8z" fill="currentColor" opacity="0.8"/>
+      <path d="M9 16h14l-2.5-6h-9L9 16z" fill="currentColor" opacity="0.6"/>
+      <path d="M11.5 10h9l-1.5-4h-6l-1.5 4z" fill="currentColor" opacity="0.4"/>
+    </svg>
+  );
+}
+
+function SolIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <path d="M8 22.5l2.2-2.2c.1-.1.3-.2.5-.2h15.1c.3 0 .5.4.3.6l-2.2 2.2c-.1.1-.3.2-.5.2H8.3c-.3 0-.5-.4-.3-.6z" fill="currentColor"/>
+      <path d="M8 9.4l2.2-2.2c.1-.1.3-.2.5-.2h15.1c.3 0 .5.4.3.6l-2.2 2.2c-.1.1-.3.2-.5.2H8.3c-.3 0-.5-.4-.3-.6z" fill="currentColor"/>
+      <path d="M24.1 15.7l-2.2-2.2c-.1-.1-.3-.2-.5-.2H6.3c-.3 0-.5.4-.3.6l2.2 2.2c.1.1.3.2.5.2h15.1c.3 0 .5-.4.3-.6z" fill="currentColor"/>
+    </svg>
+  );
+}
+
+function DefaultIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="10" fill="currentColor" opacity="0.6"/>
+      <circle cx="16" cy="16" r="5" fill="currentColor" opacity="0.3"/>
+    </svg>
+  );
+}
+
+const TOKEN_ICON_MAP: Record<string, React.FC<{ size?: number }>> = {
+  BTCUSD: BtcIcon,
+  ETHUSD: EthIcon,
+  PAXGUSD: GoldIcon,
+  SOLUSD: SolIcon,
+};
+
 // Brand colors for top tokens
-const TOKEN_BRAND: Record<string, { color: string; bg: string; glow: string; icon: string }> = {
+const TOKEN_BRAND: Record<string, { color: string; bg: string; glow: string }> = {
   BTCUSD: {
     color: "#F7931A",
     bg: "rgba(247,147,26,0.12)",
     glow: "0 0 16px rgba(247,147,26,0.20)",
-    icon: "₿",
   },
   ETHUSD: {
     color: "#627EEA",
     bg: "rgba(98,126,234,0.12)",
     glow: "0 0 16px rgba(98,126,234,0.20)",
-    icon: "Ξ",
   },
   PAXGUSD: {
     color: "#E5B73B",
     bg: "rgba(229,183,59,0.12)",
     glow: "0 0 16px rgba(229,183,59,0.20)",
-    icon: "Au",
   },
   SOLUSD: {
     color: "#9945FF",
     bg: "rgba(153,69,255,0.12)",
     glow: "0 0 16px rgba(153,69,255,0.20)",
-    icon: "◎",
   },
 };
 
@@ -41,7 +93,6 @@ const DEFAULT_BRAND = {
   color: "#F59E0B",
   bg: "rgba(245,158,11,0.12)",
   glow: "0 0 16px rgba(245,158,11,0.20)",
-  icon: "●",
 };
 
 interface TokenCardProps {
@@ -75,10 +126,9 @@ export function TokenCardSkeleton() {
             <Skeleton className="h-6 w-20 rounded-full" />
           </div>
           <div className="h-px bg-white/[0.04]" />
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <div className="flex justify-between"><Skeleton className="h-3.5 w-20" /><Skeleton className="h-3.5 w-16" /></div>
             <div className="flex justify-between"><Skeleton className="h-3.5 w-20" /><Skeleton className="h-3.5 w-16" /></div>
-            <Skeleton className="h-1.5 w-full rounded-full" />
           </div>
           <div className="space-y-1.5">
             <div className="flex justify-between"><Skeleton className="h-3 w-20" /><Skeleton className="h-3 w-12" /></div>
@@ -116,16 +166,6 @@ function MiniSparkline({ data, positive, brandColor }: { data: number[]; positiv
       <polyline points={points} stroke={brandColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       <polygon points={`0,32 ${points} 60,32`} fill={brandColor} fillOpacity="0.15" />
     </svg>
-  );
-}
-
-// Volume bar — horizontal fill relative to max volume
-function VolumeBar({ volume, maxVolume, brandColor }: { volume: number; maxVolume: number; brandColor: string }) {
-  const pct = maxVolume > 0 ? Math.max((volume / maxVolume) * 100, 8) : 30;
-  return (
-    <div className="h-1.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
-      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: brandColor, opacity: 0.5 }} />
-    </div>
   );
 }
 
@@ -187,6 +227,7 @@ export function TokenCard({
 
   const isPositive = change24h >= 0;
   const brand = TOKEN_BRAND[symbol] || DEFAULT_BRAND;
+  const IconComponent = TOKEN_ICON_MAP[symbol] || DefaultIcon;
 
   return (
     <motion.div
@@ -208,14 +249,14 @@ export function TokenCard({
             <div className="flex items-center gap-3">
               {/* Token icon with brand glow */}
               <div
-                className="flex items-center justify-center size-12 rounded-2xl text-lg font-bold shrink-0 token-icon-ring"
+                className="flex items-center justify-center size-12 rounded-2xl shrink-0 token-icon-ring"
                 style={{
                   backgroundColor: brand.bg,
                   color: brand.color,
                   boxShadow: brand.glow,
                 }}
               >
-                {brand.icon}
+                <IconComponent size={24} />
               </div>
               <div className="space-y-0.5 min-w-0">
                 <h3 className="font-heading text-base font-bold text-text-primary tracking-tight">
@@ -244,25 +285,22 @@ export function TokenCard({
           <div className="gradient-separator" />
 
           {/* Stats grid — funding & volume */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <div className="flex items-center justify-between text-xs">
               <span className="text-text-tertiary">Funding Rate</span>
               <span className={`font-mono tabular-nums font-semibold ${fundingRate >= 0 ? "text-gain" : "text-loss"}`}>
                 {fundingRate >= 0 ? "+" : ""}{fundingRate.toFixed(4)}%
               </span>
             </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-text-tertiary">Volume (24h)</span>
-                <span className="font-mono tabular-nums font-semibold text-text-primary">
-                  {volume24h >= 1e9
-                    ? `$${(volume24h / 1e9).toFixed(2)}B`
-                    : volume24h >= 1e6
-                      ? `$${(volume24h / 1e6).toFixed(1)}M`
-                      : `$${(volume24h / 1e3).toFixed(0)}K`}
-                </span>
-              </div>
-              <VolumeBar volume={volume24h} maxVolume={maxVolume} brandColor={brand.color} />
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-text-tertiary">Volume (24h)</span>
+              <span className="font-mono tabular-nums font-semibold text-text-primary">
+                {volume24h >= 1e9
+                  ? `$${(volume24h / 1e9).toFixed(2)}B`
+                  : volume24h >= 1e6
+                    ? `$${(volume24h / 1e6).toFixed(1)}M`
+                    : `$${(volume24h / 1e3).toFixed(0)}K`}
+              </span>
             </div>
           </div>
 

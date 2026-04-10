@@ -38,6 +38,41 @@ export default function HomePage() {
     [topTickers]
   );
 
+  // Compute AI sentiment per token from news headlines
+  // Maps symbol keywords to matching headlines, averages their sentiment scores
+  const TOKEN_KEYWORDS: Record<string, string[]> = {
+    BTCUSD: ["bitcoin", "btc"],
+    ETHUSD: ["ethereum", "eth"],
+    PAXGUSD: ["gold", "paxg", "pax gold"],
+    SOLUSD: ["solana", "sol"],
+  };
+
+  const tokenSentiments = useMemo(() => {
+    const result: Record<string, number> = {};
+    if (!headlines || headlines.length === 0) return result;
+
+    for (const [sym, keywords] of Object.entries(TOKEN_KEYWORDS)) {
+      const matching = headlines.filter((h: any) =>
+        keywords.some((kw: string) => h.title?.toLowerCase().includes(kw))
+      );
+      if (matching.length > 0) {
+        // Convert sentiment to 0-1 scale: positive=0.8, neutral=0.5, negative=0.2
+        // Then blend with actual sentimentScore if available
+        const avg = matching.reduce((sum: number, h: any) => {
+          const base = h.sentiment === "positive" ? 0.8 : h.sentiment === "negative" ? 0.2 : 0.5;
+          const score = h.sentimentScore != null ? h.sentimentScore / 100 : base;
+          return sum + score;
+        }, 0) / matching.length;
+        result[sym] = avg;
+      } else {
+        // No matching headlines — use price momentum as proxy
+        result[sym] = 0.5;
+      }
+    }
+    return result;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [headlines]);
+
   // Last update timestamp
   const lastUpdated = useMemo(() => {
     if (topTickers.length === 0) return null;
@@ -92,7 +127,7 @@ export default function HomePage() {
                     fundingRate={Number(ticker.funding_rate ?? 0)}
                     volume24h={Number(ticker.turnover_usd ?? 0)}
                     maxVolume={maxVolume}
-                    sentimentScore={Number(ticker.sentiment_score ?? 0.5)}
+                    sentimentScore={tokenSentiments[ticker.symbol as string] ?? 0.5}
                     sparklineData={sparklines[ticker.symbol as string]}
                     onMoreInfo={() =>
                       router.push(`/research?token=${ticker.symbol}`)
