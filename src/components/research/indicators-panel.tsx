@@ -67,7 +67,7 @@ function SmaRow({ label, smaPrice, currentPrice, isClosest, tooltip }: {
   return (
     <div className={`flex items-center justify-between py-3 group/row rounded-lg px-3 -mx-3 transition-all ${isClosest ? "bg-primary/[0.04] border border-primary/10" : "hover:bg-white/[0.02]"}`}>
       <div className="flex items-center gap-2">
-        <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">{label}</span>
+        <span className="text-[13px] text-[#CBD5E1] group-hover/row:text-text-primary transition-colors">{label}</span>
         <Tooltip text={tooltip} />
         {isClosest && <span className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">Closest</span>}
       </div>
@@ -76,7 +76,7 @@ function SmaRow({ label, smaPrice, currentPrice, isClosest, tooltip }: {
           {isAbove ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
           {isAbove ? "Above" : "Below"} {Math.abs(diff).toFixed(1)}%
         </span>
-        <span className={`font-mono tabular-nums text-[13px] font-semibold ${isAbove ? "text-gain" : "text-loss"}`}>${formatPrice(smaPrice)}</span>
+        <span className={`font-mono tabular-nums text-sm font-bold ${isAbove ? "text-gain glow-green" : "text-loss glow-red"}`}>${formatPrice(smaPrice)}</span>
       </div>
     </div>
   );
@@ -184,7 +184,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                         <RsiGaugeCircular value={indicators.rsi} />
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-[12px] text-text-tertiary">RSI (14)</span>
+                            <span className="text-[13px] font-medium text-[#CBD5E1]">RSI (14)</span>
                             <Tooltip text="RSI > 70 = Overbought, RSI < 30 = Oversold" />
                           </div>
                           <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold" style={{ backgroundColor: rsiInfo.bg, color: rsiInfo.color }}>
@@ -196,7 +196,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                     {indicators.macdSignal && macdStyle && (
                       <div className="flex items-center justify-between py-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-[12px] text-text-tertiary">MACD (12,26,9)</span>
+                          <span className="text-[13px] font-medium text-[#CBD5E1]">MACD (12,26,9)</span>
                           <Tooltip text="Moving Average Convergence Divergence crossover signal" />
                         </div>
                         <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold border ${macdStyle.bg} ${macdStyle.text} ${macdStyle.border}`}>
@@ -215,7 +215,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-text-tertiary/60 mb-3">Trend Strength</p>
                         <div className="flex items-center justify-between py-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-[12px] text-text-tertiary">ADX (14)</span>
+                            <span className="text-[13px] font-medium text-[#CBD5E1]">ADX (14)</span>
                             <Tooltip text="ADX > 25 = strong trend, < 20 = ranging/weak" />
                           </div>
                           <div className="flex items-center gap-3">
@@ -283,10 +283,10 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                 ].map(row => (
                   <div key={row.label} className="flex items-center justify-between py-3 group/row deriv-row px-3 -mx-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-[12px] text-[#94A3B8] group-hover/row:text-text-secondary transition-colors">{row.label}</span>
+                      <span className="text-[13px] text-[#CBD5E1] group-hover/row:text-text-primary transition-colors">{row.label}</span>
                       <Tooltip text={row.tooltip} />
                     </div>
-                    <span className={`font-mono tabular-nums text-[13px] font-semibold deriv-value ${row.color} ${row.color.includes("gain") ? "glow-green" : row.color.includes("loss") ? "glow-red" : ""}`}>{row.value}</span>
+                    <span className={`font-mono tabular-nums text-sm font-bold deriv-value ${row.color} ${row.color.includes("gain") ? "glow-green" : row.color.includes("loss") ? "glow-red" : ""}`}>{row.value}</span>
                   </div>
                 ))}
               </div>
@@ -332,7 +332,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                 const isNearPrice = Math.abs((markPrice - level.value) / level.value) < 0.005;
                 return (
                   <div key={level.label} className={`rounded-xl border p-4 text-center transition-all ${level.bg} ${level.border} ${isNearPrice ? "ring-1 ring-primary/30 shadow-[0_0_12px_rgba(245,158,11,0.08)]" : ""}`}>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-text-tertiary mb-2">{level.label}</p>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">{level.label}</p>
                     <p className={`font-mono tabular-nums text-sm font-bold ${level.color}`}>${formatPrice(level.value)}</p>
                     {isNearPrice && <p className="text-[9px] font-semibold text-primary mt-1.5">◆ Near Price</p>}
                   </div>
