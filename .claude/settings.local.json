@@ -27,7 +27,8 @@
       "WebSearch",
       "WebFetch(domain:qubstudio.com)",
       "WebFetch(domain:www.delta.exchange)",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "mcp__beda7a91-042b-47a7-acea-e069bca217ba__get_deployment"
     ]
   }
 }

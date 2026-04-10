@@ -228,15 +228,17 @@ export function ResearchPanel() {
   }
 
   const tokenInfo = TOKEN_INFO[selectedToken];
-  const price = parseFloat(ticker.close);
-  const open = parseFloat(ticker.open);
-  const change24h = price - open;
-  const changePct24h = open !== 0 ? (change24h / open) * 100 : 0;
-  const fundingRate = parseFloat(ticker.funding_rate);
-  const oiUsd = parseFloat(ticker.oi_value_usd);
-  const volume = parseFloat(ticker.turnover_usd);
-  const markPrice = parseFloat(ticker.mark_price);
-  const spotPrice = parseFloat(ticker.spot_price);
+  // ticker can be either DeltaTicker (string fields) or TokenCardData (number fields)
+  // Handle both formats gracefully
+  const t = ticker as Record<string, unknown>;
+  const price = Number(t.price ?? t.close ?? 0);
+  const change24h = Number(t.priceChange24h ?? 0) || (price - Number(t.open ?? price));
+  const changePct24h = Number(t.priceChangePct24h ?? 0) || (Number(t.open) ? ((price - Number(t.open)) / Number(t.open)) * 100 : 0);
+  const fundingRate = Number(t.fundingRate ?? t.funding_rate ?? 0);
+  const oiUsd = Number(t.openInterestUsd ?? t.oi_value_usd ?? 0);
+  const volume = Number(t.turnoverUsd ?? t.turnover_usd ?? 0);
+  const markPrice = Number(t.markPrice ?? t.mark_price ?? 0);
+  const spotPrice = Number(t.spotPrice ?? t.spot_price ?? 0);
 
   return (
     <div className="space-y-5">

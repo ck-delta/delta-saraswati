@@ -23,9 +23,10 @@ export function TokenSelector() {
 
   useEffect(() => {
     if (!selectedToken && allTickers.length > 0) {
-      selectToken('BTCUSD');
+      const defaultToken = allTickers.find(t => t.symbol === 'BTCUSDT')?.symbol ?? allTickers[0]?.symbol;
+      if (defaultToken) selectToken(defaultToken);
     }
-  }, [selectedToken, allTickers.length, selectToken]);
+  }, [selectedToken, allTickers.length, selectToken, allTickers]);
 
   const filteredTokens = useMemo(() => {
     const perps = allTickers.filter(

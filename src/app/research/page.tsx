@@ -29,12 +29,19 @@ function ResearchContent() {
     }
   }, [allTickers.length, fetchMarketData]);
 
+  // Auto-select token from URL param or default to BTCUSDT
   useEffect(() => {
     const tokenParam = searchParams.get('token');
     if (tokenParam && tokenParam !== selectedToken) {
       selectToken(tokenParam.toUpperCase());
+    } else if (!selectedToken && allTickers.length > 0) {
+      // Default to BTCUSDT when no token is selected and tickers are loaded
+      const defaultToken = allTickers.find(t => t.symbol === 'BTCUSDT') ? 'BTCUSDT' : allTickers[0]?.symbol;
+      if (defaultToken) {
+        selectToken(defaultToken);
+      }
     }
-  }, [searchParams, selectedToken, selectToken]);
+  }, [searchParams, selectedToken, selectToken, allTickers]);
 
   const handleTimeRangeChange = useCallback(
     (range: string) => {
