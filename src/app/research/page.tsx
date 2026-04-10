@@ -3,7 +3,7 @@
 import { useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Zap } from "lucide-react";
+import { Zap, RefreshCw, BarChart3 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedPage, AnimatedSection } from "@/lib/motion/components";
@@ -19,7 +19,11 @@ import { TradeModal } from "@/components/shared/trade-modal";
 
 const PriceChart = dynamic(() => import("@/components/research/price-chart"), {
   ssr: false,
-  loading: () => <Skeleton className="h-[440px] w-full rounded-lg" />,
+  loading: () => (
+    <div className="kpi-card rounded-xl overflow-hidden">
+      <Skeleton className="h-[460px] w-full" />
+    </div>
+  ),
 });
 
 function ResearchContent() {
@@ -29,7 +33,7 @@ function ResearchContent() {
   const [selectedToken, setSelectedToken] = useState(initialToken);
   const [resolution, setResolution] = useState("1d");
 
-  const { tickers, isLoading: tickersLoading } = useDeltaTickers();
+  const { tickers, isLoading: tickersLoading } = useDeltaTickers("major");
   const { ticker, indicators, isLoading: detailLoading } = useTokenDetail(selectedToken);
   const openTradeModal = useAppStore((s) => s.openTradeModal);
 
@@ -43,31 +47,45 @@ function ResearchContent() {
   );
 
   return (
-    <AnimatedPage className="space-y-6">
+    <AnimatedPage className="space-y-7">
       {/* Header */}
       <AnimatedSection>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">Research</h1>
-            <p className="text-sm text-text-secondary">
-              In-depth token analysis and market data
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center size-10 rounded-xl bg-primary/10 shadow-[0_0_16px_rgba(245,158,11,0.08)]">
+              <BarChart3 className="size-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-text-primary tracking-tight">Research</h1>
+              <p className="text-xs text-text-tertiary mt-0.5">
+                In-depth token analysis and market data
+              </p>
+            </div>
           </div>
-          <TokenSelector
-            tokens={tokenList}
-            selected={selectedToken}
-            onSelect={setSelectedToken}
-          />
+          <div className="flex items-center gap-3">
+            <TokenSelector
+              tokens={tokenList}
+              selected={selectedToken}
+              onSelect={setSelectedToken}
+            />
+            <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-text-tertiary">
+              <RefreshCw className="size-2.5" />
+              <span>Live</span>
+            </div>
+          </div>
         </div>
+        <div className="gradient-separator mt-5" />
       </AnimatedSection>
 
-      {/* Price Chart */}
+      {/* Price Chart — in a premium card wrapper */}
       <AnimatedSection>
-        <PriceChart
-          symbol={selectedToken}
-          resolution={resolution}
-          onResolutionChange={setResolution}
-        />
+        <div className="kpi-card rounded-xl overflow-hidden">
+          <PriceChart
+            symbol={selectedToken}
+            resolution={resolution}
+            onResolutionChange={setResolution}
+          />
+        </div>
       </AnimatedSection>
 
       {/* Token Stats Row */}
@@ -98,10 +116,10 @@ function ResearchContent() {
       <AnimatedSection>
         <Button
           size="lg"
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[var(--shadow-glow-sm)]"
+          className="w-full h-12 text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl trade-btn-shine shadow-[0_0_20px_rgba(245,158,11,0.12)] hover:shadow-[0_0_32px_rgba(245,158,11,0.2)] transition-shadow"
           onClick={() => openTradeModal(selectedToken)}
         >
-          <Zap className="size-4 mr-1.5" />
+          <Zap className="size-4.5 mr-2" />
           Trade {selectedToken} Now
         </Button>
       </AnimatedSection>
@@ -115,9 +133,11 @@ export default function ResearchPage() {
   return (
     <Suspense
       fallback={
-        <div className="space-y-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-[440px] w-full rounded-lg" />
+        <div className="space-y-7">
+          <Skeleton className="h-10 w-48" />
+          <div className="kpi-card rounded-xl overflow-hidden">
+            <Skeleton className="h-[460px] w-full" />
+          </div>
         </div>
       }
     >

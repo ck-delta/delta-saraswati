@@ -2,8 +2,9 @@ import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-export function useDeltaTickers() {
-  const { data, error, isLoading, mutate } = useSWR("/api/delta/tickers", fetcher, {
+export function useDeltaTickers(filter?: "major") {
+  const url = filter ? `/api/delta/tickers?filter=${filter}` : "/api/delta/tickers";
+  const { data, error, isLoading, mutate } = useSWR(url, fetcher, {
     refreshInterval: 30000,
     revalidateOnFocus: false,
   });
