@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchDeltaCandles } from "@/lib/api/delta";
-import { calculateRSI, calculateMACD, calculateSMA } from "@/lib/indicators";
+import {
+  calculateRSI,
+  calculateMACD,
+  classifyMACD,
+  calculateSMA,
+  calculateADX,
+  calculatePivotPoints,
+  generateTrendSummary,
+} from "@/lib/indicators";
 import { cached } from "@/lib/cache";
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ symbol: string }> }) {
@@ -12,14 +20,49 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
     const { data } = await cached(`delta:candles:${symbol}:1h`, 300, () => fetchDeltaCandles(symbol, "1h", start, end));
     const candles = data as any[];
-    const closes = candles.map((c: any) => c.close);
+
+    // Extract OHLC arrays
+    const highs = candles.map((c: any) => Number(c.high));
+    const lows = candles.map((c: any) => Number(c.low));
+    const closes = candles.map((c: any) => Number(c.close));
+
+    // Core indicators
+    const rsi = calculateRSI(closes);
+    const macd = calculateMACD(closes);
+    const sma20 = calculateSMA(closes, 20);
+    const sma50 = calculateSMA(closes, 50);
+    const sma200 = calculateSMA(closes, 200);
+
+    // MACD signal classification
+    const macdSignal = macd ? classifyMACD(macd) : null;
+
+    // ADX from OHLC
+    const adx = calculateADX(highs, lows, closes);
+
+    // Pivot points from previous day's OHLC (24-48h ago candles)
+    let pivotPoints = null;
+    if (candles.length >= 48) {
+      const prevDayCandles = candles.slice(-48, -24);
+      const prevHigh = Math.max(...prevDayCandles.map((c: any) => Number(c.high)));
+      const prevLow = Math.min(...prevDayCandles.map((c: any) => Number(c.low)));
+      const prevClose = Number(prevDayCandles[prevDayCandles.length - 1].close);
+      pivotPoints = calculatePivotPoints(prevHigh, prevLow, prevClose);
+    }
+
+    // Trend summary
+    const currentPrice = closes[closes.length - 1];
+    const trendSummary = generateTrendSummary(currentPrice, sma20, sma50, sma200);
 
     const indicators = {
-      rsi: calculateRSI(closes),
-      macd: calculateMACD(closes),
-      sma20: calculateSMA(closes, 20),
-      sma50: calculateSMA(closes, 50),
-      sma200: calculateSMA(closes, 200),
+      rsi,
+      macd: macd ? { value: macd.value, signal: macd.signal, histogram: macd.histogram } : null,
+      macdSignal,
+      sma20,
+      sma50,
+      sma200,
+      adx,
+      pivotPoints,
+      trendSummary,
     };
 
     return NextResponse.json({ success: true, data: indicators, timestamp: Date.now() });
