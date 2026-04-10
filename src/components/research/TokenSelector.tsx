@@ -6,9 +6,6 @@ import { useResearchStore } from '@/stores/research-store';
 import { TOKEN_INFO } from '@/lib/constants';
 import { formatPrice, formatPercent } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Search, ChevronDown, X } from 'lucide-react';
 
 export function TokenSelector() {
@@ -18,28 +15,23 @@ export function TokenSelector() {
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
-  // Fetch tickers on mount if not loaded
   useEffect(() => {
     if (allTickers.length === 0 && !loadingMarket) {
       fetchMarketData();
     }
   }, [allTickers.length, loadingMarket, fetchMarketData]);
 
-  // Default to BTCUSD if nothing selected and tickers are loaded
   useEffect(() => {
     if (!selectedToken && allTickers.length > 0) {
       selectToken('BTCUSD');
     }
   }, [selectedToken, allTickers.length, selectToken]);
 
-  // Filter perpetual futures and apply search
   const filteredTokens = useMemo(() => {
     const perps = allTickers.filter(
       (t) => t.symbol.endsWith('USD') || t.symbol.endsWith('USDT'),
     );
-
     if (!search.trim()) return perps;
-
     const q = search.toLowerCase();
     return perps.filter(
       (t) =>
@@ -49,7 +41,6 @@ export function TokenSelector() {
     );
   }, [allTickers, search]);
 
-  // Find selected token data for the header display
   const selectedData = useMemo(
     () => allTickers.find((t) => t.symbol === selectedToken),
     [allTickers, selectedToken],
@@ -64,11 +55,11 @@ export function TokenSelector() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-[#0d0e10]">
       {/* Header */}
-      <div className="p-4 border-b border-[#2a2a32]">
-        <h2 className="text-xs uppercase tracking-wider text-[#6b7280] mb-2">
-          Research Token
+      <div className="p-4 border-b border-[#1e2024]">
+        <h2 className="text-xs uppercase tracking-wider text-[#555a65] mb-2">
+          Select Token
         </h2>
 
         {/* Selected token display / toggle */}
@@ -76,30 +67,30 @@ export function TokenSelector() {
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
             'w-full flex items-center justify-between gap-2 p-3 rounded-lg',
-            'bg-[#1a1a1f] border border-[#2a2a32] hover:border-[#fd7d02]/50',
-            'transition-colors cursor-pointer text-left',
+            'bg-[#111214] border border-[#1e2024] hover:border-[#2a2d33]',
+            'transition-colors duration-150 cursor-pointer text-left',
           )}
         >
           {selectedData ? (
             <div className="flex flex-col gap-0.5 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-white truncate">
+                <span className="text-sm font-semibold text-[#eaedf3] truncate">
                   {selectedData.symbol}
                 </span>
-                <span className="text-xs text-[#6b7280] truncate">
+                <span className="text-xs text-[#555a65] truncate">
                   {tokenInfo?.name ?? selectedData.name}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-white">
+                <span className="text-xs font-mono text-[#eaedf3]">
                   {formatPrice(selectedData.price)}
                 </span>
                 <span
                   className={cn(
                     'text-xs font-mono',
                     selectedData.priceChangePct24h >= 0
-                      ? 'text-[#00c076]'
-                      : 'text-[#ff4d4f]',
+                      ? 'text-[#22c55e]'
+                      : 'text-[#ef4444]',
                   )}
                 >
                   {formatPercent(selectedData.priceChangePct24h)}
@@ -107,11 +98,11 @@ export function TokenSelector() {
               </div>
             </div>
           ) : (
-            <span className="text-sm text-[#6b7280]">Select a token...</span>
+            <span className="text-sm text-[#555a65]">Select a token...</span>
           )}
           <ChevronDown
             className={cn(
-              'h-4 w-4 text-[#6b7280] shrink-0 transition-transform',
+              'h-4 w-4 text-[#555a65] shrink-0 transition-transform duration-150',
               isOpen && 'rotate-180',
             )}
           />
@@ -122,20 +113,20 @@ export function TokenSelector() {
       {isOpen && (
         <div className="flex flex-col flex-1 min-h-0">
           {/* Search input */}
-          <div className="p-3 border-b border-[#2a2a32]">
+          <div className="p-3 border-b border-[#1e2024]">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6b7280]" />
-              <Input
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#555a65]" />
+              <input
                 placeholder="Search tokens..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 pr-8 h-8 text-xs bg-[#1a1a1f] border-[#2a2a32] text-white placeholder:text-[#6b7280] focus-visible:ring-[#fd7d02]/50"
                 autoFocus
+                className="w-full pl-8 pr-8 h-8 text-sm bg-[#111214] border border-[#1e2024] rounded-lg text-[#eaedf3] placeholder-[#555a65] outline-none focus:border-[#f7931a]/50 transition-colors"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6b7280] hover:text-white"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#555a65] hover:text-[#eaedf3]"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -144,16 +135,16 @@ export function TokenSelector() {
           </div>
 
           {/* Token list */}
-          <ScrollArea className="flex-1">
+          <div className="flex-1 overflow-y-auto">
             <div className="p-2">
               {loadingMarket ? (
                 <div className="space-y-2 p-2">
                   {Array.from({ length: 8 }).map((_, i) => (
-                    <Skeleton key={i} className="h-10 w-full bg-[#2a2a32]" />
+                    <div key={i} className="h-10 w-full rounded-lg bg-[#111214] animate-pulse" />
                   ))}
                 </div>
               ) : filteredTokens.length === 0 ? (
-                <p className="text-xs text-[#6b7280] text-center py-4">
+                <p className="text-xs text-[#555a65] text-center py-4">
                   No tokens found
                 </p>
               ) : (
@@ -166,33 +157,45 @@ export function TokenSelector() {
                       key={token.symbol}
                       onClick={() => handleSelect(token.symbol)}
                       className={cn(
-                        'w-full flex items-center justify-between p-2.5 rounded-md text-left',
-                        'hover:bg-[#222228] transition-colors cursor-pointer',
-                        isSelected && 'bg-[#222228] border border-[#fd7d02]/30',
+                        'w-full flex items-center justify-between p-2.5 rounded-lg text-left',
+                        'transition-colors duration-150 cursor-pointer',
+                        isSelected
+                          ? 'bg-[#f7931a]/8 text-[#f7931a] border-l-2 border-[#f7931a]'
+                          : 'text-[#8b8f99] hover:bg-[#111214] hover:text-[#eaedf3]',
                       )}
                     >
                       <div className="flex flex-col gap-0.5 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-medium text-white truncate">
+                          <span
+                            className={cn(
+                              'text-sm font-medium truncate',
+                              isSelected ? 'text-[#f7931a]' : 'text-[#eaedf3]',
+                            )}
+                          >
                             {token.symbol}
                           </span>
                           {info && (
-                            <span className="text-[10px] text-[#6b7280] truncate">
+                            <span className="text-[10px] text-[#555a65] truncate">
                               {info.name}
                             </span>
                           )}
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-0.5 shrink-0">
-                        <span className="text-xs font-mono text-white">
+                        <span
+                          className={cn(
+                            'text-xs font-mono',
+                            isSelected ? 'text-[#f7931a]' : 'text-[#eaedf3]',
+                          )}
+                        >
                           {formatPrice(token.price)}
                         </span>
                         <span
                           className={cn(
                             'text-[10px] font-mono',
                             token.priceChangePct24h >= 0
-                              ? 'text-[#00c076]'
-                              : 'text-[#ff4d4f]',
+                              ? 'text-[#22c55e]'
+                              : 'text-[#ef4444]',
                           )}
                         >
                           {formatPercent(token.priceChangePct24h)}
@@ -203,18 +206,18 @@ export function TokenSelector() {
                 })
               )}
             </div>
-          </ScrollArea>
+          </div>
         </div>
       )}
 
       {/* When closed, show a compact scrollable list */}
       {!isOpen && (
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto">
           <div className="p-2">
             {loadingMarket ? (
               <div className="space-y-2 p-2">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <Skeleton key={i} className="h-8 w-full bg-[#2a2a32]" />
+                  <div key={i} className="h-8 w-full rounded-lg bg-[#111214] animate-pulse" />
                 ))}
               </div>
             ) : (
@@ -228,15 +231,17 @@ export function TokenSelector() {
                       key={token.symbol}
                       onClick={() => handleSelect(token.symbol)}
                       className={cn(
-                        'w-full flex items-center justify-between p-2 rounded-md text-left',
-                        'hover:bg-[#222228] transition-colors cursor-pointer',
-                        isSelected && 'bg-[#222228] border-l-2 border-[#fd7d02]',
+                        'w-full flex items-center justify-between p-2 rounded-lg text-left',
+                        'transition-colors duration-150 cursor-pointer',
+                        isSelected
+                          ? 'bg-[#f7931a]/8 border-l-2 border-[#f7931a] text-[#f7931a]'
+                          : 'text-[#8b8f99] hover:bg-[#111214] hover:text-[#eaedf3]',
                       )}
                     >
                       <span
                         className={cn(
                           'text-xs truncate',
-                          isSelected ? 'text-white font-medium' : 'text-[#9ca3af]',
+                          isSelected ? 'text-[#f7931a] font-medium' : '',
                         )}
                       >
                         {token.symbol}
@@ -245,8 +250,8 @@ export function TokenSelector() {
                         className={cn(
                           'text-[10px] font-mono shrink-0',
                           token.priceChangePct24h >= 0
-                            ? 'text-[#00c076]'
-                            : 'text-[#ff4d4f]',
+                            ? 'text-[#22c55e]'
+                            : 'text-[#ef4444]',
                         )}
                       >
                         {formatPercent(token.priceChangePct24h)}
@@ -256,7 +261,7 @@ export function TokenSelector() {
                 })
             )}
           </div>
-        </ScrollArea>
+        </div>
       )}
     </div>
   );

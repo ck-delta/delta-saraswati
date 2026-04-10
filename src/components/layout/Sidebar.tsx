@@ -1,17 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Home,
-  Search,
-  MessageCircle,
-  Sun,
-  Moon,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react';
+import { Home, Search, MessageCircle } from 'lucide-react';
 import { useUIStore } from '@/stores/ui-store';
 import {
   Sheet,
@@ -30,33 +21,56 @@ const NAV_ITEMS = [
 ] as const;
 
 // ---------------------------------------------------------------------------
-// Shared sidebar content (used by both desktop & mobile)
+// Delta triangle logo SVG
 // ---------------------------------------------------------------------------
 
-function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
+function DeltaLogo() {
+  return (
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="flex-shrink-0"
+    >
+      <path
+        d="M16 3L29 27H3L16 3Z"
+        fill="#f7931a"
+        fillOpacity="0.9"
+      />
+      <path
+        d="M16 9L23 24H9L16 9Z"
+        fill="#08090a"
+      />
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Shared sidebar content (desktop & mobile)
+// ---------------------------------------------------------------------------
+
+function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { theme, toggleTheme, toggleSidebar } = useUIStore();
 
   return (
-    <>
-      {/* ---- Logo ---- */}
-      <div className="flex items-center gap-2.5 px-4 h-14 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
-        <img
-          src="/logo.svg"
-          alt="Delta Saraswati"
-          width={32}
-          height={32}
-          className="flex-shrink-0 w-8 h-8"
-        />
-        {!collapsed && (
-          <span className="text-sm font-semibold tracking-wide" style={{ color: 'var(--foreground)' }}>
+    <div className="flex flex-col h-full">
+      {/* ---- Logo area ---- */}
+      <div className="flex items-center gap-3 px-5 h-14 border-b border-[#1e2024]">
+        <DeltaLogo />
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-xs font-semibold tracking-widest uppercase text-[#8b8f99]">
+            Delta
+          </span>
+          <span className="text-sm font-semibold tracking-wide text-[#eaedf3]">
             Saraswati
           </span>
-        )}
+        </div>
       </div>
 
       {/* ---- Navigation ---- */}
-      <nav className="flex-1 flex flex-col gap-1 px-2 py-4">
+      <nav className="flex-1 flex flex-col gap-0.5 px-3 py-4">
         {NAV_ITEMS.map((item) => {
           const isActive =
             item.href === '/'
@@ -72,103 +86,57 @@ function SidebarContent({ collapsed, onNavigate }: { collapsed: boolean; onNavig
               onClick={onNavigate}
               className={`
                 group relative flex items-center gap-3 rounded-lg px-3 py-2.5
-                transition-smooth transition-colors duration-150
-                ${isActive
-                  ? 'bg-delta-surface text-delta-accent'
-                  : 'text-delta-text-secondary hover:bg-delta-surface hover:text-[var(--foreground)]'
+                text-sm font-medium transition-colors duration-150
+                ${
+                  isActive
+                    ? 'text-[#f7931a] bg-[#f7931a]/[0.08]'
+                    : 'text-[#8b8f99] hover:text-[#eaedf3] hover:bg-[#181a1d]'
                 }
               `}
-              title={collapsed ? item.label : undefined}
             >
+              {/* Active left border indicator */}
               {isActive && (
                 <span
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-delta-accent"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-5 rounded-r-full bg-[#f7931a]"
                   aria-hidden
                 />
               )}
 
               <Icon
-                size={20}
-                className={`flex-shrink-0 ${isActive ? 'text-delta-accent' : ''}`}
+                size={18}
+                className={`flex-shrink-0 ${isActive ? 'text-[#f7931a]' : 'text-[#555a65] group-hover:text-[#8b8f99]'}`}
               />
 
-              {!collapsed && (
-                <span className="text-sm font-medium truncate">{item.label}</span>
-              )}
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* ---- Bottom controls ---- */}
-      <div className="flex flex-col gap-1 px-2 pb-4 border-t pt-3" style={{ borderColor: 'var(--sidebar-border)' }}>
-        <button
-          onClick={toggleTheme}
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-delta-text-secondary hover:bg-delta-surface hover:text-[var(--foreground)] transition-smooth transition-colors duration-150"
-          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-        >
-          {theme === 'dark' ? (
-            <Sun size={20} className="flex-shrink-0" />
-          ) : (
-            <Moon size={20} className="flex-shrink-0" />
-          )}
-          {!collapsed && (
-            <span className="text-sm font-medium">
-              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-            </span>
-          )}
-        </button>
-
-        {/* Collapse toggle — only on desktop */}
-        {onNavigate === undefined && (
-          <button
-            onClick={toggleSidebar}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-delta-text-secondary hover:bg-delta-surface hover:text-[var(--foreground)] transition-smooth transition-colors duration-150"
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? (
-              <ChevronRight size={20} className="flex-shrink-0" />
-            ) : (
-              <ChevronLeft size={20} className="flex-shrink-0" />
-            )}
-            {!collapsed && (
-              <span className="text-sm font-medium">Collapse</span>
-            )}
-          </button>
-        )}
+      {/* ---- Bottom section ---- */}
+      <div className="px-5 pb-5 border-t border-[#1e2024] pt-4">
+        <p className="text-[10px] font-medium tracking-wide uppercase text-[#555a65] leading-relaxed">
+          Powered by Delta Exchange
+        </p>
       </div>
-    </>
+    </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Desktop Sidebar (hidden on mobile)
+// Desktop Sidebar
 // ---------------------------------------------------------------------------
 
 export default function Sidebar() {
-  const { sidebarCollapsed, hydrated, hydrate } = useUIStore();
-
-  useEffect(() => {
-    if (!hydrated) hydrate();
-  }, [hydrated, hydrate]);
-
-  const width = sidebarCollapsed ? 'w-16' : 'w-60';
-
   return (
-    <aside
-      className={`${width} hidden md:flex flex-shrink-0 h-screen sticky top-0 flex-col border-r transition-[width] duration-200 ease-in-out`}
-      style={{
-        backgroundColor: 'var(--sidebar)',
-        borderColor: 'var(--sidebar-border)',
-      }}
-    >
-      <SidebarContent collapsed={sidebarCollapsed} />
+    <aside className="w-60 hidden md:flex flex-shrink-0 h-screen sticky top-0 flex-col bg-[#0d0e10] border-r border-[#1e2024]">
+      <SidebarContent />
     </aside>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Mobile Sidebar (Sheet overlay, visible only on mobile)
+// Mobile Sidebar (Sheet overlay)
 // ---------------------------------------------------------------------------
 
 export function MobileSidebar() {
@@ -180,14 +148,10 @@ export function MobileSidebar() {
       <SheetContent
         side="left"
         showCloseButton={false}
-        className="w-64 p-0 flex flex-col"
-        style={{
-          backgroundColor: 'var(--sidebar)',
-          borderColor: 'var(--sidebar-border)',
-        }}
+        className="w-64 p-0 flex flex-col bg-[#0d0e10] border-r border-[#1e2024]"
       >
         <SheetTitle className="sr-only">Navigation menu</SheetTitle>
-        <SidebarContent collapsed={false} onNavigate={() => setMobileMenuOpen(false)} />
+        <SidebarContent onNavigate={() => setMobileMenuOpen(false)} />
       </SheetContent>
     </Sheet>
   );

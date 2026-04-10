@@ -2,8 +2,6 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Bot, User, Loader2 } from 'lucide-react';
 
 interface ResearchChatBoxProps {
@@ -22,14 +20,12 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // Reset messages when token changes
   useEffect(() => {
     setMessages([]);
   }, [tokenSymbol]);
@@ -43,9 +39,8 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
 
       const userMessage: Message = { role: 'user', content: trimmed };
 
-      // Keep only last Q+A pair plus the new question (max 2 visible messages + streaming)
       setMessages((prev) => {
-        const last = prev.slice(-2); // keep last Q+A
+        const last = prev.slice(-2);
         return [...last, userMessage];
       });
       setInput('');
@@ -74,7 +69,6 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
         const decoder = new TextDecoder();
         let assistantContent = '';
 
-        // Add empty assistant message that we'll stream into
         setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
         while (true) {
@@ -82,20 +76,17 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
           if (done) break;
 
           const chunk = decoder.decode(value, { stream: true });
-
-          // Parse SSE lines
           const lines = chunk.split('\n');
+
           for (const line of lines) {
             if (!line.startsWith('data: ')) continue;
             const data = line.slice(6);
-
             if (data === '[DONE]') break;
 
             try {
               const parsed = JSON.parse(data);
               if (parsed.type === 'text' && parsed.content) {
                 assistantContent += parsed.content;
-                // Update the last assistant message
                 setMessages((prev) => {
                   const updated = [...prev];
                   const lastIdx = updated.length - 1;
@@ -109,7 +100,6 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
                 });
               }
             } catch {
-              // Non-JSON line or partial data, accumulate as plain text
               if (data && data !== '[DONE]') {
                 assistantContent += data;
                 setMessages((prev) => {
@@ -150,16 +140,15 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
     [input, isStreaming, tokenSymbol],
   );
 
-  // Only show last 2 messages (last question + answer)
   const visibleMessages = messages.slice(-2);
 
   return (
-    <div className="bg-[#1a1a1f] border border-[#2a2a32] rounded-lg overflow-hidden">
+    <div className="bg-[#111214] border border-[#1e2024] rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="px-4 py-2 border-b border-[#2a2a32]">
+      <div className="px-4 py-2.5 border-b border-[#1e2024]">
         <div className="flex items-center gap-2">
-          <Bot className="h-3.5 w-3.5 text-[#fd7d02]" />
-          <span className="text-xs uppercase tracking-wider text-[#6b7280]">
+          <Bot className="h-3.5 w-3.5 text-[#f7931a]" />
+          <span className="text-xs uppercase tracking-wider text-[#555a65]">
             AI Research Assistant
           </span>
         </div>
@@ -172,19 +161,19 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
             <div key={i} className="flex gap-2">
               <div className="shrink-0 mt-0.5">
                 {msg.role === 'user' ? (
-                  <User className="h-3.5 w-3.5 text-[#9ca3af]" />
+                  <User className="h-3.5 w-3.5 text-[#8b8f99]" />
                 ) : (
-                  <Bot className="h-3.5 w-3.5 text-[#fd7d02]" />
+                  <Bot className="h-3.5 w-3.5 text-[#f7931a]" />
                 )}
               </div>
               <div
                 className={cn(
                   'text-xs leading-relaxed',
-                  msg.role === 'user' ? 'text-[#9ca3af]' : 'text-white',
+                  msg.role === 'user' ? 'text-[#8b8f99]' : 'text-[#eaedf3]',
                 )}
               >
                 {msg.content || (
-                  <span className="flex items-center gap-1 text-[#6b7280]">
+                  <span className="flex items-center gap-1 text-[#555a65]">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Thinking...
                   </span>
@@ -196,17 +185,19 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
       )}
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-3 border-t border-[#2a2a32]">
+      <form onSubmit={handleSubmit} className="p-3 border-t border-[#1e2024]">
         <div className="relative">
-          <Input
+          <input
             ref={inputRef}
             placeholder={`Ask anything about ${tokenSymbol}...`}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={isStreaming}
             className={cn(
-              'pr-10 h-9 text-xs bg-[#101013] border-[#2a2a32] text-white',
-              'placeholder:text-[#6b7280] focus-visible:ring-[#fd7d02]/50',
+              'w-full pr-10 h-9 px-3 text-xs bg-[#181a1d] border border-[#1e2024] rounded-lg',
+              'text-[#eaedf3] placeholder-[#555a65] outline-none',
+              'focus:border-[#f7931a]/50 transition-colors duration-150',
+              'disabled:opacity-50',
             )}
           />
           <button
@@ -214,10 +205,10 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
             disabled={isStreaming || !input.trim()}
             className={cn(
               'absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-md',
-              'transition-colors cursor-pointer',
+              'transition-colors duration-150 cursor-pointer',
               input.trim() && !isStreaming
-                ? 'text-[#fd7d02] hover:bg-[#fd7d02]/10'
-                : 'text-[#6b7280]',
+                ? 'text-[#f7931a] hover:bg-[#f7931a]/10'
+                : 'text-[#555a65]',
             )}
           >
             {isStreaming ? (

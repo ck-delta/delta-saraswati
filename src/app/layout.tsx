@@ -41,20 +41,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      // No 'dark' class needed — CSS custom properties default to dark theme.
-      // The light theme is toggled by adding the 'light' class via ui-store.
+      className={`${geistSans.variable} ${geistMono.variable} h-full`}
       suppressHydrationWarning
     >
-      <body className="h-full bg-background text-foreground">
+      <body className="h-full bg-[#08090a] text-[#eaedf3] antialiased">
         <div className="flex h-full">
-          {/* Fixed left sidebar (desktop only — hidden on mobile via Sidebar's own classes) */}
+          {/* Desktop sidebar — fixed left column */}
           <Sidebar />
 
           {/* Mobile sidebar overlay */}
           <MobileSidebar />
 
-          {/* Main content area */}
+          {/* Main content area: header + scrollable body */}
           <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
             <Header />
 

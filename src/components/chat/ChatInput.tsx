@@ -21,12 +21,10 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
 
   const isDisabled = disabled || isStreaming;
 
-  // Auto-resize textarea
   const adjustHeight = useCallback(() => {
     const ta = textareaRef.current;
     if (!ta) return;
     ta.style.height = 'auto';
-    // Clamp between 1 line (~40px) and 5 lines (~160px)
     const maxHeight = 160;
     ta.style.height = `${Math.min(ta.scrollHeight, maxHeight)}px`;
     ta.style.overflowY = ta.scrollHeight > maxHeight ? 'auto' : 'hidden';
@@ -41,7 +39,6 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
     if (!trimmed || isDisabled) return;
     onSend(trimmed);
     setValue('');
-    // Reset textarea height after clearing
     requestAnimationFrame(() => {
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -60,7 +57,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   );
 
   return (
-    <div className="border-t border-[#2a2a32] bg-[#101013] px-4 pb-3 pt-3">
+    <div className="relative bg-[#111214] border-t border-[#1e2024] px-4 py-3">
       <div className="mx-auto flex max-w-3xl items-end gap-2">
         {/* Deep Think toggle */}
         <button
@@ -68,17 +65,17 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
           onClick={toggleDeepThink}
           title={deepThink ? 'Deep Think enabled' : 'Enable Deep Think'}
           className={cn(
-            'flex size-9 shrink-0 items-center justify-center rounded-lg border transition-colors',
+            'flex size-9 shrink-0 items-center justify-center rounded-lg border transition-colors duration-150',
             deepThink
-              ? 'border-[#fd7d02]/50 bg-[#fd7d02]/15 text-[#fd7d02] shadow-[0_0_8px_rgba(253,125,2,0.25)]'
-              : 'border-[#2a2a32] bg-[#1a1a1f] text-[#6b7280] hover:text-[#9ca3af]',
+              ? 'border-[#f7931a]/50 bg-[#f7931a]/15 text-[#f7931a]'
+              : 'border-[#1e2024] bg-[#181a1d] text-[#555a65] hover:text-[#8b8f99] hover:border-[#2a2d33]',
           )}
         >
           <Brain className="size-4" />
         </button>
 
         {/* Input area */}
-        <div className="relative flex flex-1 items-end rounded-xl border border-[#2a2a32] bg-[#1a1a1f] px-3 py-2 focus-within:border-[#fd7d02]/50">
+        <div className="relative flex flex-1 items-end rounded-xl border border-[#1e2024] bg-[#181a1d] px-3 py-2 focus-within:border-[#f7931a]/50 transition-colors duration-150">
           <textarea
             ref={textareaRef}
             value={value}
@@ -87,7 +84,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
             placeholder="Ask Saraswati anything about crypto..."
             disabled={isDisabled}
             rows={1}
-            className="max-h-[160px] min-h-[24px] flex-1 resize-none bg-transparent text-sm text-white placeholder-[#6b7280] outline-none disabled:opacity-50"
+            className="max-h-[160px] min-h-[24px] flex-1 resize-none bg-transparent text-sm text-[#eaedf3] placeholder-[#555a65] outline-none disabled:opacity-50"
           />
         </div>
 
@@ -97,7 +94,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
             type="button"
             onClick={abortStream}
             title="Stop generating"
-            className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#ff4d4f]/15 text-[#ff4d4f] transition-colors hover:bg-[#ff4d4f]/25"
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#ef4444]/15 text-[#ef4444] transition-colors duration-150 hover:bg-[#ef4444]/25"
           >
             <Square className="size-4 fill-current" />
           </button>
@@ -108,10 +105,10 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
             disabled={!value.trim() || isDisabled}
             title="Send message"
             className={cn(
-              'flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors',
+              'flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-150',
               value.trim()
-                ? 'bg-[#fd7d02] text-black hover:bg-[#ff9a3e]'
-                : 'bg-[#222228] text-[#6b7280] cursor-not-allowed',
+                ? 'bg-[#f7931a] text-black hover:bg-[#ffaa3b]'
+                : 'bg-[#181a1d] text-[#555a65] cursor-not-allowed',
             )}
           >
             <Send className="size-4" />

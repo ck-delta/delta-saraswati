@@ -4,11 +4,11 @@ import React from 'react';
 import type { ChatMessage as ChatMessageType } from '@/types/chat';
 import { formatRelativeTime } from '@/lib/format';
 
-// ---------------------------------------------------------------------------
-// Lightweight Markdown renderer (no external deps)
-// Supports: **bold**, *italic*, `inline code`, ```code blocks```,
-//           ### headings, - bullet lists, 1. numbered lists
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------------ */
+/*  Lightweight Markdown renderer                                     */
+/*  Supports: **bold**, *italic*, `inline code`, ```code blocks```,   */
+/*            ### headings, - bullet lists, 1. numbered lists          */
+/* ------------------------------------------------------------------ */
 
 function renderMarkdown(text: string): React.ReactNode[] {
   const lines = text.split('\n');
@@ -22,16 +22,16 @@ function renderMarkdown(text: string): React.ReactNode[] {
     // Fenced code block
     if (line.trimStart().startsWith('```')) {
       const codeLines: string[] = [];
-      i++; // skip opening fence
+      i++;
       while (i < lines.length && !lines[i].trimStart().startsWith('```')) {
         codeLines.push(lines[i]);
         i++;
       }
-      i++; // skip closing fence
+      i++;
       elements.push(
         <pre
           key={key++}
-          className="my-2 overflow-x-auto rounded border border-[#2a2a32] bg-[#101013] p-3 font-mono text-sm text-[#e5e7eb]"
+          className="my-2 overflow-x-auto rounded-lg border border-[#1e2024] bg-[#08090a] p-3 font-mono text-sm text-[#eaedf3]"
         >
           <code>{codeLines.join('\n')}</code>
         </pre>,
@@ -39,7 +39,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
       continue;
     }
 
-    // Heading (### / ## / #)
+    // Heading
     const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
     if (headingMatch) {
       const level = headingMatch[1].length;
@@ -52,7 +52,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
             ? 'text-base font-semibold'
             : 'text-sm font-semibold';
       elements.push(
-        <Tag key={key++} className={`${sizeClass} mt-3 mb-1 text-white`}>
+        <Tag key={key++} className={`${sizeClass} mt-3 mb-1 text-[#eaedf3]`}>
           {renderInline(headingText)}
         </Tag>,
       );
@@ -66,7 +66,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
       while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
         const itemText = lines[i].replace(/^\s*[-*]\s+/, '');
         listItems.push(
-          <li key={key++} className="ml-4 list-disc text-[#d1d5db]">
+          <li key={key++} className="ml-4 list-disc text-[#eaedf3]/90">
             {renderInline(itemText)}
           </li>,
         );
@@ -86,7 +86,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
       while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
         const itemText = lines[i].replace(/^\s*\d+\.\s+/, '');
         listItems.push(
-          <li key={key++} className="ml-4 list-decimal text-[#d1d5db]">
+          <li key={key++} className="ml-4 list-decimal text-[#eaedf3]/90">
             {renderInline(itemText)}
           </li>,
         );
@@ -100,7 +100,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
       continue;
     }
 
-    // Empty line -> spacer
+    // Empty line
     if (line.trim() === '') {
       elements.push(<div key={key++} className="h-2" />);
       i++;
@@ -109,7 +109,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
 
     // Regular paragraph
     elements.push(
-      <p key={key++} className="text-[#d1d5db] leading-relaxed">
+      <p key={key++} className="text-[#eaedf3]/90 leading-relaxed">
         {renderInline(line)}
       </p>,
     );
@@ -119,20 +119,14 @@ function renderMarkdown(text: string): React.ReactNode[] {
   return elements;
 }
 
-/**
- * Render inline markdown: **bold**, *italic*, `code`, and price/number detection
- */
 function renderInline(text: string): React.ReactNode {
-  // Split by inline patterns: **bold**, *italic*, `code`
   const parts: React.ReactNode[] = [];
-  // Regex ordering: bold before italic to avoid conflicts
   const regex = /(\*\*(.+?)\*\*)|(\*(.+?)\*)|(`([^`]+)`)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let partKey = 0;
 
   while ((match = regex.exec(text)) !== null) {
-    // Push text before this match
     if (match.index > lastIndex) {
       parts.push(renderPriceNumbers(text.slice(lastIndex, match.index), partKey++));
     }
@@ -140,14 +134,14 @@ function renderInline(text: string): React.ReactNode {
     if (match[1]) {
       // **bold**
       parts.push(
-        <strong key={`b-${partKey++}`} className="font-semibold text-white">
+        <strong key={`b-${partKey++}`} className="font-semibold text-[#eaedf3]">
           {match[2]}
         </strong>,
       );
     } else if (match[3]) {
       // *italic*
       parts.push(
-        <em key={`i-${partKey++}`} className="italic text-[#c9cdd3]">
+        <em key={`i-${partKey++}`} className="italic text-[#eaedf3]/80">
           {match[4]}
         </em>,
       );
@@ -156,7 +150,7 @@ function renderInline(text: string): React.ReactNode {
       parts.push(
         <code
           key={`c-${partKey++}`}
-          className="rounded bg-[#101013] px-1.5 py-0.5 font-mono text-xs text-[#fd7d02]"
+          className="rounded bg-[#08090a] border border-[#1e2024] px-1.5 py-0.5 font-mono text-xs text-[#f7931a]"
         >
           {match[6]}
         </code>,
@@ -166,7 +160,6 @@ function renderInline(text: string): React.ReactNode {
     lastIndex = match.index + match[0].length;
   }
 
-  // Push remaining text
   if (lastIndex < text.length) {
     parts.push(renderPriceNumbers(text.slice(lastIndex), partKey++));
   }
@@ -174,11 +167,7 @@ function renderInline(text: string): React.ReactNode {
   return parts.length === 1 ? parts[0] : <>{parts}</>;
 }
 
-/**
- * Wrap dollar amounts and percentages in monospace spans for readability.
- */
 function renderPriceNumbers(text: string, baseKey: number): React.ReactNode {
-  // Match $-prefixed numbers or standalone percentages like +5.23%, -2.10%
   const priceRegex = /(\$[\d,]+(?:\.\d+)?|[+-]?\d+(?:\.\d+)?%)/g;
   const parts: React.ReactNode[] = [];
   let lastIdx = 0;
@@ -190,7 +179,7 @@ function renderPriceNumbers(text: string, baseKey: number): React.ReactNode {
       parts.push(text.slice(lastIdx, m.index));
     }
     parts.push(
-      <span key={`pn-${baseKey}-${k++}`} className="font-mono text-white">
+      <span key={`pn-${baseKey}-${k++}`} className="font-mono text-[#eaedf3]">
         {m[0]}
       </span>,
     );
@@ -206,9 +195,9 @@ function renderPriceNumbers(text: string, baseKey: number): React.ReactNode {
   return <>{parts}</>;
 }
 
-// ---------------------------------------------------------------------------
-// ChatMessage component
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------------ */
+/*  ChatMessage component                                             */
+/* ------------------------------------------------------------------ */
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -218,39 +207,42 @@ function ChatMessageInner({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
 
   return (
-    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div
+      className={`flex w-full animate-fade-in ${isUser ? 'justify-end' : 'justify-start'}`}
+      style={{ animationDuration: '200ms' }}
+    >
       <div
         className={`max-w-[85%] md:max-w-[75%] ${
           isUser
-            ? 'rounded-2xl rounded-br-md bg-[#fd7d02]/10 px-4 py-3 animate-slide-in-right'
-            : 'rounded-2xl rounded-bl-md bg-[#1a1a1f] px-4 py-3 animate-fade-in-up'
+            ? 'rounded-2xl rounded-br-md bg-[#f7931a]/10 border border-[#f7931a]/20 px-4 py-3'
+            : 'rounded-2xl rounded-bl-md bg-[#111214] border border-[#1e2024] px-4 py-3'
         }`}
       >
         {/* Assistant label */}
         {!isUser && (
           <div className="mb-1.5 flex items-center gap-1.5">
-            <div className="size-5 rounded-full bg-gradient-to-br from-[#fd7d02] to-[#ff9a3e] flex items-center justify-center">
+            <div className="size-5 rounded-full bg-gradient-to-br from-[#f7931a] to-[#ffaa3b] flex items-center justify-center">
               <span className="text-[10px] font-bold text-black">S</span>
             </div>
-            <span className="text-xs font-medium text-[#fd7d02]">Saraswati</span>
+            <span className="text-xs font-medium text-[#f7931a]">Saraswati</span>
           </div>
         )}
 
         {/* Message content */}
-        <div className={`text-sm ${isUser ? 'text-white' : ''}`}>
+        <div className={`text-sm ${isUser ? 'text-[#eaedf3]' : ''}`}>
           {isUser ? (
-            <p className="whitespace-pre-wrap text-white">{message.content}</p>
+            <p className="whitespace-pre-wrap text-[#eaedf3]">{message.content}</p>
           ) : (
             <div className="space-y-0.5">{renderMarkdown(message.content)}</div>
           )}
           {message.isStreaming && (
-            <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-[#fd7d02]" />
+            <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-[#f7931a]" />
           )}
         </div>
 
         {/* Timestamp */}
         <div
-          className={`mt-1.5 text-[10px] text-[#6b7280] ${isUser ? 'text-right' : 'text-left'}`}
+          className={`mt-1.5 text-[10px] text-[#555a65] ${isUser ? 'text-right' : 'text-left'}`}
         >
           {formatRelativeTime(message.timestamp)}
         </div>

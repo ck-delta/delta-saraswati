@@ -11,14 +11,12 @@ export function ChatInterface() {
   const hydrated = useChatStore((s) => s.hydrated);
   const hydrate = useChatStore((s) => s.hydrate);
 
-  // Hydrate conversations from localStorage on mount
   useEffect(() => {
     if (!hydrated) {
       hydrate();
     }
   }, [hydrated, hydrate]);
 
-  // Handle regular message send
   const handleSend = useCallback(
     (content: string) => {
       sendMessage(content, { type: 'general' });
@@ -26,7 +24,6 @@ export function ChatInterface() {
     [sendMessage],
   );
 
-  // Handle quick action
   const handleQuickAction = useCallback(
     (prompt: string, contextType: string) => {
       sendMessage(prompt, { type: contextType });
@@ -35,7 +32,18 @@ export function ChatInterface() {
   );
 
   return (
-    <div className="flex h-full flex-col bg-[#101013] bg-grid">
+    <div className="relative flex h-full flex-col bg-[#08090a]">
+      {/* Subtle dot grid pattern */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle, #1e2024 0.5px, transparent 0.5px)',
+          backgroundSize: '24px 24px',
+          opacity: 0.3,
+        }}
+      />
+
       {/* Message list (scrollable, fills available space) */}
       <ChatMessageList onQuickAction={handleQuickAction} />
 
@@ -43,8 +51,8 @@ export function ChatInterface() {
       <ChatInput onSend={handleSend} disabled={isStreaming} />
 
       {/* Disclaimer */}
-      <div className="border-t border-[#2a2a32]/50 bg-[#101013] px-4 py-2 text-center">
-        <p className="text-[10px] text-[#6b7280]">
+      <div className="relative border-t border-[#1e2024]/50 bg-[#08090a] px-4 py-2 text-center">
+        <p className="text-[10px] text-[#555a65]">
           AI-generated content. For reference only. Not financial advice.
         </p>
       </div>

@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 
 // ---------------------------------------------------------------------------
-// UI Store — theme, sidebar collapsed state, hydration from localStorage
+// UI Store — sidebar state, mobile menu, hydration
+// Dark mode only — no theme toggling.
 // ---------------------------------------------------------------------------
 
 interface UIState {
-  theme: 'dark' | 'light';
+  theme: 'dark';
   sidebarCollapsed: boolean;
   mobileMenuOpen: boolean;
   hydrated: boolean;
@@ -13,7 +14,7 @@ interface UIState {
 
 interface UIActions {
   toggleTheme: () => void;
-  setTheme: (theme: 'dark' | 'light') => void;
+  setTheme: (theme: 'dark') => void;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setMobileMenuOpen: (open: boolean) => void;
@@ -22,25 +23,15 @@ interface UIActions {
 
 const STORAGE_KEY = 'delta-saraswati-ui';
 
-function applyThemeToDOM(theme: 'dark' | 'light') {
-  if (typeof document === 'undefined') return;
-  const root = document.documentElement;
-  if (theme === 'light') {
-    root.classList.add('light');
-  } else {
-    root.classList.remove('light');
-  }
-}
-
-function persistUI(state: Pick<UIState, 'theme' | 'sidebarCollapsed'>) {
+function persistUI(state: Pick<UIState, 'sidebarCollapsed'>) {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ theme: state.theme, sidebarCollapsed: state.sidebarCollapsed }),
+      JSON.stringify({ sidebarCollapsed: state.sidebarCollapsed }),
     );
   } catch {
-    // localStorage may be unavailable (e.g. private browsing quota exceeded)
+    // localStorage may be unavailable
   }
 }
 
@@ -52,27 +43,18 @@ export const useUIStore = create<UIState & UIActions>((set, get) => ({
   hydrated: false,
 
   // ---------- Actions ----------
-  toggleTheme: () => {
-    const next = get().theme === 'dark' ? 'light' : 'dark';
-    applyThemeToDOM(next);
-    persistUI({ theme: next, sidebarCollapsed: get().sidebarCollapsed });
-    set({ theme: next });
-  },
-
-  setTheme: (theme) => {
-    applyThemeToDOM(theme);
-    persistUI({ theme, sidebarCollapsed: get().sidebarCollapsed });
-    set({ theme });
-  },
+  // Theme is always dark — these are no-ops retained for API compatibility
+  toggleTheme: () => {},
+  setTheme: () => {},
 
   toggleSidebar: () => {
     const next = !get().sidebarCollapsed;
-    persistUI({ theme: get().theme, sidebarCollapsed: next });
+    persistUI({ sidebarCollapsed: next });
     set({ sidebarCollapsed: next });
   },
 
   setSidebarCollapsed: (collapsed) => {
-    persistUI({ theme: get().theme, sidebarCollapsed: collapsed });
+    persistUI({ sidebarCollapsed: collapsed });
     set({ sidebarCollapsed: collapsed });
   },
 
@@ -83,18 +65,14 @@ export const useUIStore = create<UIState & UIActions>((set, get) => ({
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as Partial<Pick<UIState, 'theme' | 'sidebarCollapsed'>>;
-        const theme = parsed.theme === 'light' ? 'light' : 'dark';
+        const parsed = JSON.parse(raw) as Partial<Pick<UIState, 'sidebarCollapsed'>>;
         const sidebarCollapsed = parsed.sidebarCollapsed ?? false;
-        applyThemeToDOM(theme);
-        set({ theme, sidebarCollapsed, hydrated: true });
+        set({ sidebarCollapsed, hydrated: true });
         return;
       }
     } catch {
       // Ignore corrupt data
     }
-    // Default: dark mode, sidebar expanded
-    applyThemeToDOM('dark');
     set({ hydrated: true });
   },
 }));

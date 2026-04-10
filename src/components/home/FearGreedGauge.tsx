@@ -1,59 +1,75 @@
 'use client';
 
-import { FEAR_GREED_COLORS } from '@/lib/constants';
-
 interface FearGreedGaugeProps {
   value: number;
   classification: string;
 }
 
+/** Map classification to a color */
+function getColor(classification: string): string {
+  switch (classification) {
+    case 'Extreme Fear':
+      return '#ef4444';
+    case 'Fear':
+      return '#f97316';
+    case 'Neutral':
+      return '#eab308';
+    case 'Greed':
+      return '#22c55e';
+    case 'Extreme Greed':
+      return '#16a34a';
+    default:
+      return '#eab308';
+  }
+}
+
 /**
- * Semicircle SVG gauge for the Fear & Greed Index.
- * Renders a gradient arc from red (fear) to green (greed)
- * with a needle indicator pointing to the current value.
+ * Compact semicircle SVG gauge for the Fear & Greed Index.
+ * 64px wide — designed to sit inline inside a token card.
+ * Gradient arc from red (fear) to green (greed) with a needle.
  */
-export default function FearGreedGauge({ value, classification }: FearGreedGaugeProps) {
-  // Clamp value to 0-100
+export default function FearGreedGauge({
+  value,
+  classification,
+}: FearGreedGaugeProps) {
   const clamped = Math.max(0, Math.min(100, value));
 
-  // Convert value (0-100) to an angle on the semicircle.
-  // 0 = left (180deg), 100 = right (0deg)
+  // Convert 0-100 to angle on semicircle: 0 = left (180deg), 100 = right (0deg)
   const angleRad = Math.PI * (1 - clamped / 100);
 
-  // Needle endpoint on arc (center at 40,44, radius 34)
-  const cx = 40;
-  const cy = 44;
-  const r = 34;
+  const cx = 32;
+  const cy = 34;
+  const r = 26;
   const needleX = cx + r * Math.cos(angleRad);
   const needleY = cy - r * Math.sin(angleRad);
 
-  const color = FEAR_GREED_COLORS[classification] ?? '#ffd700';
+  const color = getColor(classification);
 
   return (
     <div className="flex flex-col items-center gap-0.5">
       <svg
-        viewBox="0 0 80 48"
-        width={80}
-        height={48}
+        viewBox="0 0 64 38"
+        width={64}
+        height={38}
         className="overflow-visible"
-        aria-label={`Fear and Greed Index: ${clamped} - ${classification}`}
+        aria-label={`Fear and Greed: ${clamped} - ${classification}`}
       >
         <defs>
-          <linearGradient id="fgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#ff4d4f" />
-            <stop offset="25%" stopColor="#ff8c00" />
-            <stop offset="50%" stopColor="#ffd700" />
-            <stop offset="75%" stopColor="#90ee90" />
-            <stop offset="100%" stopColor="#00c076" />
+          <linearGradient id="fgArc" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#ef4444" />
+            <stop offset="25%" stopColor="#f97316" />
+            <stop offset="50%" stopColor="#eab308" />
+            <stop offset="75%" stopColor="#22c55e" />
+            <stop offset="100%" stopColor="#16a34a" />
           </linearGradient>
         </defs>
 
-        {/* Background arc track */}
+        {/* Background track */}
         <path
           d={describeArc(cx, cy, r, 180, 0)}
           fill="none"
-          stroke="#2a2a32"
-          strokeWidth={6}
+          stroke="#1e2024"
+          strokeWidth={5}
           strokeLinecap="round"
         />
 
@@ -61,53 +77,43 @@ export default function FearGreedGauge({ value, classification }: FearGreedGauge
         <path
           d={describeArc(cx, cy, r, 180, 0)}
           fill="none"
-          stroke="url(#fgGradient)"
-          strokeWidth={6}
+          stroke="url(#fgArc)"
+          strokeWidth={5}
           strokeLinecap="round"
         />
 
-        {/* Needle line */}
+        {/* Needle */}
         <line
           x1={cx}
           y1={cy}
           x2={needleX}
           y2={needleY}
           stroke={color}
-          strokeWidth={2}
+          strokeWidth={1.5}
           strokeLinecap="round"
         />
+        <circle cx={needleX} cy={needleY} r={2} fill={color} />
+        <circle cx={cx} cy={cy} r={1.5} fill="#555a65" />
 
-        {/* Needle circle at tip */}
-        <circle cx={needleX} cy={needleY} r={2.5} fill={color} />
-
-        {/* Center dot */}
-        <circle cx={cx} cy={cy} r={2} fill="#9ca3af" />
-
-        {/* Value text */}
+        {/* Value */}
         <text
           x={cx}
-          y={cy - 6}
+          y={cy - 5}
           textAnchor="middle"
-          className="fill-white text-[10px] font-mono font-bold"
+          className="fill-[#eaedf3] text-[9px] font-mono font-bold"
         >
           {clamped}
         </text>
       </svg>
 
-      <span
-        className="text-[10px] font-medium leading-none"
-        style={{ color }}
-      >
+      <span className="text-[9px] font-medium leading-none" style={{ color }}>
         {classification}
       </span>
     </div>
   );
 }
 
-/**
- * Generate an SVG arc path from startAngle to endAngle (degrees).
- * 0deg = right (3 o'clock), 180deg = left (9 o'clock).
- */
+/** SVG arc path from startAngle to endAngle (degrees). */
 function describeArc(
   cx: number,
   cy: number,
@@ -117,13 +123,10 @@ function describeArc(
 ): string {
   const startRad = (startAngle * Math.PI) / 180;
   const endRad = (endAngle * Math.PI) / 180;
-
   const x1 = cx + radius * Math.cos(startRad);
   const y1 = cy - radius * Math.sin(startRad);
   const x2 = cx + radius * Math.cos(endRad);
   const y2 = cy - radius * Math.sin(endRad);
-
   const largeArc = Math.abs(endAngle - startAngle) > 180 ? 1 : 0;
-  // Sweep flag: 0 = counterclockwise (from left to right along top)
   return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 0 ${x2} ${y2}`;
 }

@@ -10,18 +10,17 @@ import NewsSection from '@/components/home/NewsSection';
 
 /**
  * Home / Daily Pulse page.
- * Fetches market data, news, and daily pulse on mount.
- * Auto-refreshes market data every 30 seconds.
+ * Premium layout: Markets grid, two-column AI pulse + news, subtle CTA.
+ * Auto-fetches on mount, refreshes market data every 30s.
  */
 export default function Home() {
   const fetchMarketData = useMarketStore((s) => s.fetchMarketData);
   const fetchNews = useMarketStore((s) => s.fetchNews);
   const fetchDailyPulse = useMarketStore((s) => s.fetchDailyPulse);
 
-  // Ref to track if initial fetch has fired (avoid double-fetch in StrictMode)
   const didFetch = useRef(false);
 
-  // Initial data fetch
+  // Initial fetch
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
@@ -31,7 +30,7 @@ export default function Home() {
     fetchDailyPulse();
   }, [fetchMarketData, fetchNews, fetchDailyPulse]);
 
-  // Auto-refresh market data every 30 seconds
+  // 30s market data refresh
   useEffect(() => {
     const interval = setInterval(() => {
       fetchMarketData();
@@ -41,56 +40,49 @@ export default function Home() {
   }, [fetchMarketData]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 bg-grid">
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 md:px-6 animate-fade-in">
       {/* ================================================================
-          Welcome Banner
+          Markets Section
           ================================================================ */}
       <section className="mb-8">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-semibold text-white sm:text-2xl text-gradient">
-            Delta Saraswati
-          </h1>
-          <p className="text-sm text-[#9ca3af]">
-            Your AI Crypto Research Assistant — real-time market intelligence at your fingertips.
-          </p>
+        <div className="mb-4 flex items-center gap-3">
+          <h2 className="text-sm font-semibold text-[#eaedf3]">Markets</h2>
+          <div className="h-px flex-1 bg-[#1e2024]" />
+          <div className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#22c55e] animate-pulse" />
+            <span className="text-[10px] text-[#555a65]">Live</span>
+          </div>
         </div>
-
-        {/* Live indicator */}
-        <div className="mt-3 flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#00c076] animate-pulse-dot" />
-          <span className="text-xs text-[#6b7280]">Live market data</span>
-        </div>
-      </section>
-
-      {/* ================================================================
-          Token Card Grid (BTC, ETH, SOL)
-          ================================================================ */}
-      <section className="mb-8">
         <TokenCardGrid />
       </section>
 
       {/* ================================================================
-          Two-column layout: Daily Pulse + News
+          Two-column: Daily Pulse (3/5) + News (2/5)
           ================================================================ */}
-      <section className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <DailyPulseSummary />
-        <NewsSection />
+      <section className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <DailyPulseSummary />
+        </div>
+        <div className="lg:col-span-2">
+          <NewsSection />
+        </div>
       </section>
 
       {/* ================================================================
           Bottom CTA
           ================================================================ */}
       <section className="mb-6">
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-[#2a2a32] bg-[#1a1a1f] px-6 py-8 text-center">
-          <h2 className="text-lg font-semibold text-white">
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-[#1e2024] bg-[#111214] px-6 py-8 text-center">
+          <h2 className="text-base font-semibold text-[#eaedf3]">
             Ready to dive deeper?
           </h2>
-          <p className="max-w-md text-sm text-[#9ca3af]">
-            Ask Saraswati anything about the crypto markets — technical analysis, news summaries, whale activity, and more.
+          <p className="max-w-md text-sm text-[#8b8f99]">
+            Ask Saraswati anything about the crypto markets — technical
+            analysis, news summaries, whale activity, and more.
           </p>
           <Link
             href="/chat"
-            className="mt-2 inline-flex h-10 items-center justify-center rounded-lg bg-[#fd7d02] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#e06d00]"
+            className="mt-2 inline-flex h-9 items-center justify-center rounded-lg bg-[#f7931a] px-6 text-sm font-medium text-black transition-colors hover:bg-[#ffaa3b]"
           >
             Start Exploring
           </Link>

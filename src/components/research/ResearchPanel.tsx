@@ -4,7 +4,6 @@ import { useResearchStore } from '@/stores/research-store';
 import { TOKEN_INFO } from '@/lib/constants';
 import { formatPrice, formatPercent, formatCompact } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
 import { MetricCard } from './MetricCard';
 import {
   DollarSign,
@@ -16,31 +15,32 @@ import {
   ExternalLink,
 } from 'lucide-react';
 
-// ---------- RSI Gauge ----------
+/* ------------------------------------------------------------------ */
+/*  RSI Gauge                                                         */
+/* ------------------------------------------------------------------ */
 
 function RSIGauge({ value }: { value: number }) {
   const isOversold = value < 30;
   const isOverbought = value > 70;
   const color = isOversold
-    ? '#00c076'
+    ? '#22c55e'
     : isOverbought
-      ? '#ff4d4f'
-      : '#fd7d02';
+      ? '#ef4444'
+      : '#f7931a';
   const label = isOversold
     ? 'Oversold'
     : isOverbought
       ? 'Overbought'
       : 'Neutral';
 
-  // Percentage fill for the bar (0-100 scale)
   const fillPercent = Math.min(Math.max(value, 0), 100);
 
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-[#6b7280]">RSI(14)</span>
+        <span className="text-xs text-[#555a65]">RSI(14)</span>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-mono font-semibold text-white">
+          <span className="text-sm font-mono font-semibold text-[#eaedf3]">
             {value.toFixed(1)}
           </span>
           <span
@@ -54,12 +54,9 @@ function RSIGauge({ value }: { value: number }) {
           </span>
         </div>
       </div>
-      {/* Gauge bar */}
-      <div className="relative h-2 w-full rounded-full bg-[#2a2a32] overflow-hidden">
-        {/* Zone markers */}
-        <div className="absolute left-[30%] top-0 bottom-0 w-px bg-[#6b7280]/30" />
-        <div className="absolute left-[70%] top-0 bottom-0 w-px bg-[#6b7280]/30" />
-        {/* Fill */}
+      <div className="relative h-1.5 w-full rounded-full bg-[#1e2024] overflow-hidden">
+        <div className="absolute left-[30%] top-0 bottom-0 w-px bg-[#555a65]/30" />
+        <div className="absolute left-[70%] top-0 bottom-0 w-px bg-[#555a65]/30" />
         <div
           className="absolute left-0 top-0 bottom-0 rounded-full transition-all duration-500"
           style={{
@@ -68,7 +65,7 @@ function RSIGauge({ value }: { value: number }) {
           }}
         />
       </div>
-      <div className="flex justify-between text-[10px] text-[#6b7280]">
+      <div className="flex justify-between text-[10px] text-[#555a65]">
         <span>0</span>
         <span>30</span>
         <span>70</span>
@@ -78,7 +75,9 @@ function RSIGauge({ value }: { value: number }) {
   );
 }
 
-// ---------- MACD Indicator ----------
+/* ------------------------------------------------------------------ */
+/*  MACD Indicator                                                    */
+/* ------------------------------------------------------------------ */
 
 function MACDIndicator({
   macd,
@@ -94,13 +93,13 @@ function MACDIndicator({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-[#6b7280]">MACD</span>
+        <span className="text-xs text-[#555a65]">MACD</span>
         <span
           className={cn(
             'text-[10px] font-medium px-1.5 py-0.5 rounded',
             isBullish
-              ? 'text-[#00c076] bg-[#00c076]/10'
-              : 'text-[#ff4d4f] bg-[#ff4d4f]/10',
+              ? 'text-[#22c55e] bg-[#22c55e]/10'
+              : 'text-[#ef4444] bg-[#ef4444]/10',
           )}
         >
           {isBullish ? 'Bullish' : 'Bearish'}
@@ -108,19 +107,19 @@ function MACDIndicator({
       </div>
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col">
-          <span className="text-[10px] text-[#6b7280]">MACD</span>
-          <span className="text-xs font-mono text-white">{macd.toFixed(2)}</span>
+          <span className="text-[10px] text-[#555a65]">MACD</span>
+          <span className="text-xs font-mono text-[#eaedf3]">{macd.toFixed(2)}</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-[10px] text-[#6b7280]">Signal</span>
-          <span className="text-xs font-mono text-white">{signal.toFixed(2)}</span>
+          <span className="text-[10px] text-[#555a65]">Signal</span>
+          <span className="text-xs font-mono text-[#eaedf3]">{signal.toFixed(2)}</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-[10px] text-[#6b7280]">Histogram</span>
+          <span className="text-[10px] text-[#555a65]">Histogram</span>
           <span
             className={cn(
               'text-xs font-mono',
-              histogram >= 0 ? 'text-[#00c076]' : 'text-[#ff4d4f]',
+              histogram >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]',
             )}
           >
             {histogram >= 0 ? '+' : ''}
@@ -132,7 +131,9 @@ function MACDIndicator({
   );
 }
 
-// ---------- Bollinger Bands ----------
+/* ------------------------------------------------------------------ */
+/*  Bollinger Bands                                                   */
+/* ------------------------------------------------------------------ */
 
 function BollingerBands({
   upper,
@@ -145,23 +146,23 @@ function BollingerBands({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs text-[#6b7280]">Bollinger Bands (20, 2)</span>
+      <span className="text-xs text-[#555a65]">Bollinger Bands (20, 2)</span>
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col">
-          <span className="text-[10px] text-[#6b7280]">Upper</span>
-          <span className="text-xs font-mono text-[#ff4d4f]">
+          <span className="text-[10px] text-[#555a65]">Upper</span>
+          <span className="text-xs font-mono text-[#ef4444]">
             {formatPrice(upper)}
           </span>
         </div>
         <div className="flex flex-col">
-          <span className="text-[10px] text-[#6b7280]">Middle</span>
-          <span className="text-xs font-mono text-white">
+          <span className="text-[10px] text-[#555a65]">Middle</span>
+          <span className="text-xs font-mono text-[#eaedf3]">
             {formatPrice(middle)}
           </span>
         </div>
         <div className="flex flex-col">
-          <span className="text-[10px] text-[#6b7280]">Lower</span>
-          <span className="text-xs font-mono text-[#00c076]">
+          <span className="text-[10px] text-[#555a65]">Lower</span>
+          <span className="text-xs font-mono text-[#22c55e]">
             {formatPrice(lower)}
           </span>
         </div>
@@ -170,36 +171,40 @@ function BollingerBands({
   );
 }
 
-// ---------- Loading Skeletons ----------
+/* ------------------------------------------------------------------ */
+/*  Loading Skeletons                                                 */
+/* ------------------------------------------------------------------ */
 
 function MetricSkeleton() {
   return (
-    <div className="bg-[#1a1a1f] border border-[#2a2a32] rounded-lg p-4 flex flex-col gap-2">
-      <Skeleton className="h-3 w-20 bg-[#2a2a32]" />
-      <Skeleton className="h-6 w-28 bg-[#2a2a32]" />
-      <Skeleton className="h-3 w-16 bg-[#2a2a32]" />
+    <div className="bg-[#111214] border border-[#1e2024] rounded-xl p-4 flex flex-col gap-2">
+      <div className="h-3 w-20 rounded bg-[#1e2024] animate-pulse" />
+      <div className="h-6 w-28 rounded bg-[#1e2024] animate-pulse" />
+      <div className="h-3 w-16 rounded bg-[#1e2024] animate-pulse" />
     </div>
   );
 }
 
 function IndicatorSkeleton() {
   return (
-    <div className="bg-[#1a1a1f] border border-[#2a2a32] rounded-lg p-4 flex flex-col gap-3">
-      <Skeleton className="h-3 w-20 bg-[#2a2a32]" />
-      <Skeleton className="h-4 w-full bg-[#2a2a32]" />
-      <Skeleton className="h-3 w-32 bg-[#2a2a32]" />
+    <div className="bg-[#111214] border border-[#1e2024] rounded-xl p-4 flex flex-col gap-3">
+      <div className="h-3 w-20 rounded bg-[#1e2024] animate-pulse" />
+      <div className="h-4 w-full rounded bg-[#1e2024] animate-pulse" />
+      <div className="h-3 w-32 rounded bg-[#1e2024] animate-pulse" />
     </div>
   );
 }
 
-// ---------- Main Panel ----------
+/* ------------------------------------------------------------------ */
+/*  Main Panel                                                        */
+/* ------------------------------------------------------------------ */
 
 export function ResearchPanel() {
   const { selectedToken, ticker, indicators, loading } = useResearchStore();
 
   if (!selectedToken) {
     return (
-      <div className="flex items-center justify-center h-48 text-[#6b7280] text-sm">
+      <div className="flex items-center justify-center h-48 text-[#555a65] text-sm">
         Select a token to begin research
       </div>
     );
@@ -207,14 +212,12 @@ export function ResearchPanel() {
 
   if (loading || !ticker) {
     return (
-      <div className="space-y-6">
-        {/* Metric skeletons */}
+      <div className="space-y-5">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <MetricSkeleton key={i} />
           ))}
         </div>
-        {/* Indicator skeletons */}
         <div className="space-y-3">
           <IndicatorSkeleton />
           <IndicatorSkeleton />
@@ -236,14 +239,14 @@ export function ResearchPanel() {
   const spotPrice = parseFloat(ticker.spot_price);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Token header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-white">
+          <h1 className="text-xl font-bold text-[#eaedf3]">
             {tokenInfo?.name ?? selectedToken}
           </h1>
-          <span className="text-sm text-[#6b7280]">{selectedToken}</span>
+          <span className="text-sm text-[#555a65]">{selectedToken}</span>
         </div>
       </div>
 
@@ -291,23 +294,19 @@ export function ResearchPanel() {
 
       {/* Technical Analysis section */}
       <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
+        <h2 className="text-xs font-semibold text-[#555a65] uppercase tracking-wider">
           Technical Analysis
         </h2>
 
-        <div className="bg-[#1a1a1f] border border-[#2a2a32] rounded-lg p-4 space-y-5">
-          {/* RSI */}
+        <div className="bg-[#111214] border border-[#1e2024] rounded-xl p-4 space-y-5">
           {indicators.rsi ? (
             <RSIGauge value={indicators.rsi.value} />
           ) : (
-            <div className="text-xs text-[#6b7280]">
-              RSI: Insufficient data
-            </div>
+            <div className="text-xs text-[#555a65]">RSI: Insufficient data</div>
           )}
 
-          <div className="border-t border-[#2a2a32]" />
+          <div className="border-t border-[#1e2024]" />
 
-          {/* MACD */}
           {indicators.macd ? (
             <MACDIndicator
               macd={indicators.macd.macd}
@@ -315,14 +314,11 @@ export function ResearchPanel() {
               histogram={indicators.macd.histogram}
             />
           ) : (
-            <div className="text-xs text-[#6b7280]">
-              MACD: Insufficient data
-            </div>
+            <div className="text-xs text-[#555a65]">MACD: Insufficient data</div>
           )}
 
-          <div className="border-t border-[#2a2a32]" />
+          <div className="border-t border-[#1e2024]" />
 
-          {/* Bollinger Bands */}
           {indicators.bollinger ? (
             <BollingerBands
               upper={indicators.bollinger.upper}
@@ -330,7 +326,7 @@ export function ResearchPanel() {
               lower={indicators.bollinger.lower}
             />
           ) : (
-            <div className="text-xs text-[#6b7280]">
+            <div className="text-xs text-[#555a65]">
               Bollinger Bands: Insufficient data
             </div>
           )}
@@ -344,8 +340,8 @@ export function ResearchPanel() {
         rel="noopener noreferrer"
         className={cn(
           'flex items-center justify-center gap-2 w-full py-3 px-4 rounded-lg',
-          'bg-[#fd7d02] hover:bg-[#fd7d02]/90 text-white font-semibold',
-          'transition-colors',
+          'bg-[#f7931a] hover:bg-[#ffaa3b] text-black font-semibold',
+          'transition-colors duration-150',
         )}
       >
         Trade {selectedToken} on Delta Exchange

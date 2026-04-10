@@ -7,22 +7,24 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-geist-sans);
 
-  /* Delta Exchange custom colors */
-  --color-delta-dark: #101013;
-  --color-delta-light: #fafafa;
-  --color-delta-surface: #1a1a1f;
-  --color-delta-surface-alt: #222228;
-  --color-delta-border: #2a2a32;
-  --color-delta-accent: #fd7d02;
-  --color-delta-accent-blue: #2894f9;
-  --color-delta-buy: #00c076;
-  --color-delta-sell: #ff4d4f;
-  --color-delta-text-secondary: #9ca3af;
-  --color-delta-text-muted: #6b7280;
+  /* Delta Saraswati — Premium Dark Palette */
+  --color-delta-body: #08090a;
+  --color-delta-surface: #111214;
+  --color-delta-surface-elevated: #181a1d;
+  --color-delta-border: #1e2024;
+  --color-delta-border-hover: #2a2d33;
+  --color-delta-accent: #f7931a;
+  --color-delta-accent-hover: #ffaa3b;
+  --color-delta-blue: #3b82f6;
+  --color-delta-buy: #22c55e;
+  --color-delta-sell: #ef4444;
+  --color-delta-text-primary: #eaedf3;
+  --color-delta-text-secondary: #8b8f99;
+  --color-delta-text-muted: #555a65;
 
   /* shadcn color mappings */
   --color-sidebar-ring: var(--sidebar-ring);
@@ -63,70 +65,40 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* === DARK MODE (DEFAULT — matches Delta Exchange) === */
+/* === DARK ONLY — Premium Crypto Trading Theme === */
 :root {
-  --background: #101013;
-  --foreground: #f5f5f5;
-  --card: #1a1a1f;
-  --card-foreground: #f5f5f5;
-  --popover: #1a1a1f;
-  --popover-foreground: #f5f5f5;
-  --primary: #fd7d02;
-  --primary-foreground: #ffffff;
-  --secondary: #222228;
-  --secondary-foreground: #f5f5f5;
-  --muted: #222228;
-  --muted-foreground: #9ca3af;
-  --accent: #fd7d02;
-  --accent-foreground: #ffffff;
-  --destructive: #ff4d4f;
-  --border: #2a2a32;
-  --input: #2a2a32;
-  --ring: #fd7d02;
-  --chart-1: #fd7d02;
-  --chart-2: #2894f9;
-  --chart-3: #00c076;
-  --chart-4: #ff4d4f;
-  --chart-5: #9ca3af;
+  --background: #08090a;
+  --foreground: #eaedf3;
+  --card: #111214;
+  --card-foreground: #eaedf3;
+  --popover: #111214;
+  --popover-foreground: #eaedf3;
+  --primary: #f7931a;
+  --primary-foreground: #08090a;
+  --secondary: #181a1d;
+  --secondary-foreground: #eaedf3;
+  --muted: #181a1d;
+  --muted-foreground: #8b8f99;
+  --accent: #f7931a;
+  --accent-foreground: #08090a;
+  --destructive: #ef4444;
+  --border: #1e2024;
+  --input: #1e2024;
+  --ring: #f7931a;
+  --chart-1: #f7931a;
+  --chart-2: #3b82f6;
+  --chart-3: #22c55e;
+  --chart-4: #ef4444;
+  --chart-5: #8b8f99;
   --radius: 0.625rem;
-  --sidebar: #141417;
-  --sidebar-foreground: #f5f5f5;
-  --sidebar-primary: #fd7d02;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1a1a1f;
-  --sidebar-accent-foreground: #f5f5f5;
-  --sidebar-border: #2a2a32;
-  --sidebar-ring: #fd7d02;
-}
-
-/* === LIGHT MODE === */
-.light {
-  --background: #fafafa;
-  --foreground: #101013;
-  --card: #ffffff;
-  --card-foreground: #101013;
-  --popover: #ffffff;
-  --popover-foreground: #101013;
-  --primary: #fd7d02;
-  --primary-foreground: #ffffff;
-  --secondary: #f0f0f0;
-  --secondary-foreground: #101013;
-  --muted: #f0f0f0;
-  --muted-foreground: #6b7280;
-  --accent: #fd7d02;
-  --accent-foreground: #ffffff;
-  --destructive: #ff4d4f;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #fd7d02;
-  --sidebar: #f5f5f5;
-  --sidebar-foreground: #101013;
-  --sidebar-primary: #fd7d02;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f0f0f0;
-  --sidebar-accent-foreground: #101013;
-  --sidebar-border: #e5e7eb;
-  --sidebar-ring: #fd7d02;
+  --sidebar: #0d0e10;
+  --sidebar-foreground: #eaedf3;
+  --sidebar-primary: #f7931a;
+  --sidebar-primary-foreground: #08090a;
+  --sidebar-accent: #181a1d;
+  --sidebar-accent-foreground: #eaedf3;
+  --sidebar-border: #1e2024;
+  --sidebar-ring: #f7931a;
 }
 
 @layer base {
@@ -141,28 +113,28 @@
   }
 }
 
-/* === Custom scrollbar (dark theme, thin) === */
+/* === Scrollbar — ultra-dark, thin === */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a2a32;
+  background: #1e2024;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3a3a42;
+  background: #2a2d33;
 }
 
 /* === Price change colors === */
 .price-up {
-  color: #00c076;
+  color: #22c55e;
 }
 .price-down {
-  color: #ff4d4f;
+  color: #ef4444;
 }
 
 /* === Monospace for financial data === */
@@ -171,27 +143,22 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* === Pulse animation for live data indicators === */
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-.animate-pulse-dot {
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-
-/* === Shimmer loading effect === */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-.animate-shimmer {
-  background: linear-gradient(90deg, #1a1a1f 25%, #2a2a32 50%, #1a1a1f 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+/* === Gradient text — orange accent for headings === */
+.text-gradient-orange {
+  background: linear-gradient(135deg, #f7931a 0%, #ffaa3b 50%, #f7931a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* === Enhanced card styling === */
+.text-gradient {
+  background: linear-gradient(135deg, #f7931a 0%, #ffaa3b 50%, #f7931a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === Card glow — subtle orange border shimmer === */
 .card-glow {
   position: relative;
 }
@@ -201,7 +168,13 @@
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(253, 125, 2, 0.2), transparent 50%, rgba(253, 125, 2, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(247, 147, 26, 0.15),
+    transparent 40%,
+    transparent 60%,
+    rgba(247, 147, 26, 0.08)
+  );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -209,30 +182,22 @@
   pointer-events: none;
 }
 
-/* === Gradient text for headlines === */
-.text-gradient {
-  background: linear-gradient(135deg, #fd7d02 0%, #ff9a3c 50%, #fd7d02 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* === Subtle grid background pattern === */
+/* === Subtle grid background === */
 .bg-grid {
   background-image:
-    linear-gradient(rgba(42, 42, 50, 0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(42, 42, 50, 0.3) 1px, transparent 1px);
-  background-size: 24px 24px;
+    linear-gradient(rgba(30, 32, 36, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 32, 36, 0.18) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-/* === Glass morphism effect === */
+/* === Glass morphism === */
 .glass {
-  background: rgba(26, 26, 31, 0.8);
+  background: rgba(17, 18, 20, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* === Accent underline for active nav === */
+/* === Active nav underline accent === */
 .nav-active {
   position: relative;
 }
@@ -243,34 +208,54 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: #fd7d02;
+  background: #f7931a;
   border-radius: 1px;
 }
 
-/* === Better focus states === */
+/* === Focus states === */
 *:focus-visible {
-  outline: 2px solid #fd7d02;
+  outline: 2px solid #f7931a;
   outline-offset: 2px;
 }
 
-/* === Trading badge styles === */
+/* === Trading badges === */
 .badge-buy {
-  background: rgba(0, 192, 118, 0.15);
-  color: #00c076;
-  border: 1px solid rgba(0, 192, 118, 0.3);
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.25);
 }
 .badge-sell {
-  background: rgba(255, 77, 79, 0.15);
-  color: #ff4d4f;
-  border: 1px solid rgba(255, 77, 79, 0.3);
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 .badge-neutral {
-  background: rgba(156, 163, 175, 0.15);
-  color: #9ca3af;
-  border: 1px solid rgba(156, 163, 175, 0.3);
+  background: rgba(139, 143, 153, 0.12);
+  color: #8b8f99;
+  border: 1px solid rgba(139, 143, 153, 0.25);
 }
 
-/* === Microanimations === */
+/* === Pulse animation for live data === */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* === Shimmer loading === */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, #111214 25%, #1e2024 50%, #111214 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* === Micro-animations === */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -292,8 +277,8 @@
   to { opacity: 1; transform: scale(1); }
 }
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(253, 125, 2, 0); }
-  50% { box-shadow: 0 0 16px 4px rgba(253, 125, 2, 0.15); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(247, 147, 26, 0); }
+  50% { box-shadow: 0 0 16px 4px rgba(247, 147, 26, 0.12); }
 }
 @keyframes number-tick {
   0% { transform: translateY(-100%); opacity: 0; }
@@ -308,23 +293,23 @@
 .animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
 .animate-number-tick { animation: number-tick 0.2s ease-out both; }
 
-/* Staggered delays for lists */
+/* Staggered animation delays */
 .stagger-1 { animation-delay: 0.05s; }
 .stagger-2 { animation-delay: 0.1s; }
 .stagger-3 { animation-delay: 0.15s; }
 .stagger-4 { animation-delay: 0.2s; }
 .stagger-5 { animation-delay: 0.25s; }
 
-/* Hover effects */
+/* === Hover lift === */
 .hover-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-/* Smooth transitions for everything */
+/* === Smooth transitions === */
 .transition-smooth {
   transition: all 0.2s ease;
 }
