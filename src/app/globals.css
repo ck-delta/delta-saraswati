@@ -1,0 +1,184 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains);
+  --font-heading: var(--font-inter);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Custom colors */
+  --color-surface: #0f1016;
+  --color-elevated: #1a1c26;
+  --color-active: #252838;
+
+  /* Trading colors (Binance standard) */
+  --color-gain: #0ECB81;
+  --color-gain-text: #2DD4A0;
+  --color-loss: #F6465D;
+  --color-loss-text: #FF6B7A;
+
+  /* Text hierarchy */
+  --color-text-primary: #F2F2F7;
+  --color-text-secondary: #8E8E93;
+  --color-text-tertiary: #636366;
+
+  /* Shadows */
+  --shadow-glow-sm: 0 0 12px rgba(245, 158, 11, 0.08);
+  --shadow-glow-md: 0 0 24px rgba(245, 158, 11, 0.10);
+  --shadow-glow-lg: 0 0 48px rgba(245, 158, 11, 0.12);
+
+  /* Animations */
+  --animate-flash-green: flash-green 0.6s ease-out;
+  --animate-flash-red: flash-red 0.6s ease-out;
+  --animate-shimmer: shimmer 1.5s ease-in-out infinite;
+  --animate-typing-bounce: typing-bounce 1.2s ease-in-out infinite;
+}
+
+/* Delta Saraswati — Premium Dark Theme */
+:root {
+  --background: oklch(0.13 0.01 270);       /* #08080c — blue-tinted near-black */
+  --foreground: oklch(0.96 0.005 280);      /* #F2F2F7 — off-white */
+  --card: oklch(0.17 0.015 265);            /* #12141c — blue-tinted card */
+  --card-foreground: oklch(0.96 0.005 280);
+  --popover: oklch(0.17 0.015 265);
+  --popover-foreground: oklch(0.96 0.005 280);
+  --primary: oklch(0.75 0.16 75);           /* #F59E0B — amber-orange */
+  --primary-foreground: oklch(0.13 0.01 270); /* dark text on orange */
+  --secondary: oklch(0.22 0.015 265);       /* #1a1c26 — elevated */
+  --secondary-foreground: oklch(0.96 0.005 280);
+  --muted: oklch(0.22 0.015 265);
+  --muted-foreground: oklch(0.62 0.01 280); /* #8E8E93 */
+  --accent: oklch(0.75 0.16 75);            /* #F59E0B */
+  --accent-foreground: oklch(0.13 0.01 270);
+  --destructive: oklch(0.65 0.2 20);        /* #F6465D */
+  --border: oklch(1 0 0 / 6%);
+  --input: oklch(1 0 0 / 6%);
+  --ring: oklch(0.75 0.16 75);              /* #F59E0B */
+  --chart-1: oklch(0.75 0.16 75);           /* orange */
+  --chart-2: oklch(0.65 0.2 155);           /* green */
+  --chart-3: oklch(0.65 0.15 265);          /* blue */
+  --chart-4: oklch(0.65 0.15 310);          /* purple */
+  --chart-5: oklch(0.65 0.15 340);          /* pink */
+  --radius: 0.625rem;
+  --sidebar: oklch(0.15 0.012 270);         /* #0f1016 */
+  --sidebar-foreground: oklch(0.96 0.005 280);
+  --sidebar-primary: oklch(0.75 0.16 75);
+  --sidebar-primary-foreground: oklch(0.96 0.005 280);
+  --sidebar-accent: oklch(0.22 0.015 265);
+  --sidebar-accent-foreground: oklch(0.96 0.005 280);
+  --sidebar-border: oklch(1 0 0 / 6%);
+  --sidebar-ring: oklch(0.75 0.16 75);
+}
+
+@keyframes flash-green {
+  0% { background-color: transparent; }
+  20% { background-color: rgba(14, 203, 129, 0.15); }
+  100% { background-color: transparent; }
+}
+
+@keyframes flash-red {
+  0% { background-color: transparent; }
+  20% { background-color: rgba(246, 70, 93, 0.15); }
+  100% { background-color: transparent; }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Premium details */
+::selection { background: rgba(245, 158, 11, 0.3); color: #fff; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+/* Utility classes */
+.gradient-separator {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.06) 20%, rgba(255,255,255,0.06) 80%, transparent);
+}
+
+.ambient-glow {
+  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(245,158,11,0.04), transparent);
+}
+
+.animate-shimmer-bg {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-flash-green, .animate-flash-red, .animate-shimmer, .animate-typing-bounce {
+    animation: none !important;
+  }
+}
