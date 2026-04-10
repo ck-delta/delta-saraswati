@@ -199,6 +199,38 @@
   border-color: rgba(245,158,11,0.15);
 }
 
+/* Token card subtle top-to-bottom gradient */
+.token-card-gradient {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 40%, rgba(0,0,0,0.08) 100%);
+}
+
+/* Token icon ring pulse on hover */
+.token-icon-ring {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.group\/token:hover .token-icon-ring {
+  transform: scale(1.05);
+}
+
+/* Trade Now button shine effect */
+.trade-btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.trade-btn-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  transition: left 0.5s ease;
+}
+.group\/token:hover .trade-btn-shine::after {
+  left: 120%;
+}
+
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;

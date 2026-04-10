@@ -1,6 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { RefreshCw } from "lucide-react";
 import { AnimatedPage, AnimatedSection } from "@/lib/motion/components";
 import { useDeltaTickers } from "@/hooks/use-delta-tickers";
 import { useNews } from "@/hooks/use-news";
@@ -10,10 +12,11 @@ import { NewsSummary } from "@/components/home/news-summary";
 import { NewsFeed } from "@/components/home/news-feed";
 import { CtaBanner } from "@/components/home/cta-banner";
 import { TradeModal } from "@/components/shared/trade-modal";
+import { timeAgo } from "@/lib/utils";
 
 export default function HomePage() {
   const router = useRouter();
-  const { tickers, isLoading: tickersLoading } = useDeltaTickers();
+  const { tickers, isLoading: tickersLoading, mutate } = useDeltaTickers();
   const {
     summary,
     headlines,
@@ -24,20 +27,47 @@ export default function HomePage() {
 
   const topTickers = (tickers ?? []).slice(0, 3);
 
+  // Max volume across top 3 for relative volume bar
+  const maxVolume = useMemo(
+    () => Math.max(...topTickers.map((t: Record<string, unknown>) => Number(t.turnover_usd ?? 0)), 1),
+    [topTickers]
+  );
+
+  // Last update timestamp
+  const lastUpdated = useMemo(() => {
+    if (topTickers.length === 0) return null;
+    return new Date().toISOString();
+  }, [topTickers]);
+
   return (
     <>
       <AnimatedPage className="space-y-8">
-        {/* Page title */}
+        {/* Page title + last updated */}
         <AnimatedSection>
-          <h1 className="text-2xl font-bold text-text-primary">Daily Pulse</h1>
-          <p className="text-sm text-text-secondary mt-1">
-            Top tokens, AI insights, and market news
-          </p>
+          <div className="flex items-end justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-text-primary">Daily Pulse</h1>
+              <p className="text-sm text-text-secondary mt-1">
+                Top tokens, AI insights, and market news
+              </p>
+            </div>
+            {lastUpdated && !tickersLoading && (
+              <button
+                onClick={() => mutate()}
+                className="flex items-center gap-1.5 text-[11px] text-text-tertiary hover:text-text-secondary transition-colors"
+              >
+                <RefreshCw className="size-3" />
+                Updated {timeAgo(lastUpdated)}
+              </button>
+            )}
+          </div>
+          {/* Divider below header */}
+          <div className="gradient-separator mt-4" />
         </AnimatedSection>
 
         {/* Top tokens grid */}
         <AnimatedSection>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {tickersLoading
               ? Array.from({ length: 3 }).map((_, i) => (
                   <TokenCardSkeleton key={i} />
@@ -51,6 +81,7 @@ export default function HomePage() {
                     change24h={Number(ticker.mark_change_24h ?? ticker.ltp_change_24h ?? 0)}
                     fundingRate={Number(ticker.funding_rate ?? 0)}
                     volume24h={Number(ticker.turnover_usd ?? 0)}
+                    maxVolume={maxVolume}
                     sentimentScore={Number(ticker.sentiment_score ?? 0.5)}
                     onMoreInfo={() =>
                       router.push(`/research?token=${ticker.symbol}`)
