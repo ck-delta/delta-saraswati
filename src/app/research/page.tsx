@@ -90,7 +90,7 @@ function ResearchContent() {
 
       {/* Token Stats Row */}
       <AnimatedSection>
-        <TokenStats ticker={ticker} isLoading={detailLoading} />
+        <TokenStats ticker={ticker} sparkline={indicators?.sparkline} isLoading={detailLoading} />
       </AnimatedSection>
 
       {/* Indicators Panel */}

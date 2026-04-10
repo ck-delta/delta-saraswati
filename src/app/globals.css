@@ -395,8 +395,23 @@ body::after {
   font-feature-settings: 'tnum' 1;
 }
 
+/* Pulsing live dot */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+.live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0ECB81;
+  box-shadow: 0 0 6px rgba(14,203,129,0.5);
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-flash-green, .animate-flash-red, .animate-shimmer, .animate-typing-bounce, .trade-cta-pulse {
+  .animate-flash-green, .animate-flash-red, .animate-shimmer, .animate-typing-bounce, .trade-cta-pulse, .live-dot {
     animation: none !important;
   }
 }

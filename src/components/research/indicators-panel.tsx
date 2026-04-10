@@ -160,7 +160,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
       <AnimatedList fast className="grid gap-5 md:grid-cols-2">
         {/* TECHNICAL CARD */}
         <AnimatedListItem>
-          <motion.div className="kpi-card rounded-2xl h-full" whileHover={{ y: -2, transition: { duration: 0.2 } }}>
+          <motion.div className="kpi-card rounded-2xl h-full" whileHover={{ y: -4, transition: { duration: 0.3 } }}>
             <div className="p-7">
               <div className="flex items-center gap-3 mb-6">
                 <div className="flex items-center justify-center size-9 rounded-xl bg-[#3B82F6]/12 shadow-[0_0_12px_rgba(59,130,246,0.10)]">
@@ -168,7 +168,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-text-primary tracking-tight">Technical</h3>
-                  <p className="text-[10px] text-text-tertiary mt-0.5">Live Indicators</p>
+                  <p className="text-[10px] text-text-tertiary mt-0.5 flex items-center gap-1.5"><span className="live-dot" />Live Indicators</p>
                 </div>
               </div>
 
@@ -262,7 +262,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
 
         {/* DERIVATIVES CARD */}
         <AnimatedListItem>
-          <motion.div className="kpi-card rounded-2xl h-full" whileHover={{ y: -2, transition: { duration: 0.2 } }}>
+          <motion.div className="kpi-card rounded-2xl h-full" whileHover={{ y: -4, transition: { duration: 0.3 } }}>
             <div className="p-7">
               <div className="flex items-center gap-3 mb-6">
                 <div className="flex items-center justify-center size-9 rounded-xl bg-primary/12 shadow-[0_0_12px_rgba(245,158,11,0.10)]">
@@ -270,7 +270,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-text-primary tracking-tight">Derivatives</h3>
-                  <p className="text-[10px] text-text-tertiary mt-0.5">Perpetual Contract Data</p>
+                  <p className="text-[10px] text-text-tertiary mt-0.5 flex items-center gap-1.5"><span className="live-dot" />Perpetual Contract Data</p>
                 </div>
               </div>
               <div className="space-y-0 divide-y divide-white/[0.04]">
@@ -281,12 +281,12 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                   { label: "Spot Price", value: spotPrice > 0 ? `$${formatPrice(spotPrice)}` : "--", color: "text-text-primary", tooltip: "Underlying spot market price" },
                   { label: "Basis", value: spotPrice > 0 ? `${basis >= 0 ? "+" : ""}${basis.toFixed(3)}%` : "--", color: spotPrice > 0 ? (basis >= 0 ? "text-gain" : "text-loss") : "text-text-tertiary", tooltip: "Difference between mark and spot price" },
                 ].map(row => (
-                  <div key={row.label} className="flex items-center justify-between py-3 group/row hover:bg-white/[0.02] rounded-lg px-3 -mx-3 transition-all">
+                  <div key={row.label} className="flex items-center justify-between py-3 group/row deriv-row px-3 -mx-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">{row.label}</span>
+                      <span className="text-[12px] text-[#94A3B8] group-hover/row:text-text-secondary transition-colors">{row.label}</span>
                       <Tooltip text={row.tooltip} />
                     </div>
-                    <span className={`font-mono tabular-nums text-[13px] font-semibold ${row.color}`}>{row.value}</span>
+                    <span className={`font-mono tabular-nums text-[13px] font-semibold deriv-value ${row.color} ${row.color.includes("gain") ? "glow-green" : row.color.includes("loss") ? "glow-red" : ""}`}>{row.value}</span>
                   </div>
                 ))}
               </div>
@@ -303,7 +303,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-30px" }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          whileHover={{ y: -2, transition: { duration: 0.2 } }}
+          whileHover={{ y: -4, transition: { duration: 0.3 } }}
         >
           <div className="p-7">
             <div className="flex items-center justify-between mb-6">

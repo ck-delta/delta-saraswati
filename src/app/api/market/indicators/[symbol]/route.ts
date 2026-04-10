@@ -53,6 +53,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const currentPrice = closes[closes.length - 1];
     const trendSummary = generateTrendSummary(currentPrice, sma20, sma50, sma200);
 
+    // Sparkline: last 24 hourly close prices for mini charts
+    const sparkline = closes.slice(-24);
+
     const indicators = {
       rsi,
       macd: macd ? { value: macd.value, signal: macd.signal, histogram: macd.histogram } : null,
@@ -63,6 +66,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       adx,
       pivotPoints,
       trendSummary,
+      sparkline,
     };
 
     return NextResponse.json({ success: true, data: indicators, timestamp: Date.now() });
