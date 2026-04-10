@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Gauge, TrendingUp, TrendingDown, Newspaper, Fish, Flame, LucideIcon } from "lucide-react";
+import { Gauge, TrendingUp, TrendingDown, Newspaper, Fish, Flame } from "@/components/icons";
+import type { IconComponent } from "@/components/icons";
 import { QUICK_ACTIONS } from "@/types/chat";
 
-const iconMap: Record<string, LucideIcon> = {
+const iconMap: Record<string, IconComponent> = {
   gauge: Gauge,
   "trending-up": TrendingUp,
   "trending-down": TrendingDown,

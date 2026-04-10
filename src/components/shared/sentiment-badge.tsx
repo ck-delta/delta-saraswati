@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { TrendingUp, TrendingDown, Minus } from "@/components/icons";
 
 interface SentimentBadgeProps {
   sentiment: "positive" | "negative" | "neutral";
@@ -8,26 +9,32 @@ interface SentimentBadgeProps {
 }
 
 export function SentimentBadge({ sentiment, score }: SentimentBadgeProps) {
+  const Icon =
+    sentiment === "positive"
+      ? TrendingUp
+      : sentiment === "negative"
+        ? TrendingDown
+        : Minus;
+
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-        sentiment === "positive" && "bg-gain/10 text-gain",
-        sentiment === "negative" && "bg-loss/10 text-loss",
-        sentiment === "neutral" && "bg-muted text-text-tertiary"
+        "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold whitespace-nowrap",
+        "border backdrop-blur-sm transition-all",
+        sentiment === "positive" &&
+          "bg-gain/8 text-gain-text border-gain/15 shadow-[0_0_8px_rgba(14,203,129,0.06)]",
+        sentiment === "negative" &&
+          "bg-loss/8 text-loss-text border-loss/15 shadow-[0_0_8px_rgba(246,70,93,0.06)]",
+        sentiment === "neutral" &&
+          "bg-white/[0.03] text-text-tertiary border-white/[0.06]"
       )}
     >
-      <span
-        className={cn(
-          "size-1.5 rounded-full",
-          sentiment === "positive" && "bg-gain",
-          sentiment === "negative" && "bg-loss",
-          sentiment === "neutral" && "bg-text-tertiary"
-        )}
-      />
-      {sentiment}
+      <Icon className="size-3" />
+      <span className="capitalize">{sentiment}</span>
       {score !== undefined && (
-        <span className="text-[10px] opacity-70">({score.toFixed(1)})</span>
+        <span className="text-[10px] opacity-60 font-mono tabular-nums">
+          ({score.toFixed(1)})
+        </span>
       )}
     </span>
   );

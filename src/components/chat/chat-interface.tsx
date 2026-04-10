@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Bot, Sparkles } from "lucide-react";
+import { Bot, Sparkles } from "@/components/icons";
 import { useChat } from "@/hooks/use-chat";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { QuickActions } from "./quick-actions";

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCountUp, usePriceFlash } from "@/lib/motion/hooks";
 import { PriceChange } from "@/components/shared/price-change";
-import { Info, Zap } from "lucide-react";
+import { Info, Zap } from "@/components/icons";
 import { motion } from "framer-motion";
 
 // Brand colors for top tokens

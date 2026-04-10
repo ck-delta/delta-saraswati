@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw } from "@/components/icons";
 import { AnimatedPage, AnimatedSection } from "@/lib/motion/components";
 import { useDeltaTickers } from "@/hooks/use-delta-tickers";
 import { useNews } from "@/hooks/use-news";

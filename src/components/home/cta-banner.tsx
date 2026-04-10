@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/store/app-store";
-import { Zap } from "lucide-react";
+import { Zap } from "@/components/icons";
 
 export function CtaBanner() {
   const openTradeModal = useAppStore((s) => s.openTradeModal);

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Triangle, Gauge, BarChart3, MessageCircle } from "lucide-react";
+import { Triangle, Gauge, BarChart3, MessageCircle } from "@/components/icons";
 import { useAppStore } from "@/store/app-store";
 
 const navItems = [

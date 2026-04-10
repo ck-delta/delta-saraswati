@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Search, Check, ChevronDown } from "lucide-react";
+import { Search, Check, ChevronDown } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { AnimatedDropdown } from "@/lib/motion/components";
 import { ScrollArea } from "@/components/ui/scroll-area";

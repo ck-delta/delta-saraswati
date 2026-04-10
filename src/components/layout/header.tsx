@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Menu, User } from "lucide-react";
+import { Menu, User } from "@/components/icons";
 import { useAppStore } from "@/store/app-store";
 
 export function Header() {

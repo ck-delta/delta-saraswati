@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { timeAgo } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
+import { Sparkles } from "@/components/icons";
 
 interface NewsSummaryProps {
   summary: string | null;

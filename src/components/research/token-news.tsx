@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedList, AnimatedListItem } from "@/lib/motion/components";
 import { useNews } from "@/hooks/use-news";
 import { timeAgo } from "@/lib/utils";
-import { Newspaper, ExternalLink } from "lucide-react";
+import { Newspaper, ExternalLink } from "@/components/icons";
 
 interface TokenNewsProps {
   symbol: string;

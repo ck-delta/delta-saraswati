@@ -1,6 +1,6 @@
 "use client";
 
-import { X, ExternalLink } from "lucide-react";
+import { X, ExternalLink } from "@/components/icons";
 import { AnimatedModal } from "@/lib/motion/components";
 import { useAppStore } from "@/store/app-store";
 import { Button } from "@/components/ui/button";

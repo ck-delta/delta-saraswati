@@ -2,7 +2,7 @@
 
 import { useState, useCallback, type KeyboardEvent } from "react";
 import { motion } from "framer-motion";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp } from "@/components/icons";
 
 interface ChatInputProps {
   onSend: (message: string) => void;

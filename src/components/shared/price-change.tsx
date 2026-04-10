@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown } from "@/components/icons";
 import { formatPercent } from "@/lib/utils";
 
 interface PriceChangeProps {
