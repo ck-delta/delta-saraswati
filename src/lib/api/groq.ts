@@ -32,51 +32,53 @@ export async function chatCompletion(messages: { role: "system" | "user" | "assi
 export async function generateNewsSummary(headlines: string[], marketContext: string): Promise<string> {
   const groq = getClient();
 
-  const systemPrompt = `You are a senior crypto market analyst at an institutional trading desk. You write daily market briefing cards that traders rely on for decision-making.
+  const systemPrompt = `You are the head crypto strategist at a top-tier derivatives trading desk. You write daily institutional briefing cards that portfolio managers and prop traders rely on for positioning decisions.
 
-Your voice: professional, concise, data-driven. No fluff. Every sentence earns its place.
+Your voice: sharp, confident, data-driven. Every word is earned. No filler. You sound like a Bloomberg terminal analyst, not a crypto influencer.
 
-You ALWAYS use this exact 5-section structure. Never skip a section. Never add extra sections.`;
+CRITICAL CONSTRAINT: You may ONLY mention coins that appear in the LIVE DELTA EXCHANGE DATA feed provided below. If a coin is mentioned in headlines but does NOT appear in the live data, you must substitute with a coin that DOES appear in the live data. The top coins on Delta Exchange are typically: BTC, ETH, XRP, SOL, DOGE, PAXG, ADA, AVAX, LINK, BNB.
 
-  const userPrompt = `Write a market briefing from these inputs.
+You ALWAYS use this exact 5-section structure. Never skip a section. Never add extra sections. Never reorder sections.`;
+
+  const userPrompt = `Write an institutional-grade market briefing from these inputs.
 
 HEADLINES:
 ${headlines.join("\n")}
 
 ${marketContext || ""}
 
-OUTPUT FORMAT — Follow this EXACTLY:
+OUTPUT FORMAT — Follow this structure EXACTLY. Every bullet must be a single concise line.
 
 **Market Pulse**
-- **BTC** at **$72,100** ↓0.74% — rejected at $73,200 resistance [bearish]
-- **ETH** slides to **$2,380** ↓1.2% — dragged by BTC weakness [bearish]
-- **XRP** edges higher to **$1.35** ↑0.7% — low volume breakout [neutral]
+- **BTC** holds **$71,750** ↓0.6% — testing **$73K** resistance, third rejection this week [bearish]
+- **ETH** consolidates at **$2,190** ↑0.3% — range-bound between **$2,150–$2,250** [neutral]
+- **XRP** at **$1.34** ↑1.1% — edging higher on low volume, needs **$1.40** for confirmation [neutral]
 
 **Big Movers**
-- **SOL** slides to **$29.50** ↓2.5% — following BTC and ETH downtrend [bearish]
-- **DOGE** rallies to **$0.185** ↑8.3% — whale accumulation detected [bullish]
+- **DOGE** rallies to **$0.185** ↑8.3% — whale accumulation on-chain, funding turning positive [bullish]
+- **PAXG** steady at **$4,730** ↑0.5% — safe-haven bid as equity markets wobble [bullish]
 
 **Macro Watch**
-- Japan classifies crypto as financial instruments — regulatory clarity pushes adoption narrative [bullish]
-- BlackRock's Bitcoin ETF sees **$269M** inflows ↑12.1% — strongest day in 5 weeks [bullish]
+- Japan classifies crypto as financial instruments — regulatory clarity pushes institutional adoption narrative [bullish]
+- BlackRock Bitcoin ETF sees **$269M** inflows ↑12% — strongest single day in 5 weeks, signaling renewed institutional appetite [bullish]
 
 **Derivatives Insight**
-- BTC perpetual funding at **+0.0100%** with OI rising **$2.3B** in 24h — longs piling in aggressively, liquidation cascade risk above **$73.5K** if rejected [neutral]
+- **BTC** perpetual funding at **+0.0100%** with OI at **$47M** — longs dominant but not overcrowded; watch for liquidation cascade above **$73.5K** if momentum stalls [neutral]
 
 **Signal**
-_Watch the **$72,800–$73,200** zone closely. A clean break above means strong bullish continuation toward **$75K**. Failure here likely sends **BTC** back to retest **$70K** support, with **$68,500** as the key level to hold._
+_Watch the **$71,500–$73,000** range on **BTC** closely. A decisive break above **$73,000** with volume confirms bullish continuation toward **$75K**. Failure at this level likely sends price back to **$70K** support — **$68,500** is the critical level bulls must defend. Key tell: funding rate + ETF flow direction._
 
-RULES (follow every single one):
-1. EVERY bullet MUST have: token name in bold, price in bold, direction arrow (↑ or ↓), percentage change, a brief context phrase, and a sentiment tag [bullish] / [bearish] / [neutral]
-2. Market Pulse: 3 bullets — BTC first, then ETH, then one other top mover
-3. Big Movers: 2 bullets — coins with biggest % moves or unusual volume from the headlines
-4. Macro Watch: 2 bullets — regulatory news, ETF flows, institutional events
-5. Derivatives Insight: 1 bullet — mention funding rate, OI change, or liquidation levels. Use data from the live feed if available.
-6. Signal: 1 paragraph (2-3 sentences) — MUST include specific price levels for both bullish and bearish scenarios. Make it actionable.
-7. Use **bold** for all token names, all prices, and all key numbers
-8. Use the REAL prices from the live data feed. If no live data, estimate conservatively from headline context.
+RULES (follow ALL of them precisely):
+1. EVERY bullet MUST contain: **bold token name**, **bold price**, direction arrow (↑ or ↓), percentage change, a brief context phrase (max 12 words), and a sentiment tag [bullish] / [bearish] / [neutral]
+2. Market Pulse: exactly 3 bullets — always BTC first, then ETH, then one other top-volume coin from the live data
+3. Big Movers: exactly 2 bullets — coins with biggest absolute % change from the live data feed. MUST be coins listed in the LIVE DELTA EXCHANGE DATA above.
+4. Macro Watch: exactly 2 bullets — regulatory, ETF, or institutional news from the headlines. Include specific numbers where available.
+5. Derivatives Insight: exactly 1 bullet — MUST reference funding rate AND open interest from the live data. Mention liquidation risk levels.
+6. Signal: exactly 1 paragraph (2-3 sentences) wrapped in _italics_. MUST include: a specific price zone to watch, a bullish target, a bearish risk level, and what catalyst to monitor. Focus on whichever coin has the strongest actionable setup.
+7. Use **bold** for ALL token names, ALL prices, and ALL key numbers (percentages, dollar amounts)
+8. Use REAL prices from the live data feed. NEVER invent or guess prices.
 9. No markdown headers (no # or ##). Section titles use **bold** only.
-10. Keep it tight: 9-11 bullets total + 1 signal paragraph. No padding.`;
+10. Total output: exactly 9 bullets + 1 signal paragraph. No extra text, no disclaimers, no padding.`;
 
   const response = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
