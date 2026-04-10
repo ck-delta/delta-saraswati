@@ -1,6 +1,6 @@
 "use client";
 
-import { X, ExternalLink } from "@/components/icons";
+import { X, ExternalLink, AlertTriangle, Info, Zap } from "@/components/icons";
 import { AnimatedModal } from "@/lib/motion/components";
 import { useAppStore } from "@/store/app-store";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,8 @@ export function TradeModal() {
         </Button>
 
         <CardHeader>
-          <CardTitle className="text-lg">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Zap className="size-4 text-primary" />
             Trade {tradeModalToken ?? "Token"} on Delta Exchange
           </CardTitle>
         </CardHeader>
@@ -36,7 +37,8 @@ export function TradeModal() {
           </p>
 
           <div className="rounded-lg border border-border bg-muted/30 p-3">
-            <p className="text-xs text-text-tertiary">
+            <p className="flex items-start gap-1.5 text-xs text-text-tertiary">
+              <Info className="size-3.5 text-text-tertiary shrink-0 mt-0.5" />
               Trade perpetual futures, options, and more on Delta Exchange with
               up to 100x leverage.
             </p>

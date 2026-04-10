@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Search, Check, ChevronDown } from "@/components/icons";
+import { Search, Check, ChevronDown, Star, List } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { AnimatedDropdown } from "@/lib/motion/components";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -85,7 +85,8 @@ export function TokenSelector({ tokens, selected, onSelect }: TokenSelectorProps
           <ScrollArea className="max-h-64">
             {popular.length > 0 && (
               <div className="px-2 pb-1">
-                <p className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+                <p className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+                  <Star className="size-3 text-amber-500" />
                   Popular
                 </p>
                 {popular.map((token) => (
@@ -106,7 +107,8 @@ export function TokenSelector({ tokens, selected, onSelect }: TokenSelectorProps
             {rest.length > 0 && (
               <div className="px-2 pb-2">
                 {popular.length > 0 && (
-                  <p className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+                  <p className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+                    <List className="size-3 text-text-tertiary" />
                     All Tokens
                   </p>
                 )}
@@ -126,9 +128,12 @@ export function TokenSelector({ tokens, selected, onSelect }: TokenSelectorProps
             )}
 
             {popular.length === 0 && rest.length === 0 && (
-              <p className="px-4 py-6 text-center text-sm text-text-tertiary">
-                No tokens found
-              </p>
+              <div className="flex flex-col items-center px-4 py-6">
+                <Search className="size-4 text-text-tertiary mb-1" />
+                <p className="text-center text-sm text-text-tertiary">
+                  No tokens found
+                </p>
+              </div>
             )}
           </ScrollArea>
         </div>

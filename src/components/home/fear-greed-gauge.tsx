@@ -2,6 +2,7 @@
 
 import { useAnimatedPercentage } from "@/lib/motion/hooks";
 import { getFearGreedColor } from "@/lib/utils";
+import { AlertTriangle } from "@/components/icons";
 
 interface FearGreedGaugeProps {
   value: number;
@@ -88,6 +89,12 @@ export function FearGreedGauge({ value, label }: FearGreedGaugeProps) {
           {label}
         </text>
       </svg>
+      {value <= 25 && (
+        <div className="flex items-center gap-1 -mt-1">
+          <AlertTriangle className="size-3 text-[#F6465D]" />
+          <span className="text-[9px] font-medium text-[#F6465D]">{label}</span>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedList, AnimatedListItem } from "@/lib/motion/components";
 import { useNews } from "@/hooks/use-news";
 import { timeAgo } from "@/lib/utils";
-import { Newspaper, ExternalLink } from "@/components/icons";
+import { Newspaper, ExternalLink, Clock, Globe, Inbox } from "@/components/icons";
 
 interface TokenNewsProps {
   symbol: string;
@@ -73,9 +73,12 @@ export function TokenNews({ symbol }: TokenNewsProps) {
         <div className="gradient-separator" />
 
         {displayNews.length === 0 ? (
-          <p className="text-xs text-text-tertiary py-2">
-            No recent news for this token.
-          </p>
+          <div className="flex flex-col items-center py-2">
+            <Inbox className="size-5 text-text-tertiary mb-1" />
+            <p className="text-xs text-text-tertiary">
+              No recent news for this token.
+            </p>
+          </div>
         ) : (
           <AnimatedList fast className="space-y-2">
             {displayNews.map((headline: any) => (
@@ -91,10 +94,12 @@ export function TokenNews({ symbol }: TokenNewsProps) {
                       {headline.title}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-text-tertiary">
+                      <span className="flex items-center gap-1 text-[10px] text-text-tertiary">
+                        <Globe className="size-2.5 shrink-0" />
                         {headline.source}
                       </span>
-                      <span className="text-[10px] text-text-tertiary">
+                      <span className="flex items-center gap-1 text-[10px] text-text-tertiary">
+                        <Clock className="size-2.5 shrink-0" />
                         {timeAgo(headline.publishedAt)}
                       </span>
                       <span

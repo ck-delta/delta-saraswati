@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink, Newspaper, RefreshCw } from "@/components/icons";
+import { ExternalLink, Newspaper, RefreshCw, Clock, ChevronDown, ChevronUp, Inbox } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedList, AnimatedListItem } from "@/lib/motion/components";
@@ -105,9 +105,10 @@ export function NewsFeed({ headlines, isLoading }: NewsFeedProps) {
         {isLoading ? (
           <NewsFeedSkeleton />
         ) : displayHeadlines.length === 0 ? (
-          <p className="text-sm text-text-tertiary py-6 text-center">
-            No news headlines available.
-          </p>
+          <div className="flex flex-col items-center gap-2 py-6 text-center">
+            <Inbox className="size-5 text-text-tertiary" />
+            <p className="text-sm text-text-tertiary">No news headlines available.</p>
+          </div>
         ) : (
           <>
             <AnimatedList className="space-y-1">
@@ -142,7 +143,8 @@ export function NewsFeed({ headlines, isLoading }: NewsFeedProps) {
 
                         <span className="text-text-tertiary/40">·</span>
 
-                        <span className="text-[11px] text-text-tertiary/70 font-mono tabular-nums">
+                        <span className="flex items-center gap-1 text-[11px] text-text-tertiary/70 font-mono tabular-nums">
+                          <Clock className="size-2.5" />
                           {timeAgo(headline.publishedAt)}
                         </span>
 
@@ -175,9 +177,13 @@ export function NewsFeed({ headlines, isLoading }: NewsFeedProps) {
                   e.preventDefault();
                   setShowAll(!showAll);
                 }}
-                className="w-full text-center text-xs text-text-tertiary hover:text-primary transition-colors py-2"
+                className="w-full flex items-center justify-center gap-1 text-xs text-text-tertiary hover:text-primary transition-colors py-2"
               >
-                {showAll ? "Show less" : `Show all ${headlines.length} headlines`}
+                {showAll ? (
+                  <>Show less <ChevronUp className="size-3.5" /></>
+                ) : (
+                  <>Show all {headlines.length} headlines <ChevronDown className="size-3.5" /></>
+                )}
               </button>
             )}
           </>

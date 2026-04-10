@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import { ChatMessage } from "@/types/chat";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Bot, User, Copy, ClipboardCheck } from "@/components/icons";
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -99,6 +100,7 @@ function formatInline(text: string): React.ReactNode {
 
 export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  const [copied, setCopied] = useState(false);
 
   const rendered = useMemo(
     () => (isUser ? message.content : renderContent(message.content)),
@@ -107,24 +109,49 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-      <motion.div
-        initial={{ opacity: 0, x: isUser ? 8 : -8 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        className={`
-          max-w-[85%] px-4 py-3 text-sm leading-relaxed space-y-1
-          ${
-            isUser
-              ? "rounded-2xl rounded-br-md bg-active text-text-primary"
-              : "rounded-2xl rounded-bl-md bg-card text-text-secondary"
-          }
-        `}
-      >
-        {rendered}
-        {message.isStreaming && (
-          <span className="ml-1 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-primary" />
+      <div className="flex items-start gap-2.5">
+        {!isUser && (
+          <div className="size-6 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-1">
+            <Bot className="size-3.5 text-amber-500" />
+          </div>
         )}
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: isUser ? 8 : -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className={`
+            group max-w-[85%] px-4 py-3 text-sm leading-relaxed space-y-1
+            ${
+              isUser
+                ? "rounded-2xl rounded-br-md bg-active text-text-primary"
+                : "rounded-2xl rounded-bl-md bg-card text-text-secondary"
+            }
+          `}
+        >
+          {rendered}
+          {message.isStreaming && (
+            <span className="ml-1 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-primary" />
+          )}
+          {!isUser && (
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(message.content);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="opacity-0 group-hover:opacity-100 transition-opacity mt-1.5 flex items-center gap-1 text-xs text-text-tertiary hover:text-text-secondary"
+            >
+              {copied ? <ClipboardCheck className="size-3" /> : <Copy className="size-3" />}
+              {copied ? "Copied" : "Copy"}
+            </button>
+          )}
+        </motion.div>
+        {isUser && (
+          <div className="size-6 rounded-full bg-[#636366]/20 flex items-center justify-center shrink-0 mt-1">
+            <User className="size-3.5 text-[#8E8E93]" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
