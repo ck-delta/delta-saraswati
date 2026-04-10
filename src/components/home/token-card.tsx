@@ -62,7 +62,7 @@ export function TokenCardSkeleton() {
   return (
     <div className="card-3d">
       <Card className="p-0 card-elevated">
-        <CardContent className="space-y-5 pt-6 pb-5 px-5">
+        <CardContent className="flex flex-col gap-5 pt-7 pb-6 px-6">
           <div className="flex items-center gap-3">
             <Skeleton className="size-12 rounded-2xl" />
             <div className="space-y-1.5">
@@ -70,13 +70,19 @@ export function TokenCardSkeleton() {
               <Skeleton className="h-3 w-28" />
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <Skeleton className="h-9 w-36" />
             <Skeleton className="h-6 w-20 rounded-full" />
           </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
+          <div className="h-px bg-white/[0.04]" />
+          <div className="space-y-3">
+            <div className="flex justify-between"><Skeleton className="h-3.5 w-20" /><Skeleton className="h-3.5 w-16" /></div>
+            <div className="flex justify-between"><Skeleton className="h-3.5 w-20" /><Skeleton className="h-3.5 w-16" /></div>
+            <Skeleton className="h-1.5 w-full rounded-full" />
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex justify-between"><Skeleton className="h-3 w-20" /><Skeleton className="h-3 w-12" /></div>
+            <Skeleton className="h-1.5 w-full rounded-full" />
           </div>
           <div className="flex gap-2.5 pt-1">
             <Skeleton className="h-10 flex-1 rounded-xl" />
@@ -113,12 +119,50 @@ function MiniSparkline({ data, positive, brandColor }: { data: number[]; positiv
   );
 }
 
-// Volume bar — scales relative to max volume
+// Volume bar — horizontal fill relative to max volume
 function VolumeBar({ volume, maxVolume, brandColor }: { volume: number; maxVolume: number; brandColor: string }) {
   const pct = maxVolume > 0 ? Math.max((volume / maxVolume) * 100, 8) : 30;
   return (
-    <div className="flex items-center gap-2">
-      <div className="h-3 w-1 rounded-full" style={{ height: `${Math.max(pct * 0.18, 6)}px`, backgroundColor: brandColor, opacity: 0.6 }} />
+    <div className="h-1.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
+      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: brandColor, opacity: 0.5 }} />
+    </div>
+  );
+}
+
+// AI Sentiment slider — score out of 10
+function SentimentSlider({ score, brandColor }: { score: number; brandColor: string }) {
+  const value = Math.max(0, Math.min(10, score * 10));
+  const pct = (value / 10) * 100;
+  const label = value >= 7 ? "Bullish" : value <= 3 ? "Bearish" : "Neutral";
+  const labelColor = value >= 7 ? "text-gain" : value <= 3 ? "text-loss" : "text-text-tertiary";
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider">AI Sentiment</span>
+        <div className="flex items-center gap-1.5">
+          <span className={`text-[10px] font-semibold ${labelColor}`}>{label}</span>
+          <span className="font-mono tabular-nums text-xs font-bold text-text-primary">{value.toFixed(1)}<span className="text-text-tertiary/50">/10</span></span>
+        </div>
+      </div>
+      <div className="relative h-1.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
+          style={{
+            width: `${pct}%`,
+            background: `linear-gradient(90deg, ${value <= 3 ? "#F6465D" : value <= 5 ? "#636366" : brandColor}, ${value <= 3 ? "#FF6B7A" : value <= 5 ? "#8E8E93" : brandColor})`,
+            boxShadow: `0 0 8px ${value >= 7 ? brandColor : value <= 3 ? "rgba(246,70,93,0.3)" : "transparent"}`,
+          }}
+        />
+        {/* Dot indicator at end of fill */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 size-2.5 rounded-full border-2 border-background transition-all duration-700"
+          style={{
+            left: `calc(${pct}% - 5px)`,
+            backgroundColor: value <= 3 ? "#F6465D" : value <= 5 ? "#8E8E93" : brandColor,
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -158,7 +202,7 @@ export function TokenCard({
         {/* Brand-colored top accent line */}
         <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: brand.color, opacity: 0.5 }} />
 
-        <CardContent className="space-y-4 pt-6 pb-5 px-5">
+        <CardContent className="flex flex-col gap-5 pt-7 pb-6 px-6">
           {/* Header: icon + symbol/name + sparkline */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -187,40 +231,46 @@ export function TokenCard({
           </div>
 
           {/* Price — largest element */}
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <p
               className={`font-mono tabular-nums text-[28px] leading-none font-bold text-text-primary rounded px-1 -mx-1 transition-colors ${flashClass}`}
             >
               ${displayPrice}
             </p>
-            {/* Change as a pill */}
             <PriceChange value={change24h} asPill />
           </div>
 
-          {/* Meta row with volume bar */}
-          <div className="flex items-center gap-4 text-xs text-text-secondary">
-            <span className="flex items-center gap-1">
-              Funding:{" "}
-              <span className={`font-mono tabular-nums font-medium ${fundingRate >= 0 ? "text-gain" : "text-loss"}`}>
-                {fundingRate >= 0 ? "+" : ""}
-                {fundingRate.toFixed(4)}%
+          {/* Divider */}
+          <div className="gradient-separator" />
+
+          {/* Stats grid — funding & volume */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-text-tertiary">Funding Rate</span>
+              <span className={`font-mono tabular-nums font-semibold ${fundingRate >= 0 ? "text-gain" : "text-loss"}`}>
+                {fundingRate >= 0 ? "+" : ""}{fundingRate.toFixed(4)}%
               </span>
-            </span>
-            <span className="flex items-center gap-1.5">
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-text-tertiary">Volume (24h)</span>
+                <span className="font-mono tabular-nums font-semibold text-text-primary">
+                  {volume24h >= 1e9
+                    ? `$${(volume24h / 1e9).toFixed(2)}B`
+                    : volume24h >= 1e6
+                      ? `$${(volume24h / 1e6).toFixed(1)}M`
+                      : `$${(volume24h / 1e3).toFixed(0)}K`}
+                </span>
+              </div>
               <VolumeBar volume={volume24h} maxVolume={maxVolume} brandColor={brand.color} />
-              <span>Vol:</span>
-              <span className="font-mono tabular-nums font-medium text-text-primary">
-                {volume24h >= 1e9
-                  ? `$${(volume24h / 1e9).toFixed(2)}B`
-                  : volume24h >= 1e6
-                    ? `$${(volume24h / 1e6).toFixed(1)}M`
-                    : `$${(volume24h / 1e3).toFixed(0)}K`}
-              </span>
-            </span>
+            </div>
           </div>
 
+          {/* AI Sentiment Slider */}
+          <SentimentSlider score={sentimentScore} brandColor={brand.color} />
+
           {/* Action buttons */}
-          <div className="flex gap-2.5 pt-0.5">
+          <div className="flex gap-2.5 pt-1">
             <Button
               variant="outline"
               size="sm"
