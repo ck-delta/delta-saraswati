@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AlertTriangle } from "@/components/icons";
 
 interface PriceChartProps {
   symbol: string;
@@ -18,6 +19,7 @@ export default function PriceChart({ symbol, resolution, onResolutionChange }: P
   const seriesRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<string>("");
 
   const fetchCandles = useCallback(async () => {
     try {
@@ -112,6 +114,8 @@ export default function PriceChart({ symbol, resolution, onResolutionChange }: P
       if (candles.length > 0) {
         series.setData(candles);
         chart.timeScale().fitContent();
+        const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+        setDateRange(`${fmt(new Date(candles[0].time * 1000))} – ${fmt(new Date(candles[candles.length - 1].time * 1000))}`);
       }
 
       setLoading(false);
@@ -144,45 +148,81 @@ export default function PriceChart({ symbol, resolution, onResolutionChange }: P
   }, [symbol, resolution, fetchCandles]);
 
   return (
-    <div className="space-y-3">
-      {/* Resolution buttons */}
-      <div className="flex items-center gap-1">
-        {RESOLUTIONS.map((res) => (
-          <button
-            key={res}
-            onClick={() => onResolutionChange(res)}
-            className="relative rounded-md px-3 py-1 text-xs font-medium transition-colors"
-          >
-            {resolution === res && (
-              <motion.div
-                layoutId="resolution-active"
-                className="absolute inset-0 rounded-md bg-primary"
-                transition={{ type: "spring", stiffness: 500, damping: 35 }}
-              />
-            )}
-            <span
-              className={`relative z-10 ${
-                resolution === res ? "text-primary-foreground" : "text-text-secondary hover:text-text-primary"
-              }`}
+    <div className="space-y-0">
+      {/* Chart header — inside the kpi-card wrapper from parent */}
+      <div className="flex items-center justify-between px-5 pt-4 pb-3">
+        <div className="flex items-center gap-2.5">
+          <span className="font-mono text-sm font-bold text-text-primary">{symbol}</span>
+          <span className="text-[10px] text-text-tertiary">Perpetual</span>
+          {dateRange && (
+            <>
+              <span className="text-[10px] text-text-tertiary/40">·</span>
+              <span className="text-[10px] text-text-tertiary">{resolution.toUpperCase()}</span>
+              <span className="text-[10px] text-text-tertiary/40">·</span>
+              <span className="text-[10px] text-text-tertiary">{dateRange}</span>
+            </>
+          )}
+        </div>
+
+        {/* Resolution buttons — premium 3D pills */}
+        <div className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.03] border border-white/[0.04]">
+          {RESOLUTIONS.map((res) => (
+            <motion.button
+              key={res}
+              onClick={() => onResolutionChange(res)}
+              className="relative rounded-md px-3 py-1.5 text-[11px] font-semibold transition-colors"
+              whileHover={resolution !== res ? { scale: 1.05, backgroundColor: "rgba(255,255,255,0.04)" } : undefined}
+              whileTap={resolution !== res ? { scale: 0.95 } : undefined}
             >
-              {res.toUpperCase()}
-            </span>
-          </button>
-        ))}
+              {resolution === res && (
+                <motion.div
+                  layoutId="resolution-active"
+                  className="absolute inset-0 rounded-md bg-primary shadow-[0_0_12px_rgba(245,158,11,0.15)]"
+                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                />
+              )}
+              <span
+                className={`relative z-10 ${
+                  resolution === res ? "text-primary-foreground" : "text-text-tertiary hover:text-text-primary"
+                }`}
+              >
+                {res.toUpperCase()}
+              </span>
+            </motion.button>
+          ))}
+        </div>
       </div>
 
       {/* Chart container */}
-      <div className="relative overflow-hidden rounded-lg border border-border bg-card">
-        {loading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-card">
-            <Skeleton className="h-[400px] w-full" />
-          </div>
-        )}
-        {error && !loading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-card">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
+      <div className="relative overflow-hidden bg-card">
+        <AnimatePresence>
+          {loading && (
+            <motion.div
+              key="skeleton"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 z-10 flex items-center justify-center bg-card"
+            >
+              <Skeleton className="h-[400px] w-full" />
+            </motion.div>
+          )}
+          {error && !loading && (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-10 flex items-center justify-center bg-card"
+            >
+              <div className="flex flex-col items-center">
+                <AlertTriangle className="size-5 text-red-400 mb-2" />
+                <p className="text-sm text-red-400">{error}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <div ref={chartContainerRef} className="h-[400px] w-full" />
       </div>
     </div>

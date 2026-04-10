@@ -61,6 +61,21 @@ function IndicatorRow({
   );
 }
 
+function RsiGauge({ value }: { value: number }) {
+  const radius = 14;
+  const circumference = Math.PI * radius;
+  const pct = Math.max(0, Math.min(100, value)) / 100;
+  const offset = circumference * (1 - pct);
+  const color = value > 70 ? "var(--color-loss)" : value < 30 ? "var(--color-gain)" : "var(--color-text-secondary)";
+
+  return (
+    <svg width="36" height="20" viewBox="0 0 36 20" className="shrink-0">
+      <path d="M 4 18 A 14 14 0 0 1 32 18" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" strokeLinecap="round" />
+      <path d="M 4 18 A 14 14 0 0 1 32 18" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeDasharray={`${circumference}`} strokeDashoffset={`${offset}`} />
+    </svg>
+  );
+}
+
 function SkeletonCard() {
   return (
     <div className="kpi-card rounded-xl p-5">
@@ -114,12 +129,16 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
 
             <div className="space-y-0 divide-y divide-white/[0.04]">
               {indicators?.rsi != null && (
-                <IndicatorRow
-                  label="RSI (14)"
-                  value={indicators.rsi.toFixed(1)}
-                  color={getRsiColor(indicators.rsi)}
-                  badge={rsiInfo || undefined}
-                />
+                <div className="flex items-center justify-between py-2.5 group/row">
+                  <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">RSI (14)</span>
+                  <div className="flex items-center gap-2">
+                    {rsiInfo && (
+                      <span className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${rsiInfo.bg} ${rsiInfo.color}`}>{rsiInfo.text}</span>
+                    )}
+                    <RsiGauge value={indicators.rsi} />
+                    <span className={`font-mono tabular-nums text-[13px] font-semibold ${getRsiColor(indicators.rsi)}`}>{indicators.rsi.toFixed(1)}</span>
+                  </div>
+                </div>
               )}
               {indicators?.macd && (
                 <>
@@ -137,13 +156,13 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                 </>
               )}
               {indicators?.sma20 != null && (
-                <IndicatorRow label="SMA 20" value={`$${formatPrice(indicators.sma20)}`} />
+                <IndicatorRow label="SMA 20" value={`$${formatPrice(indicators.sma20)}`} color={markPrice > indicators.sma20 ? "text-gain-text" : "text-loss-text"} />
               )}
               {indicators?.sma50 != null && (
-                <IndicatorRow label="SMA 50" value={`$${formatPrice(indicators.sma50)}`} />
+                <IndicatorRow label="SMA 50" value={`$${formatPrice(indicators.sma50)}`} color={markPrice > indicators.sma50 ? "text-gain-text" : "text-loss-text"} />
               )}
               {indicators?.sma200 != null && (
-                <IndicatorRow label="SMA 200" value={`$${formatPrice(indicators.sma200)}`} />
+                <IndicatorRow label="SMA 200" value={`$${formatPrice(indicators.sma200)}`} color={markPrice > indicators.sma200 ? "text-gain-text" : "text-loss-text"} />
               )}
               {!indicators && (
                 <p className="py-6 text-center text-xs text-text-tertiary">
@@ -164,8 +183,8 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
           <div className="p-5">
             {/* Header */}
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="flex items-center justify-center size-7 rounded-lg bg-primary/10">
-                <Layers className="size-3.5 text-primary" />
+              <div className="flex items-center justify-center size-7 rounded-lg bg-derivatives/10">
+                <Layers className="size-3.5 text-derivatives" />
               </div>
               <h3 className="text-sm font-bold text-text-primary tracking-tight">Derivatives</h3>
             </div>

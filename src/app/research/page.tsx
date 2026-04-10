@@ -3,7 +3,7 @@
 import { useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Zap, RefreshCw, BarChart3 } from "@/components/icons";
+import { Zap, RefreshCw, BarChart3, Radio } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedPage, AnimatedSection } from "@/lib/motion/components";
@@ -69,7 +69,7 @@ function ResearchContent() {
               onSelect={setSelectedToken}
             />
             <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-text-tertiary">
-              <RefreshCw className="size-2.5" />
+              <Radio className="size-2.5" />
               <span>Live</span>
             </div>
           </div>
@@ -116,7 +116,7 @@ function ResearchContent() {
       <AnimatedSection>
         <Button
           size="lg"
-          className="w-full h-12 text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl trade-btn-shine shadow-[0_0_20px_rgba(245,158,11,0.12)] hover:shadow-[0_0_32px_rgba(245,158,11,0.2)] transition-shadow"
+          className="w-full h-12 text-base font-bold text-primary-foreground rounded-2xl trade-btn-shine trade-cta-pulse hover:brightness-110 transition-all"
           onClick={() => openTradeModal(selectedToken)}
         >
           <Zap className="size-4.5 mr-2" />

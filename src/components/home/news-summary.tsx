@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { timeAgo } from "@/lib/utils";
-import { Sparkles } from "@/components/icons";
+import { Sparkles, Clock, AlertCircle, ChevronRight } from "@/components/icons";
 
 interface NewsSummaryProps {
   summary: string | null;
@@ -71,7 +71,7 @@ function RenderSummary({ text }: { text: string }) {
         if (bulletMatch) {
           return (
             <div key={i} className="flex gap-2.5 pl-0.5 py-0.5">
-              <span className="text-primary/60 mt-0.5 text-xs shrink-0">▸</span>
+              <ChevronRight className="size-3 shrink-0 mt-0.5 text-primary/60" />
               <span className="text-sm leading-relaxed text-text-secondary">
                 {formatInline(bulletMatch[1])}
               </span>
@@ -107,8 +107,8 @@ export function NewsSummary({ summary, generatedAt, isLoading }: NewsSummaryProp
     <Card className="card-elevated">
       <CardContent className="space-y-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="size-3.5 text-primary" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+          <Sparkles className="size-3.5 text-info" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-info">
             AI Market Summary
           </span>
         </div>
@@ -126,15 +126,17 @@ export function NewsSummary({ summary, generatedAt, isLoading }: NewsSummaryProp
           <div>
             <RenderSummary text={summary} />
             {generatedAt && (
-              <p className="mt-3 text-[10px] text-text-tertiary">
+              <p className="mt-3 flex items-center gap-1 text-[10px] text-text-tertiary">
+                <Clock className="size-2.5" />
                 Generated {timeAgo(generatedAt)}
               </p>
             )}
           </div>
         ) : (
-          <p className="text-sm text-text-tertiary">
-            No market summary available yet.
-          </p>
+          <div className="flex flex-col items-center gap-2 py-4 text-center">
+            <AlertCircle className="size-5 text-text-tertiary" />
+            <p className="text-sm text-text-tertiary">No market summary available yet.</p>
+          </div>
         )}
       </CardContent>
     </Card>

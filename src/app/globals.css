@@ -60,6 +60,12 @@
   --color-loss: #F6465D;
   --color-loss-text: #FF6B7A;
 
+  /* Accent hierarchy */
+  --color-info: #3B82F6;
+  --color-info-text: #60A5FA;
+  --color-derivatives: #8B5CF6;
+  --color-derivatives-text: #A78BFA;
+
   /* Text hierarchy */
   --color-text-primary: #F2F2F7;
   --color-text-secondary: #8E8E93;
@@ -75,6 +81,7 @@
   --animate-flash-red: flash-red 0.6s ease-out;
   --animate-shimmer: shimmer 1.5s ease-in-out infinite;
   --animate-typing-bounce: typing-bounce 1.2s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 2.5s ease-in-out infinite;
 }
 
 /* Delta Saraswati — Premium Dark Theme */
@@ -135,6 +142,11 @@
   30% { transform: translateY(-4px); }
 }
 
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 16px rgba(245,158,11,0.15); }
+  50% { box-shadow: 0 0 28px rgba(245,158,11,0.25); }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -146,6 +158,31 @@
   html {
     @apply font-sans;
   }
+}
+
+/* Ambient background gradients */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 10% 10%, rgba(245,158,11,0.03), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 90%, rgba(59,130,246,0.03), transparent 60%);
+}
+
+/* Noise texture overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
 }
 
 /* Premium details */
@@ -231,13 +268,47 @@
   left: 120%;
 }
 
+/* Premium KPI / indicator cards — deep 3D with bevel + glow */
+.kpi-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.025) 0%, transparent 50%, rgba(0,0,0,0.1) 100%),
+    var(--color-card, #12141c);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.03) inset,
+    0 1px 2px rgba(0,0,0,0.3),
+    0 4px 8px rgba(0,0,0,0.2),
+    0 8px 24px rgba(0,0,0,0.15);
+  transition: all 0.25s ease;
+}
+.kpi-card:hover {
+  border-color: rgba(255,255,255,0.10);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05) inset,
+    0 2px 4px rgba(0,0,0,0.3),
+    0 8px 16px rgba(0,0,0,0.25),
+    0 16px 48px rgba(0,0,0,0.2),
+    0 0 24px rgba(245,158,11,0.04);
+}
+
+/* Trade CTA pulsing gradient button */
+.trade-cta-pulse {
+  background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+/* Premium sidebar gradient */
+.sidebar-premium {
+  background: linear-gradient(180deg, #0d0e14 0%, #0a0b10 100%);
+}
+
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-flash-green, .animate-flash-red, .animate-shimmer, .animate-typing-bounce {
+  .animate-flash-green, .animate-flash-red, .animate-shimmer, .animate-typing-bounce, .trade-cta-pulse {
     animation: none !important;
   }
 }

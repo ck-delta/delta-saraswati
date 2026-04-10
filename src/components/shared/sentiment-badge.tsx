@@ -26,7 +26,7 @@ export function SentimentBadge({ sentiment, score }: SentimentBadgeProps) {
         sentiment === "negative" &&
           "bg-loss/8 text-loss-text border-loss/15 shadow-[0_0_8px_rgba(246,70,93,0.06)]",
         sentiment === "neutral" &&
-          "bg-white/[0.03] text-text-tertiary border-white/[0.06]"
+          "bg-slate-400/10 text-slate-400 border-slate-400/15 shadow-[0_0_8px_rgba(148,163,184,0.06)]"
       )}
     >
       <Icon className="size-3" />

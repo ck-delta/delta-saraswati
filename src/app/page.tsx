@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw } from "@/components/icons";
+import { RefreshCw, Gauge } from "@/components/icons";
 import { AnimatedPage, AnimatedSection } from "@/lib/motion/components";
 import { useDeltaTickers } from "@/hooks/use-delta-tickers";
 import { useNews } from "@/hooks/use-news";
@@ -13,6 +13,7 @@ import { NewsFeed } from "@/components/home/news-feed";
 import { CtaBanner } from "@/components/home/cta-banner";
 import { TradeModal } from "@/components/shared/trade-modal";
 import { timeAgo } from "@/lib/utils";
+import { useSparklines } from "@/hooks/use-sparklines";
 
 export default function HomePage() {
   const router = useRouter();
@@ -26,6 +27,10 @@ export default function HomePage() {
   const openTradeModal = useAppStore((s) => s.openTradeModal);
 
   const topTickers = (tickers ?? []).slice(0, 3);
+
+  // Sparkline data for top tokens
+  const topSymbols = useMemo(() => topTickers.map((t: Record<string, unknown>) => t.symbol as string), [topTickers]);
+  const sparklines = useSparklines(topSymbols);
 
   // Max volume across top 3 for relative volume bar
   const maxVolume = useMemo(
@@ -45,11 +50,16 @@ export default function HomePage() {
         {/* Page title + last updated */}
         <AnimatedSection>
           <div className="flex items-end justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-text-primary">Daily Pulse</h1>
-              <p className="text-sm text-text-secondary mt-1">
-                Top tokens, AI insights, and market news
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Gauge className="size-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-text-primary">Delta Saraswati</h1>
+                <p className="text-sm text-text-secondary mt-1">
+                  Top tokens, AI insights, and market news
+                </p>
+              </div>
             </div>
             {lastUpdated && !tickersLoading && (
               <button
@@ -83,6 +93,7 @@ export default function HomePage() {
                     volume24h={Number(ticker.turnover_usd ?? 0)}
                     maxVolume={maxVolume}
                     sentimentScore={Number(ticker.sentiment_score ?? 0.5)}
+                    sparklineData={sparklines[ticker.symbol as string]}
                     onMoreInfo={() =>
                       router.push(`/research?token=${ticker.symbol}`)
                     }

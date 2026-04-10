@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { Bot, Sparkles } from "@/components/icons";
 import { useChat } from "@/hooks/use-chat";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -40,10 +41,26 @@ export function ChatInterface() {
       <ScrollArea className="flex-1 px-4">
         {messages.length === 0 ? (
           <div className="flex h-full min-h-[60vh] items-center justify-center">
-            <div className="flex max-w-sm flex-col items-center gap-4 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-elevated">
-                <Bot className="h-7 w-7 text-amber-500" />
-              </div>
+            <div className="relative flex max-w-sm flex-col items-center gap-5 text-center">
+              {/* Dot pattern background */}
+              <div
+                className="absolute inset-0 -m-8 opacity-[0.03]"
+                style={{
+                  backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)",
+                  backgroundSize: "16px 16px",
+                }}
+              />
+
+              {/* Large bot icon with gradient bg + pulse */}
+              <motion.div
+                className="relative flex size-16 items-center justify-center rounded-3xl"
+                style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.15), rgba(59,130,246,0.1))" }}
+                animate={{ scale: [1, 1.03, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Bot className="size-8 text-amber-500" />
+              </motion.div>
+
               <div>
                 <h2 className="text-lg font-semibold text-text-primary">
                   I&apos;m Delta Saraswati
@@ -53,19 +70,17 @@ export function ChatInterface() {
                   markets, tokens, or trading.
                 </p>
               </div>
-              <div className="flex flex-col gap-2 w-full">
+
+              {/* Suggested prompt pills */}
+              <div className="flex flex-wrap justify-center gap-2 w-full">
                 {SUGGESTED_PROMPTS.map((prompt) => (
                   <button
                     key={prompt}
                     onClick={() => sendMessage(prompt)}
-                    className="
-                      w-full rounded-lg border border-border bg-card px-3 py-2
-                      text-left text-sm text-text-secondary transition-colors
-                      hover:border-amber-500/50 hover:bg-[rgba(245,158,11,0.05)]
-                    "
+                    className="rounded-full border border-border bg-card/50 px-3 py-1.5 text-sm text-text-secondary transition-colors hover:border-amber-500/50 hover:bg-[rgba(245,158,11,0.05)]"
                   >
-                    <span className="flex items-center gap-2">
-                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles className="size-3 shrink-0 text-amber-500" />
                       {prompt}
                     </span>
                   </button>

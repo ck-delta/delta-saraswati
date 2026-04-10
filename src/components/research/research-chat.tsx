@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowUp, Loader2 } from "@/components/icons";
+import { ArrowUp, Loader2, Bot } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,7 +35,7 @@ export function ResearchChat({ symbol }: ResearchChatProps) {
   return (
     <Card className="p-0">
       <CardContent className="space-y-3 py-4 px-4">
-        <h3 className="text-sm font-semibold text-text-primary">Ask AI</h3>
+        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-1.5"><Bot className="size-3.5 text-primary" />Ask AI</h3>
 
         {/* Messages */}
         {lastMessages.length > 0 && (
@@ -79,6 +79,22 @@ export function ResearchChat({ symbol }: ResearchChatProps) {
             )}
           </Button>
         </form>
+
+        {/* Quick prompt chips */}
+        {messages.length === 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {["Analyze RSI trend", "Predict next support", "Explain funding rate"].map((prompt) => (
+              <button
+                key={prompt}
+                onClick={() => { sendMessage(`${prompt} for ${symbol}`); }}
+                disabled={isStreaming}
+                className="rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-[11px] text-text-secondary hover:border-primary/30 hover:bg-primary/5 transition-colors disabled:opacity-50"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

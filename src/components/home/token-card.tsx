@@ -53,6 +53,7 @@ interface TokenCardProps {
   volume24h: number;
   maxVolume: number;
   sentimentScore: number;
+  sparklineData?: number[];
   onMoreInfo: () => void;
   onTradeNow: () => void;
 }
@@ -87,36 +88,27 @@ export function TokenCardSkeleton() {
   );
 }
 
-// Mini sparkline SVG — generates a simple 7-point line
-function MiniSparkline({ positive, brandColor }: { positive: boolean; brandColor: string }) {
+// Mini sparkline SVG — renders real price data or fallback
+function MiniSparkline({ data, positive, brandColor }: { data: number[]; positive: boolean; brandColor: string }) {
   const points = useMemo(() => {
-    // Deterministic-looking sparkline based on direction
-    const up = [28, 24, 26, 20, 22, 16, 12];
-    const down = [12, 16, 14, 20, 18, 24, 28];
-    const data = positive ? up : down;
-    return data.map((y, i) => `${i * 10},${y}`).join(" ");
-  }, [positive]);
+    const values = data.length >= 2 ? data : (positive ? [28, 24, 26, 20, 22, 16, 12] : [12, 16, 14, 20, 18, 24, 28]);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min || 1;
+    const w = 60;
+    const h = 32;
+    const pad = 2;
+    return values.map((v, i) => {
+      const x = (i / (values.length - 1)) * w;
+      const y = pad + ((max - v) / range) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+  }, [data, positive]);
 
   return (
     <svg width="60" height="32" viewBox="0 0 60 32" fill="none" className="opacity-50">
-      <polyline
-        points={points}
-        stroke={brandColor}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <defs>
-        <linearGradient id={`spark-${positive}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={brandColor} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={brandColor} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon
-        points={`0,32 ${points} 60,32`}
-        fill={`url(#spark-${positive})`}
-      />
+      <polyline points={points} stroke={brandColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <polygon points={`0,32 ${points} 60,32`} fill={brandColor} fillOpacity="0.15" />
     </svg>
   );
 }
@@ -140,6 +132,7 @@ export function TokenCard({
   volume24h,
   maxVolume,
   sentimentScore,
+  sparklineData,
   onMoreInfo,
   onTradeNow,
 }: TokenCardProps) {
@@ -189,7 +182,7 @@ export function TokenCard({
             </div>
             {/* Mini sparkline */}
             <div className="flex items-center">
-              <MiniSparkline positive={isPositive} brandColor={brand.color} />
+              <MiniSparkline data={sparklineData || []} positive={isPositive} brandColor={brand.color} />
             </div>
           </div>
 
