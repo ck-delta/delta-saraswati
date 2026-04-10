@@ -34,31 +34,34 @@ export async function generateNewsSummary(headlines: string[], marketContext: st
   const response = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages: [
-      { role: "system", content: "You are a crypto market analyst writing a daily briefing. Simple English. Short punchy sentences. Friendly but professional." },
-      { role: "user", content: `Write a market briefing from these headlines:\n\n${headlines.join("\n")}\n\n${marketContext ? `Context: ${marketContext}` : ""}
+      { role: "system", content: "You are a crypto market analyst writing a daily briefing card. Simple English. Short punchy sentences. Data-rich." },
+      { role: "user", content: `Write a market briefing from these headlines:\n\n${headlines.join("\n")}\n\n${marketContext ? `Live data: ${marketContext}` : ""}
 
-Format EXACTLY like this (use these exact section headers):
+Format EXACTLY like this. Follow every rule precisely:
 
 **Market Pulse**
-- One bullet about BTC price and trend
-- One bullet about ETH and altcoins
+- **BTC** at **$72,100** ↓0.74% — rejected at $73,200 resistance [bearish]
+- **ETH** slides to **$2,180** ↓1.2% — dragged by BTC weakness [bearish]
 
 **Big Movers**
-- Name 2-3 tokens that moved the most and why
+- **ZEC** surges to **$372** ↑16.8% — privacy coin rally [bullish]
+- **XRP** edges to **$1.35** ↑2.1% — low volume breakout [neutral]
 
 **Macro Watch**
-- Any FED, regulation, or geopolitical news affecting crypto
-- Skip this section if nothing relevant
+- Japan classifies crypto as financial instruments — regulatory clarity [bullish]
+- BlackRock's Bitcoin ETF sees **$269M** inflows — 5-week high [bullish]
 
 **Signal**
-_One sentence takeaway — what to watch next._
+_Watch the **$72,800–$73,200** zone closely. A clean break above means strong bullish continuation toward **$75K**. Failure here likely sends BTC back to retest **$70K** support. Volume is the key tell._
 
 Rules:
-- Each bullet is ONE short sentence. Max 15 words per bullet.
-- Use **bold** for token names and numbers
-- Use _italic_ for the signal takeaway
+- MUST include a price + direction arrow (↑ or ↓) + percentage on EVERY bullet
+- MUST add [bullish], [neutral], or [bearish] tag at end of each bullet
+- Use **bold** for token names, prices, and key numbers
+- Signal section MUST be 2-3 sentences with specific price levels
+- Use real prices from the live data. Never guess.
 - No markdown headers (no # or ##). Use **bold** for section titles.
-- Total length: max 8-10 bullets.` },
+- Max 8-10 bullets total across all sections.` },
     ],
     max_completion_tokens: 512,
     temperature: 0.6,

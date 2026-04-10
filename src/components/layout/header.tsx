@@ -39,9 +39,10 @@ export function Header() {
       {/* Right: deposit button + avatar */}
       <div className="flex items-center gap-3">
         <motion.button
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(245,158,11,0.25)" }}
           whileTap={{ scale: 0.97 }}
-          className="rounded-lg bg-[#F59E0B] px-3 py-1.5 text-xs font-semibold text-[#08080c] transition-colors hover:bg-[#F59E0B]/90"
+          className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-[#08080c] transition-all"
+          style={{ background: "linear-gradient(135deg, #F59E0B 0%, #F97316 100%)" }}
         >
           <Wallet className="size-3.5" />
           Deposit INR

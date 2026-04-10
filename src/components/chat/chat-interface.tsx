@@ -42,9 +42,9 @@ export function ChatInterface() {
         {messages.length === 0 ? (
           <div className="flex h-full min-h-[60vh] items-center justify-center">
             <div className="relative flex max-w-sm flex-col items-center gap-5 text-center">
-              {/* Dot pattern background */}
+              {/* Dot pattern background — pointer-events-none so buttons below stay clickable */}
               <div
-                className="absolute inset-0 -m-8 opacity-[0.03]"
+                className="absolute inset-0 -m-8 opacity-[0.03] pointer-events-none"
                 style={{
                   backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)",
                   backgroundSize: "16px 16px",

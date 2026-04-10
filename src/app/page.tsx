@@ -81,17 +81,19 @@ export default function HomePage() {
 
   return (
     <>
-      <AnimatedPage className="space-y-8">
-        {/* Page title + last updated */}
+      <AnimatedPage className="space-y-10">
+        {/* Page title + last updated — premium header */}
         <AnimatedSection>
           <div className="flex items-end justify-between">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Gauge className="size-5 text-primary" />
+            <div className="flex items-center gap-4">
+              <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.1)]">
+                <Gauge className="size-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-text-primary">Delta Saraswati</h1>
-                <p className="text-sm text-text-secondary mt-1">
+                <h1 className="text-3xl font-extrabold text-text-primary tracking-tight" style={{ textShadow: '0 0 40px rgba(245,158,11,0.08)' }}>
+                  Delta Saraswati
+                </h1>
+                <p className="text-sm text-text-secondary mt-0.5">
                   Top tokens, AI insights, and market news
                 </p>
               </div>
@@ -99,20 +101,19 @@ export default function HomePage() {
             {lastUpdated && !tickersLoading && (
               <button
                 onClick={() => mutate()}
-                className="flex items-center gap-1.5 text-[11px] text-text-tertiary hover:text-text-secondary transition-colors"
+                className="flex items-center gap-1.5 text-[11px] text-text-tertiary hover:text-text-secondary transition-colors rounded-full border border-white/[0.06] px-3 py-1.5 bg-white/[0.02] hover:bg-white/[0.04]"
               >
                 <RefreshCw className="size-3" />
                 Updated {timeAgo(lastUpdated)}
               </button>
             )}
           </div>
-          {/* Divider below header */}
-          <div className="gradient-separator mt-4" />
+          <div className="gradient-separator mt-5" />
         </AnimatedSection>
 
-        {/* Top tokens grid */}
+        {/* Top tokens grid — wider gap */}
         <AnimatedSection>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {tickersLoading
               ? Array.from({ length: 3 }).map((_, i) => (
                   <TokenCardSkeleton key={i} />

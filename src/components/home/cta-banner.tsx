@@ -9,11 +9,16 @@ export function CtaBanner() {
   const openTradeModal = useAppStore((s) => s.openTradeModal);
 
   return (
-    <Card className="relative overflow-hidden ambient-glow border-primary/10 card-elevated">
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/3 to-transparent pointer-events-none" />
-      <CardContent className="relative flex flex-col items-center gap-3 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
-        <div className="space-y-1">
-          <h3 className="text-base font-semibold text-text-primary">
+    <div className="kpi-card rounded-2xl relative overflow-hidden">
+      {/* Background gradient layers */}
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.06] via-primary/[0.02] to-info/[0.03] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+      {/* Left accent bar */}
+      <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-primary to-primary/20 rounded-l-2xl" />
+
+      <div className="relative flex flex-col items-center gap-4 py-8 px-8 text-center sm:flex-row sm:justify-between sm:text-left">
+        <div className="space-y-1.5">
+          <h3 className="text-lg font-bold text-text-primary tracking-tight">
             Ready to trade?
           </h3>
           <p className="text-sm text-text-secondary">
@@ -22,13 +27,14 @@ export function CtaBanner() {
         </div>
         <Button
           size="lg"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[var(--shadow-glow-md)] transition-shadow"
+          className="rounded-xl font-bold text-primary-foreground trade-btn-shine hover:shadow-[var(--shadow-glow-lg)] transition-all h-12 px-8"
+          style={{ background: "linear-gradient(135deg, #F59E0B 0%, #F97316 100%)" }}
           onClick={() => openTradeModal("BTC")}
         >
-          <Zap className="size-4 mr-1.5" />
+          <Zap className="size-4 mr-2" />
           Trade Now
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

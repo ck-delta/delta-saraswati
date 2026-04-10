@@ -144,16 +144,16 @@ export function TokenCardSkeleton() {
   );
 }
 
-// Mini sparkline SVG — renders real price data or fallback
+// Mini sparkline SVG — renders real price data or fallback (larger, more prominent)
 function MiniSparkline({ data, positive, brandColor }: { data: number[]; positive: boolean; brandColor: string }) {
   const points = useMemo(() => {
     const values = data.length >= 2 ? data : (positive ? [28, 24, 26, 20, 22, 16, 12] : [12, 16, 14, 20, 18, 24, 28]);
     const min = Math.min(...values);
     const max = Math.max(...values);
     const range = max - min || 1;
-    const w = 60;
-    const h = 32;
-    const pad = 2;
+    const w = 80;
+    const h = 40;
+    const pad = 3;
     return values.map((v, i) => {
       const x = (i / (values.length - 1)) * w;
       const y = pad + ((max - v) / range) * (h - pad * 2);
@@ -161,45 +161,59 @@ function MiniSparkline({ data, positive, brandColor }: { data: number[]; positiv
     }).join(" ");
   }, [data, positive]);
 
+  const id = useMemo(() => `spark-${Math.random().toString(36).slice(2, 8)}`, []);
+
   return (
-    <svg width="60" height="32" viewBox="0 0 60 32" fill="none" className="opacity-50">
-      <polyline points={points} stroke={brandColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <polygon points={`0,32 ${points} 60,32`} fill={brandColor} fillOpacity="0.15" />
+    <svg width="80" height="40" viewBox="0 0 80 40" fill="none" className="opacity-60 group-hover/token:opacity-80 transition-opacity">
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={brandColor} stopOpacity="0.25" />
+          <stop offset="100%" stopColor={brandColor} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon points={`0,40 ${points} 80,40`} fill={`url(#${id})`} />
+      <polyline points={points} stroke={brandColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" style={{ filter: `drop-shadow(0 0 4px ${brandColor}40)` }} />
     </svg>
   );
 }
 
-// AI Sentiment slider — score out of 10
+// AI Sentiment slider — premium with colored fill, glow, and score badge
 function SentimentSlider({ score, brandColor }: { score: number; brandColor: string }) {
   const value = Math.max(0, Math.min(10, score * 10));
   const pct = (value / 10) * 100;
   const label = value >= 7 ? "Bullish" : value <= 3 ? "Bearish" : "Neutral";
-  const labelColor = value >= 7 ? "text-gain" : value <= 3 ? "text-loss" : "text-text-tertiary";
+  const labelColor = value >= 7 ? "text-gain" : value <= 3 ? "text-loss" : "text-text-secondary";
+  const fillColor = value <= 3 ? "#F6465D" : value <= 5 ? "#636366" : brandColor;
 
   return (
-    <div className="space-y-1.5">
+    <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] px-4 py-3.5 space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider">AI Sentiment</span>
-        <div className="flex items-center gap-1.5">
-          <span className={`text-[10px] font-semibold ${labelColor}`}>{label}</span>
-          <span className="font-mono tabular-nums text-xs font-bold text-text-primary">{value.toFixed(1)}<span className="text-text-tertiary/50">/10</span></span>
+        <div className="flex items-center gap-2">
+          <div className="size-1.5 rounded-full animate-pulse" style={{ backgroundColor: fillColor }} />
+          <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-[0.08em]">AI Sentiment</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-[11px] font-bold ${labelColor}`}>{label}</span>
+          <span className="font-mono tabular-nums text-sm font-black text-text-primary">{value.toFixed(1)}<span className="text-text-tertiary/40 font-normal">/10</span></span>
         </div>
       </div>
-      <div className="relative h-1.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
+      <div className="relative h-2 w-full rounded-full bg-white/[0.04] overflow-hidden">
+        {/* Track glow */}
         <div
-          className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
+          className="absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out"
           style={{
             width: `${pct}%`,
-            background: `linear-gradient(90deg, ${value <= 3 ? "#F6465D" : value <= 5 ? "#636366" : brandColor}, ${value <= 3 ? "#FF6B7A" : value <= 5 ? "#8E8E93" : brandColor})`,
-            boxShadow: `0 0 8px ${value >= 7 ? brandColor : value <= 3 ? "rgba(246,70,93,0.3)" : "transparent"}`,
+            background: `linear-gradient(90deg, ${fillColor}80, ${fillColor})`,
+            boxShadow: `0 0 12px ${fillColor}40, inset 0 1px 0 rgba(255,255,255,0.15)`,
           }}
         />
-        {/* Dot indicator at end of fill */}
+        {/* Dot indicator */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 size-2.5 rounded-full border-2 border-background transition-all duration-700"
+          className="absolute top-1/2 -translate-y-1/2 size-3.5 rounded-full border-2 border-background shadow-lg transition-all duration-1000 ease-out"
           style={{
-            left: `calc(${pct}% - 5px)`,
-            backgroundColor: value <= 3 ? "#F6465D" : value <= 5 ? "#8E8E93" : brandColor,
+            left: `calc(${pct}% - 7px)`,
+            backgroundColor: fillColor,
+            boxShadow: `0 0 8px ${fillColor}60, 0 2px 4px rgba(0,0,0,0.3)`,
           }}
         />
       </div>
@@ -239,42 +253,47 @@ export function TokenCard({
       whileHover={{ y: -6, transition: { duration: 0.25 } }}
       whileTap={{ scale: 0.98 }}
     >
-      <Card className="p-0 h-full card-elevated group/token relative overflow-hidden token-card-gradient">
-        {/* Brand-colored top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: brand.color, opacity: 0.5 }} />
+      <Card className="p-0 h-full card-elevated group/token relative overflow-hidden token-card-gradient rounded-2xl">
+        {/* Brand-colored top accent line with glow */}
+        <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: brand.color, opacity: 0.6, boxShadow: `0 2px 12px ${brand.color}30` }} />
 
-        <CardContent className="flex flex-col gap-5 pt-7 pb-6 px-6">
+        {/* Subtle brand ambient glow in corner */}
+        <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none" style={{ background: `radial-gradient(circle at 100% 0%, ${brand.color}08, transparent 70%)` }} />
+
+        <CardContent className="flex flex-col gap-6 pt-8 pb-7 px-7">
           {/* Header: icon + symbol/name + sparkline */}
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              {/* Token icon with brand glow */}
+            <div className="flex items-center gap-3.5">
+              {/* Token icon with brand glow — larger */}
               <div
-                className="flex items-center justify-center size-12 rounded-2xl shrink-0 token-icon-ring"
+                className="flex items-center justify-center size-14 rounded-2xl shrink-0 token-icon-ring"
                 style={{
                   backgroundColor: brand.bg,
                   color: brand.color,
-                  boxShadow: brand.glow,
+                  boxShadow: `${brand.glow}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+                  border: `1px solid ${brand.color}20`,
                 }}
               >
-                <IconComponent size={24} />
+                <IconComponent size={28} />
               </div>
               <div className="space-y-0.5 min-w-0">
-                <h3 className="font-heading text-base font-bold text-text-primary tracking-tight">
+                <h3 className="font-heading text-lg font-extrabold text-text-primary tracking-tight">
                   {symbol}
                 </h3>
                 <p className="text-[11px] text-text-tertiary truncate">{name}</p>
               </div>
             </div>
-            {/* Mini sparkline */}
-            <div className="flex items-center">
+            {/* Mini sparkline — bigger */}
+            <div className="flex items-center pt-1">
               <MiniSparkline data={sparklineData || []} positive={isPositive} brandColor={brand.color} />
             </div>
           </div>
 
-          {/* Price — largest element */}
-          <div className="space-y-2.5">
+          {/* Price — largest element, bigger and bolder */}
+          <div className="space-y-3">
             <p
-              className={`font-mono tabular-nums text-[28px] leading-none font-bold text-text-primary rounded px-1 -mx-1 transition-colors ${flashClass}`}
+              className={`font-mono tabular-nums text-[32px] leading-none font-black text-text-primary rounded px-1 -mx-1 transition-colors ${flashClass}`}
+              style={{ textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
             >
               ${displayPrice}
             </p>
@@ -284,17 +303,17 @@ export function TokenCard({
           {/* Divider */}
           <div className="gradient-separator" />
 
-          {/* Stats grid — funding & volume */}
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between text-xs">
+          {/* Stats grid — funding & volume with subtle well backgrounds */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs rounded-lg px-3 py-2 bg-white/[0.015] border border-white/[0.03]">
               <span className="text-text-tertiary">Funding Rate</span>
-              <span className={`font-mono tabular-nums font-semibold ${fundingRate >= 0 ? "text-gain" : "text-loss"}`}>
+              <span className={`font-mono tabular-nums font-bold ${fundingRate >= 0 ? "text-gain glow-green" : "text-loss glow-red"}`}>
                 {fundingRate >= 0 ? "+" : ""}{fundingRate.toFixed(4)}%
               </span>
             </div>
-            <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center justify-between text-xs rounded-lg px-3 py-2 bg-white/[0.015] border border-white/[0.03]">
               <span className="text-text-tertiary">Volume (24h)</span>
-              <span className="font-mono tabular-nums font-semibold text-text-primary">
+              <span className="font-mono tabular-nums font-bold text-text-primary">
                 {volume24h >= 1e9
                   ? `$${(volume24h / 1e9).toFixed(2)}B`
                   : volume24h >= 1e6
@@ -304,15 +323,15 @@ export function TokenCard({
             </div>
           </div>
 
-          {/* AI Sentiment Slider */}
+          {/* AI Sentiment Slider — premium container */}
           <SentimentSlider score={sentimentScore} brandColor={brand.color} />
 
-          {/* Action buttons */}
-          <div className="flex gap-2.5 pt-1">
+          {/* Action buttons — premium gradient */}
+          <div className="flex gap-3 pt-1">
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 h-10 rounded-xl border-border/50 hover:border-primary/30 hover:bg-primary/5 font-semibold transition-all"
+              className="flex-1 h-11 rounded-xl border-white/[0.08] bg-white/[0.02] hover:border-primary/30 hover:bg-primary/5 font-semibold transition-all"
               onClick={onMoreInfo}
             >
               <Info className="size-3.5 mr-1.5" />
@@ -320,7 +339,8 @@ export function TokenCard({
             </Button>
             <Button
               size="sm"
-              className="flex-1 h-10 rounded-xl bg-primary text-primary-foreground font-semibold trade-btn-shine hover:bg-primary/90 hover:shadow-[var(--shadow-glow-md)] transition-all"
+              className="flex-1 h-11 rounded-xl font-bold trade-btn-shine transition-all"
+              style={{ background: `linear-gradient(135deg, ${brand.color}, ${brand.color}CC)` }}
               onClick={onTradeNow}
             >
               <Zap className="size-3.5 mr-1.5" />
