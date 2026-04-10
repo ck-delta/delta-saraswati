@@ -1,10 +1,12 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { ChatMessage } from "@/types/chat";
 
 export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const messagesRef = useRef<ChatMessage[]>(messages);
+  messagesRef.current = messages;
 
   const sendMessage = useCallback(async (content: string) => {
     const userMsg: ChatMessage = {
@@ -26,7 +28,7 @@ export function useChat() {
     setIsStreaming(true);
 
     try {
-      const apiMessages = [...messages, userMsg].map((m) => ({ role: m.role, content: m.content }));
+      const apiMessages = [...messagesRef.current, userMsg].map((m) => ({ role: m.role, content: m.content }));
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,14 +40,18 @@ export function useChat() {
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       let fullContent = "";
+      let buffer = "";
 
       if (reader) {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const text = decoder.decode(value);
-          const lines = text.split("\n").filter((l) => l.startsWith("data: "));
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split("\n");
+          buffer = parts.pop() || "";
+
+          const lines = parts.filter((l) => l.startsWith("data: "));
 
           for (const line of lines) {
             const data = line.slice(6);
@@ -58,7 +64,9 @@ export function useChat() {
                   prev.map((m) => (m.id === assistantMsg.id ? { ...m, content: fullContent } : m))
                 );
               }
-            } catch {}
+            } catch (e) {
+              console.warn("Failed to parse SSE chunk:", data, e);
+            }
           }
         }
       }
@@ -75,7 +83,7 @@ export function useChat() {
     } finally {
       setIsStreaming(false);
     }
-  }, [messages]);
+  }, []);
 
   const clearMessages = useCallback(() => setMessages([]), []);
 

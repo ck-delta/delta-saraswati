@@ -8,8 +8,8 @@ export async function GET() {
     // Fetch headlines (cached 15min)
     const { data: rawHeadlines } = await cached("news:headlines", 900, fetchNewsHeadlines);
 
-    // Get AI summary + sentiment (cached 1h)
-    const { data: aiData } = await cached("ai:news", 3600, async () => {
+    // Get AI summary + sentiment (cached 15min, aligned with headlines TTL)
+    const { data: aiData } = await cached("ai:news", 900, async () => {
       const headlines = (rawHeadlines as any[]).slice(0, 15);
       const headlineTexts = headlines.map((h: any) => h.title);
 

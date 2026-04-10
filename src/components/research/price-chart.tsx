@@ -17,22 +17,29 @@ export default function PriceChart({ symbol, resolution, onResolutionChange }: P
   const chartRef = useRef<any>(null);
   const seriesRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchCandles = useCallback(async () => {
     try {
+      setError(null);
       const res = await fetch(`/api/delta/candles?symbol=${symbol}&resolution=${resolution}`);
       const json = await res.json();
       if (json.success && json.data) {
-        return json.data.map((c: any) => ({
-          time: c.time,
-          open: c.open,
-          high: c.high,
-          low: c.low,
-          close: c.close,
-        }));
+        return json.data
+          .map((c: any) => ({
+            time: c.time,
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close,
+          }))
+          .sort((a: any, b: any) => a.time - b.time); // defensive: ensure ascending
       }
-    } catch {
-      /* silent */
+      console.error("[PriceChart] API error:", json.error);
+      setError("Failed to load chart data");
+    } catch (err) {
+      console.error("[PriceChart] Fetch failed:", err);
+      setError("Failed to load chart data");
     }
     return [];
   }, [symbol, resolution]);
@@ -169,6 +176,11 @@ export default function PriceChart({ symbol, resolution, onResolutionChange }: P
         {loading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-card">
             <Skeleton className="h-[400px] w-full" />
+          </div>
+        )}
+        {error && !loading && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-card">
+            <p className="text-sm text-red-400">{error}</p>
           </div>
         )}
         <div ref={chartContainerRef} className="h-[400px] w-full" />
