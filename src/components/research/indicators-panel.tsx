@@ -3,7 +3,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedList, AnimatedListItem } from "@/lib/motion/components";
 import { formatPrice } from "@/lib/utils";
-import { Activity, Layers, TrendingUp, TrendingDown, Info, Shield, Zap } from "lucide-react";
+import { Activity, Layers, TrendingUp, TrendingDown, Info, Shield, Zap, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface IndicatorsPanelProps {
@@ -18,14 +18,15 @@ interface IndicatorsPanelProps {
     adx?: { adx: number; plusDI: number; minusDI: number };
     pivotPoints?: { pivot: number; r1: number; r2: number; s1: number; s2: number };
     trendSummary?: string;
+    overallSignal?: { signal: string; confidence: number; reasoning: string[]; watchNext: string };
   } | null;
   isLoading: boolean;
 }
 
 function getRsiArc(value: number) {
   if (value > 70) return { label: "Overbought", color: "#F6465D", bg: "rgba(246,70,93,0.12)", icon: "↑" };
-  if (value < 30) return { label: "Oversold", color: "#0ECB81", bg: "rgba(14,203,129,0.12)", icon: "↓" };
-  return { label: "Neutral", color: "#8E8E93", bg: "rgba(142,142,147,0.12)", icon: "→" };
+  if (value < 30) return { label: "Oversold", color: "#22C55E", bg: "rgba(34,197,94,0.12)", icon: "↓" };
+  return { label: "Neutral", color: "#94A3B8", bg: "rgba(148,163,184,0.12)", icon: "→" };
 }
 
 function RsiGaugeCircular({ value }: { value: number }) {
@@ -39,10 +40,10 @@ function RsiGaugeCircular({ value }: { value: number }) {
   return (
     <div className="relative flex items-center justify-center" style={{ width: 96, height: 96 }}>
       <svg width="96" height="96" viewBox="0 0 96 96" className="absolute">
-        <circle cx="48" cy="48" r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" strokeLinecap="round" strokeDasharray={`${arcLength} ${circumference - arcLength}`} transform="rotate(135 48 48)" />
-        <circle cx="48" cy="48" r={radius} fill="none" stroke={info.color} strokeWidth="6" strokeLinecap="round" strokeDasharray={`${arcLength} ${circumference - arcLength}`} strokeDashoffset={dashOffset} transform="rotate(135 48 48)" style={{ filter: `drop-shadow(0 0 6px ${info.color}40)` }} />
+        <circle cx="48" cy="48" r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" strokeLinecap="round" strokeDasharray={`${arcLength} ${circumference - arcLength}`} transform="rotate(135 48 48)" />
+        <circle cx="48" cy="48" r={radius} fill="none" stroke={info.color} strokeWidth="6" strokeLinecap="round" strokeDasharray={`${arcLength} ${circumference - arcLength}`} strokeDashoffset={dashOffset} transform="rotate(135 48 48)" style={{ filter: `drop-shadow(0 0 8px ${info.color}50)` }} />
       </svg>
-      <span className="font-mono tabular-nums text-xl font-bold text-text-primary leading-none z-10">{value.toFixed(1)}</span>
+      <span className="font-mono tabular-nums text-2xl font-bold text-[#F1F5F9] leading-none z-10">{value.toFixed(1)}</span>
     </div>
   );
 }
@@ -50,8 +51,8 @@ function RsiGaugeCircular({ value }: { value: number }) {
 function Tooltip({ text }: { text: string }) {
   return (
     <div className="relative group/tip inline-flex">
-      <Info className="size-3 text-text-tertiary/40 hover:text-text-tertiary cursor-help transition-colors" />
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-elevated rounded text-[10px] text-text-secondary whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-20 shadow-lg border border-white/5">
+      <Info className="size-3 text-[#64748B] hover:text-[#94A3B8] cursor-help transition-colors" />
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 bg-[#1E293B] rounded-lg text-[10px] text-[#CBD5E1] whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-20 shadow-xl border border-white/10">
         {text}
       </div>
     </div>
@@ -65,18 +66,18 @@ function SmaRow({ label, smaPrice, currentPrice, isClosest, tooltip }: {
   const diff = ((currentPrice - smaPrice) / smaPrice) * 100;
 
   return (
-    <div className={`flex items-center justify-between py-3 group/row rounded-lg px-3 -mx-3 transition-all ${isClosest ? "bg-primary/[0.04] border border-primary/10" : "hover:bg-white/[0.02]"}`}>
+    <div className={`flex items-center justify-between py-3.5 group/row rounded-lg px-3 -mx-3 transition-all ${isClosest ? "bg-primary/[0.06] border border-primary/15" : "hover:bg-white/[0.03]"}`}>
       <div className="flex items-center gap-2">
-        <span className="text-[13px] text-[#CBD5E1] group-hover/row:text-text-primary transition-colors">{label}</span>
+        <span className="text-[13px] font-medium text-[#CBD5E1] group-hover/row:text-[#F1F5F9] transition-colors">{label}</span>
         <Tooltip text={tooltip} />
-        {isClosest && <span className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">Closest</span>}
+        {isClosest && <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary">Closest</span>}
       </div>
       <div className="flex items-center gap-2.5">
-        <span className={`inline-flex items-center gap-1 text-[10px] font-semibold rounded-full px-2 py-0.5 ${isAbove ? "bg-gain/10 text-gain" : "bg-loss/10 text-loss"}`}>
+        <span className={`inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 ${isAbove ? "bg-[#22C55E]/12 text-[#22C55E]" : "bg-[#F87171]/12 text-[#F87171]"}`}>
           {isAbove ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
           {isAbove ? "Above" : "Below"} {Math.abs(diff).toFixed(1)}%
         </span>
-        <span className={`font-mono tabular-nums text-sm font-bold ${isAbove ? "text-gain glow-green" : "text-loss glow-red"}`}>${formatPrice(smaPrice)}</span>
+        <span className={`font-mono tabular-nums text-sm font-bold ${isAbove ? "text-[#22C55E] glow-green" : "text-[#F87171] glow-red"}`}>${formatPrice(smaPrice)}</span>
       </div>
     </div>
   );
@@ -89,8 +90,8 @@ function SkeletonCard() {
       <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="flex items-center justify-between">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-3.5 w-24" />
+            <Skeleton className="h-4.5 w-20" />
           </div>
         ))}
       </div>
@@ -98,20 +99,31 @@ function SkeletonCard() {
   );
 }
 
+function getSignalStyle(signal: string) {
+  switch (signal) {
+    case "Strong Buy": return { bg: "bg-[#22C55E]/15", text: "text-[#22C55E]", border: "border-[#22C55E]/25", glow: "shadow-[0_0_16px_rgba(34,197,94,0.25)]", gradBg: "from-[#22C55E]/[0.06] to-transparent" };
+    case "Buy": return { bg: "bg-[#22C55E]/10", text: "text-[#4ADE80]", border: "border-[#22C55E]/15", glow: "shadow-[0_0_12px_rgba(34,197,94,0.15)]", gradBg: "from-[#22C55E]/[0.04] to-transparent" };
+    case "Neutral": return { bg: "bg-[#94A3B8]/10", text: "text-[#94A3B8]", border: "border-[#94A3B8]/15", glow: "", gradBg: "from-[#94A3B8]/[0.03] to-transparent" };
+    case "Sell": return { bg: "bg-[#F87171]/10", text: "text-[#F87171]", border: "border-[#F87171]/15", glow: "shadow-[0_0_12px_rgba(248,113,113,0.15)]", gradBg: "from-[#F87171]/[0.04] to-transparent" };
+    case "Strong Sell": return { bg: "bg-[#F87171]/15", text: "text-[#F87171]", border: "border-[#F87171]/25", glow: "shadow-[0_0_16px_rgba(248,113,113,0.25)]", gradBg: "from-[#F87171]/[0.06] to-transparent" };
+    default: return { bg: "bg-white/5", text: "text-[#94A3B8]", border: "border-white/10", glow: "", gradBg: "from-white/[0.02] to-transparent" };
+  }
+}
+
 function getMacdSignalStyle(signal: string) {
   switch (signal) {
-    case "Strong Buy": return { bg: "bg-gain/20", text: "text-gain", border: "border-gain/30" };
-    case "Buy": return { bg: "bg-gain/10", text: "text-gain/80", border: "border-gain/20" };
-    case "Strong Sell": return { bg: "bg-loss/20", text: "text-loss", border: "border-loss/30" };
-    case "Sell": return { bg: "bg-loss/10", text: "text-loss/80", border: "border-loss/20" };
-    default: return { bg: "bg-white/5", text: "text-text-secondary", border: "border-white/10" };
+    case "Strong Buy": return { bg: "bg-[#22C55E]/20", text: "text-[#22C55E]", border: "border-[#22C55E]/30", glow: "shadow-[0_0_12px_rgba(34,197,94,0.3)]" };
+    case "Buy": return { bg: "bg-[#22C55E]/10", text: "text-[#4ADE80]", border: "border-[#22C55E]/20", glow: "" };
+    case "Strong Sell": return { bg: "bg-[#F87171]/20", text: "text-[#F87171]", border: "border-[#F87171]/30", glow: "shadow-[0_0_12px_rgba(248,113,113,0.3)]" };
+    case "Sell": return { bg: "bg-[#F87171]/10", text: "text-[#F87171]", border: "border-[#F87171]/20", glow: "" };
+    default: return { bg: "bg-white/5", text: "text-[#94A3B8]", border: "border-white/10", glow: "" };
   }
 }
 
 function getAdxLabel(adx: number) {
   if (adx >= 25) return { label: "Strong Trend", color: "text-primary" };
-  if (adx >= 20) return { label: "Moderate", color: "text-text-secondary" };
-  return { label: "Weak / Ranging", color: "text-text-tertiary" };
+  if (adx >= 20) return { label: "Moderate", color: "text-[#CBD5E1]" };
+  return { label: "Weak / Ranging", color: "text-[#94A3B8]" };
 }
 
 export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPanelProps) {
@@ -133,6 +145,8 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
   const rsiInfo = indicators?.rsi != null ? getRsiArc(indicators.rsi) : null;
   const macdStyle = indicators?.macdSignal ? getMacdSignalStyle(indicators.macdSignal) : null;
   const adxInfo = indicators?.adx ? getAdxLabel(indicators.adx.adx) : null;
+  const os = indicators?.overallSignal;
+  const osStyle = os ? getSignalStyle(os.signal) : null;
 
   const smas = [
     { key: "sma20", label: "SMA 20", value: indicators?.sma20, tooltip: "20-period simple moving average" },
@@ -158,33 +172,61 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
   return (
     <div className="space-y-5">
       <AnimatedList fast className="grid gap-5 md:grid-cols-2">
-        {/* TECHNICAL CARD */}
+        {/* ===== TECHNICAL CARD ===== */}
         <AnimatedListItem>
           <motion.div className="kpi-card rounded-2xl h-full" whileHover={{ y: -4, transition: { duration: 0.3 } }}>
             <div className="p-7">
               <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center size-9 rounded-xl bg-[#3B82F6]/12 shadow-[0_0_12px_rgba(59,130,246,0.10)]">
-                  <Activity className="size-4 text-[#3B82F6]" />
+                <div className="flex items-center justify-center size-9 rounded-xl bg-[#3B82F6]/15 shadow-[0_0_14px_rgba(59,130,246,0.12)]">
+                  <Activity className="size-4 text-[#60A5FA]" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-text-primary tracking-tight">Technical</h3>
-                  <p className="text-[10px] text-text-tertiary mt-0.5 flex items-center gap-1.5"><span className="live-dot" />Live Indicators</p>
+                  <h3 className="text-base font-bold text-[#F1F5F9] tracking-tight">Technical</h3>
+                  <p className="text-[10px] text-[#64748B] mt-0.5 flex items-center gap-1.5"><span className="live-dot" />Live Indicators</p>
                 </div>
               </div>
 
               {!indicators ? (
-                <p className="py-8 text-center text-xs text-text-tertiary">No indicator data available</p>
+                <p className="py-8 text-center text-sm text-[#64748B]">No indicator data available</p>
               ) : (
                 <div className="space-y-5">
-                  {/* MOMENTUM */}
+                  {/* === OVERALL SIGNAL BOX === */}
+                  {os && osStyle && (
+                    <div className={`rounded-xl border p-5 bg-gradient-to-b ${osStyle.gradBg} ${osStyle.border} ${osStyle.glow}`}>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-[11px] font-bold uppercase tracking-widest text-[#CBD5E1]">Overall Signal</span>
+                        <span className="text-[12px] font-mono font-bold text-[#94A3B8]">Confidence: {os.confidence}%</span>
+                      </div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-base font-bold border ${osStyle.bg} ${osStyle.text} ${osStyle.border} ${osStyle.glow}`}>
+                          <Zap className="size-4" />
+                          {os.signal}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5 mb-3">
+                        {os.reasoning.map((r, i) => (
+                          <div key={i} className="flex items-start gap-2">
+                            <span className="text-[#64748B] mt-0.5 text-[10px] shrink-0">•</span>
+                            <span className="text-[12px] leading-relaxed text-[#94A3B8]">{r}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-1.5 pt-2 border-t border-white/[0.04]">
+                        <Eye className="size-3 text-[#64748B]" />
+                        <span className="text-[11px] text-[#64748B] italic">{os.watchNext}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* === MOMENTUM OSCILLATORS === */}
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-text-tertiary/60 mb-4">Momentum Oscillators</p>
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#CBD5E1] mb-4">Momentum Oscillators</p>
                     {indicators.rsi != null && rsiInfo && (
                       <div className="flex items-center gap-5 mb-4">
                         <RsiGaugeCircular value={indicators.rsi} />
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-medium text-[#CBD5E1]">RSI (14)</span>
+                            <span className="text-[13px] font-semibold text-[#CBD5E1]">RSI (14)</span>
                             <Tooltip text="RSI > 70 = Overbought, RSI < 30 = Oversold" />
                           </div>
                           <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold" style={{ backgroundColor: rsiInfo.bg, color: rsiInfo.color }}>
@@ -194,12 +236,12 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                       </div>
                     )}
                     {indicators.macdSignal && macdStyle && (
-                      <div className="flex items-center justify-between py-3">
+                      <div className="flex items-center justify-between py-3.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-[13px] font-medium text-[#CBD5E1]">MACD (12,26,9)</span>
+                          <span className="text-[13px] font-semibold text-[#CBD5E1]">MACD (12,26,9)</span>
                           <Tooltip text="Moving Average Convergence Divergence crossover signal" />
                         </div>
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold border ${macdStyle.bg} ${macdStyle.text} ${macdStyle.border}`}>
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold border ${macdStyle.bg} ${macdStyle.text} ${macdStyle.border} ${macdStyle.glow}`}>
                           <Zap className="size-3" />
                           {indicators.macdSignal}
                         </span>
@@ -207,43 +249,43 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                     )}
                   </div>
 
-                  {/* ADX */}
+                  <div className="gradient-separator" />
+
+                  {/* === TREND STRENGTH (ADX) === */}
                   {indicators.adx && adxInfo && (
                     <>
-                      <div className="gradient-separator" />
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-text-tertiary/60 mb-3">Trend Strength</p>
-                        <div className="flex items-center justify-between py-2">
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#CBD5E1] mb-3">Trend Strength</p>
+                        <div className="flex items-center justify-between py-3.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-medium text-[#CBD5E1]">ADX (14)</span>
+                            <span className="text-[13px] font-semibold text-[#CBD5E1]">ADX (14)</span>
                             <Tooltip text="ADX > 25 = strong trend, < 20 = ranging/weak" />
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className={`text-[11px] font-semibold ${indicators.adx.plusDI > indicators.adx.minusDI ? "text-gain" : "text-loss"}`}>
+                            <span className={`text-[12px] font-bold ${indicators.adx.plusDI > indicators.adx.minusDI ? "text-[#22C55E] glow-green" : "text-[#F87171] glow-red"}`}>
                               {indicators.adx.plusDI > indicators.adx.minusDI ? "▲ Bullish" : "▼ Bearish"}
                             </span>
                             <div className="flex items-center gap-1.5">
-                              <span className={`font-mono tabular-nums text-lg font-bold ${adxInfo.color}`}>{indicators.adx.adx.toFixed(1)}</span>
-                              <span className={`text-[10px] font-medium ${adxInfo.color}`}>{adxInfo.label}</span>
+                              <span className={`font-mono tabular-nums text-xl font-bold ${adxInfo.color}`}>{indicators.adx.adx.toFixed(1)}</span>
+                              <span className={`text-[11px] font-semibold ${adxInfo.color}`}>{adxInfo.label}</span>
                             </div>
                           </div>
                         </div>
                       </div>
+                      <div className="gradient-separator" />
                     </>
                   )}
 
-                  <div className="gradient-separator" />
-
-                  {/* TREND AVERAGES */}
+                  {/* === TREND AVERAGES === */}
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-text-tertiary/60 mb-3">Trend Averages</p>
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#CBD5E1] mb-3">Trend Averages</p>
                     {indicators.trendSummary && (
                       <div className={`rounded-xl px-4 py-3 mb-4 text-[12px] leading-relaxed border ${
                         indicators.trendSummary.toLowerCase().includes("uptrend") || indicators.trendSummary.toLowerCase().includes("bullish") || indicators.trendSummary.toLowerCase().includes("golden")
-                          ? "bg-gain/[0.06] border-gain/15 text-gain"
+                          ? "bg-[#22C55E]/[0.06] border-[#22C55E]/15 text-[#4ADE80]"
                           : indicators.trendSummary.toLowerCase().includes("downtrend") || indicators.trendSummary.toLowerCase().includes("bearish") || indicators.trendSummary.toLowerCase().includes("death")
-                            ? "bg-loss/[0.06] border-loss/15 text-loss"
-                            : "bg-white/[0.03] border-white/[0.06] text-text-secondary"
+                            ? "bg-[#F87171]/[0.06] border-[#F87171]/15 text-[#F87171]"
+                            : "bg-white/[0.03] border-white/[0.06] text-[#94A3B8]"
                       }`}>
                         {indicators.trendSummary}
                       </div>
@@ -260,33 +302,33 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
           </motion.div>
         </AnimatedListItem>
 
-        {/* DERIVATIVES CARD */}
+        {/* ===== DERIVATIVES CARD ===== */}
         <AnimatedListItem>
           <motion.div className="kpi-card rounded-2xl h-full" whileHover={{ y: -4, transition: { duration: 0.3 } }}>
             <div className="p-7">
               <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center justify-center size-9 rounded-xl bg-primary/12 shadow-[0_0_12px_rgba(245,158,11,0.10)]">
+                <div className="flex items-center justify-center size-9 rounded-xl bg-primary/15 shadow-[0_0_14px_rgba(245,158,11,0.12)]">
                   <Layers className="size-4 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-text-primary tracking-tight">Derivatives</h3>
-                  <p className="text-[10px] text-text-tertiary mt-0.5 flex items-center gap-1.5"><span className="live-dot" />Perpetual Contract Data</p>
+                  <h3 className="text-base font-bold text-[#F1F5F9] tracking-tight">Derivatives</h3>
+                  <p className="text-[10px] text-[#64748B] mt-0.5 flex items-center gap-1.5"><span className="live-dot" />Perpetual Contract Data</p>
                 </div>
               </div>
-              <div className="space-y-0 divide-y divide-white/[0.04]">
+              <div className="space-y-0 divide-y divide-white/[0.06]">
                 {[
-                  { label: "Funding Rate", value: `${fundingRate >= 0 ? "+" : ""}${fundingRate.toFixed(4)}%`, color: fundingRate >= 0 ? "text-gain" : "text-loss", tooltip: "Rate paid between longs and shorts every 8h" },
-                  { label: "OI Change 6h", value: `${oiChange6h >= 0 ? "+" : ""}$${Math.abs(oiChange6h) >= 1e6 ? (oiChange6h / 1e6).toFixed(2) + "M" : Math.abs(oiChange6h) >= 1e3 ? (oiChange6h / 1e3).toFixed(1) + "K" : oiChange6h.toFixed(0)}`, color: oiChange6h >= 0 ? "text-gain" : "text-loss", tooltip: "Open interest change in last 6 hours" },
-                  { label: "Mark Price", value: `$${formatPrice(markPrice)}`, color: "text-text-primary", tooltip: "Fair price for liquidation calculations" },
-                  { label: "Spot Price", value: spotPrice > 0 ? `$${formatPrice(spotPrice)}` : "--", color: "text-text-primary", tooltip: "Underlying spot market price" },
-                  { label: "Basis", value: spotPrice > 0 ? `${basis >= 0 ? "+" : ""}${basis.toFixed(3)}%` : "--", color: spotPrice > 0 ? (basis >= 0 ? "text-gain" : "text-loss") : "text-text-tertiary", tooltip: "Difference between mark and spot price" },
+                  { label: "Funding Rate", value: `${fundingRate >= 0 ? "+" : ""}${fundingRate.toFixed(4)}%`, color: fundingRate >= 0 ? "text-[#22C55E]" : "text-[#F87171]", tooltip: "Rate paid between longs and shorts every 8h" },
+                  { label: "OI Change 6h", value: `${oiChange6h >= 0 ? "+" : ""}$${Math.abs(oiChange6h) >= 1e6 ? (oiChange6h / 1e6).toFixed(2) + "M" : Math.abs(oiChange6h) >= 1e3 ? (oiChange6h / 1e3).toFixed(1) + "K" : oiChange6h.toFixed(0)}`, color: oiChange6h >= 0 ? "text-[#22C55E]" : "text-[#F87171]", tooltip: "Open interest change in last 6 hours" },
+                  { label: "Mark Price", value: `$${formatPrice(markPrice)}`, color: "text-[#F1F5F9]", tooltip: "Fair price for liquidation calculations" },
+                  { label: "Spot Price", value: spotPrice > 0 ? `$${formatPrice(spotPrice)}` : "--", color: "text-[#F1F5F9]", tooltip: "Underlying spot market price" },
+                  { label: "Basis", value: spotPrice > 0 ? `${basis >= 0 ? "+" : ""}${basis.toFixed(3)}%` : "--", color: spotPrice > 0 ? (basis >= 0 ? "text-[#22C55E]" : "text-[#F87171]") : "text-[#64748B]", tooltip: "Difference between mark and spot price" },
                 ].map(row => (
-                  <div key={row.label} className="flex items-center justify-between py-3 group/row deriv-row px-3 -mx-3">
+                  <div key={row.label} className="flex items-center justify-between py-3.5 group/row deriv-row px-3 -mx-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-[13px] text-[#CBD5E1] group-hover/row:text-text-primary transition-colors">{row.label}</span>
+                      <span className="text-[13px] font-medium text-[#CBD5E1] group-hover/row:text-[#F1F5F9] transition-colors">{row.label}</span>
                       <Tooltip text={row.tooltip} />
                     </div>
-                    <span className={`font-mono tabular-nums text-sm font-bold deriv-value ${row.color} ${row.color.includes("gain") ? "glow-green" : row.color.includes("loss") ? "glow-red" : ""}`}>{row.value}</span>
+                    <span className={`font-mono tabular-nums text-sm font-bold deriv-value ${row.color} ${row.color.includes("22C55E") ? "glow-green" : row.color.includes("F87171") ? "glow-red" : ""}`}>{row.value}</span>
                   </div>
                 ))}
               </div>
@@ -295,7 +337,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
         </AnimatedListItem>
       </AnimatedList>
 
-      {/* SUPPORT & RESISTANCE CARD */}
+      {/* ===== SUPPORT & RESISTANCE CARD ===== */}
       {pp && (
         <motion.div
           className="kpi-card rounded-2xl"
@@ -308,41 +350,41 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
           <div className="p-7">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center size-9 rounded-xl bg-[#A855F7]/12 shadow-[0_0_12px_rgba(168,85,247,0.10)]">
-                  <Shield className="size-4 text-[#A855F7]" />
+                <div className="flex items-center justify-center size-9 rounded-xl bg-[#A855F7]/15 shadow-[0_0_14px_rgba(168,85,247,0.12)]">
+                  <Shield className="size-4 text-[#C084FC]" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-text-primary tracking-tight">Support & Resistance</h3>
-                  <p className="text-[10px] text-text-tertiary mt-0.5">Classic Pivot Points</p>
+                  <h3 className="text-base font-bold text-[#F1F5F9] tracking-tight">Support & Resistance</h3>
+                  <p className="text-[10px] text-[#64748B] mt-0.5">Classic Pivot Points</p>
                 </div>
               </div>
               {priceZone && (
-                <span className="text-[11px] font-medium text-primary bg-primary/10 rounded-full px-3 py-1">{priceZone}</span>
+                <span className="text-[11px] font-bold text-primary bg-primary/12 rounded-full px-3 py-1.5 border border-primary/20">{priceZone}</span>
               )}
             </div>
 
             <div className="grid grid-cols-5 gap-3">
               {[
-                { label: "S2", value: pp.s2, color: "text-gain", bg: "bg-gain/[0.06]", border: "border-gain/15" },
-                { label: "S1", value: pp.s1, color: "text-gain/80", bg: "bg-gain/[0.04]", border: "border-gain/10" },
-                { label: "Pivot", value: pp.pivot, color: "text-primary", bg: "bg-primary/[0.06]", border: "border-primary/20" },
-                { label: "R1", value: pp.r1, color: "text-loss/80", bg: "bg-loss/[0.04]", border: "border-loss/10" },
-                { label: "R2", value: pp.r2, color: "text-loss", bg: "bg-loss/[0.06]", border: "border-loss/15" },
+                { label: "S2", value: pp.s2, color: "text-[#22C55E]", bg: "bg-[#22C55E]/[0.06]", border: "border-[#22C55E]/15" },
+                { label: "S1", value: pp.s1, color: "text-[#4ADE80]", bg: "bg-[#22C55E]/[0.04]", border: "border-[#22C55E]/10" },
+                { label: "Pivot", value: pp.pivot, color: "text-primary", bg: "bg-primary/[0.08]", border: "border-primary/25" },
+                { label: "R1", value: pp.r1, color: "text-[#FCA5A5]", bg: "bg-[#F87171]/[0.04]", border: "border-[#F87171]/10" },
+                { label: "R2", value: pp.r2, color: "text-[#F87171]", bg: "bg-[#F87171]/[0.06]", border: "border-[#F87171]/15" },
               ].map(level => {
                 const isNearPrice = Math.abs((markPrice - level.value) / level.value) < 0.005;
                 return (
-                  <div key={level.label} className={`rounded-xl border p-4 text-center transition-all ${level.bg} ${level.border} ${isNearPrice ? "ring-1 ring-primary/30 shadow-[0_0_12px_rgba(245,158,11,0.08)]" : ""}`}>
+                  <div key={level.label} className={`rounded-xl border p-4 text-center transition-all ${level.bg} ${level.border} ${isNearPrice ? "ring-1 ring-primary/30 shadow-[0_0_16px_rgba(245,158,11,0.10)]" : ""}`}>
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] mb-2">{level.label}</p>
                     <p className={`font-mono tabular-nums text-sm font-bold ${level.color}`}>${formatPrice(level.value)}</p>
-                    {isNearPrice && <p className="text-[9px] font-semibold text-primary mt-1.5">◆ Near Price</p>}
+                    {isNearPrice && <p className="text-[9px] font-bold text-primary mt-1.5">◆ Near Price</p>}
                   </div>
                 );
               })}
             </div>
 
-            <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-text-tertiary">
+            <div className="mt-4 flex items-center justify-center gap-2 text-[12px] text-[#64748B]">
               <span>Current:</span>
-              <span className="font-mono tabular-nums font-bold text-text-primary">${formatPrice(markPrice)}</span>
+              <span className="font-mono tabular-nums font-bold text-[#F1F5F9]">${formatPrice(markPrice)}</span>
             </div>
           </div>
         </motion.div>

@@ -8,6 +8,7 @@ import {
   calculateADX,
   calculatePivotPoints,
   generateTrendSummary,
+  generateOverallSignal,
 } from "@/lib/indicators";
 import { cached } from "@/lib/cache";
 
@@ -56,6 +57,9 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     // Sparkline: last 24 hourly close prices for mini charts
     const sparkline = closes.slice(-24);
 
+    // Overall signal
+    const overallSignal = generateOverallSignal(rsi, macdSignal, adx, currentPrice, sma20, sma50, sma200);
+
     const indicators = {
       rsi,
       macd: macd ? { value: macd.value, signal: macd.signal, histogram: macd.histogram } : null,
@@ -67,6 +71,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       pivotPoints,
       trendSummary,
       sparkline,
+      overallSignal,
     };
 
     return NextResponse.json({ success: true, data: indicators, timestamp: Date.now() });

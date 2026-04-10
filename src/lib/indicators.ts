@@ -218,3 +218,75 @@ export function generateTrendSummary(
   }
   return "Mixed signals — price consolidating between moving averages.";
 }
+
+// Generate an overall Buy/Sell signal from all indicators
+export function generateOverallSignal(
+  rsi: number | null,
+  macdSignal: string | null,
+  adx: { adx: number; plusDI: number; minusDI: number } | null,
+  price: number,
+  sma20: number | null,
+  sma50: number | null,
+  sma200: number | null
+): { signal: string; confidence: number; reasoning: string[]; watchNext: string } {
+  let score = 0;
+  const reasoning: string[] = [];
+
+  // RSI scoring
+  if (rsi != null) {
+    if (rsi < 30) { score += 2; reasoning.push(`RSI at ${rsi.toFixed(1)} — oversold, bounce likely`); }
+    else if (rsi < 45) { score += 1; reasoning.push(`RSI at ${rsi.toFixed(1)} — leaning bearish but not extreme`); }
+    else if (rsi <= 55) { reasoning.push(`RSI at ${rsi.toFixed(1)} — neutral zone, no strong signal`); }
+    else if (rsi <= 70) { score -= 1; reasoning.push(`RSI at ${rsi.toFixed(1)} — slightly elevated, momentum building`); }
+    else { score -= 2; reasoning.push(`RSI at ${rsi.toFixed(1)} — overbought, pullback risk`); }
+  }
+
+  // MACD scoring
+  if (macdSignal) {
+    if (macdSignal === "Strong Buy") { score += 2; reasoning.push("MACD crossover bullish with rising momentum"); }
+    else if (macdSignal === "Buy") { score += 1; reasoning.push("MACD bullish — line above signal"); }
+    else if (macdSignal === "Sell") { score -= 1; reasoning.push("MACD bearish — line below signal"); }
+    else if (macdSignal === "Strong Sell") { score -= 2; reasoning.push("MACD crossover bearish with falling momentum"); }
+  }
+
+  // ADX scoring
+  if (adx) {
+    const trending = adx.adx >= 20;
+    const bullish = adx.plusDI > adx.minusDI;
+    if (trending && bullish) { score += 1; reasoning.push(`ADX ${adx.adx.toFixed(1)} — trending bullish`); }
+    else if (trending && !bullish) { score -= 1; reasoning.push(`ADX ${adx.adx.toFixed(1)} — trending bearish`); }
+    else { reasoning.push(`ADX ${adx.adx.toFixed(1)} — weak trend, choppy market`); }
+  }
+
+  // SMA scoring
+  if (sma20 && sma50 && sma200) {
+    const aboveCount = [sma20, sma50, sma200].filter(s => price > s).length;
+    if (aboveCount === 3) { score += 2; reasoning.push("Price above all SMAs — bullish structure"); }
+    else if (aboveCount === 2) { score += 1; reasoning.push("Price above 2 of 3 SMAs — mostly bullish"); }
+    else if (aboveCount === 1) { score -= 1; reasoning.push("Price below most SMAs — bearish pressure"); }
+    else { score -= 2; reasoning.push("Price below all SMAs — bearish structure"); }
+  }
+
+  // Map score to signal
+  let signal: string;
+  if (score >= 4) signal = "Strong Buy";
+  else if (score >= 2) signal = "Buy";
+  else if (score >= -1) signal = "Neutral";
+  else if (score >= -3) signal = "Sell";
+  else signal = "Strong Sell";
+
+  // Confidence: 50-95% based on how decisive the score is
+  const maxScore = 7;
+  const confidence = Math.min(95, Math.max(50, Math.round((Math.abs(score) / maxScore) * 100)));
+
+  // Watch next
+  let watchNext = "Monitor for changes in momentum and trend direction.";
+  if (sma200 && price > sma200 && sma20) {
+    const nearSma20 = Math.abs((price - sma20) / sma20) < 0.03;
+    if (nearSma20) watchNext = `Watch SMA 20 ($${sma20.toLocaleString("en-US", { maximumFractionDigits: 0 })}) — key support/resistance level.`;
+  }
+  if (rsi != null && rsi > 65) watchNext = "RSI elevated — watch for pullback to confirm continuation.";
+  if (rsi != null && rsi < 35) watchNext = "RSI low — watch for reversal candle to confirm bounce.";
+
+  return { signal, confidence, reasoning, watchNext };
+}
