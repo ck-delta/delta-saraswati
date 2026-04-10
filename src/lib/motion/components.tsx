@@ -18,7 +18,13 @@ export function AnimatedPage({ children, ...props }: AnimatedProps) {
 
 export function AnimatedSection({ children, ...props }: AnimatedProps) {
   return (
-    <motion.section variants={fadeInUp} {...props}>
+    <motion.section
+      variants={fadeInUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-40px" }}
+      {...props}
+    >
       {children}
     </motion.section>
   );
@@ -28,10 +34,13 @@ export const AnimatedCard = forwardRef<HTMLDivElement, AnimatedProps & { enableH
   ({ children, enableHover = true, ...props }, ref) => (
     <motion.div
       ref={ref}
-      variants={scaleIn}
-      whileHover={enableHover ? { y: -2, borderColor: "rgba(245,158,11,0.3)", boxShadow: "0 0 20px rgba(245,158,11,0.06)", transition: { duration: 0.2 } } : undefined}
-      whileTap={enableHover ? { scale: 0.99 } : undefined}
-      layout
+      className="card-3d"
+      initial={{ opacity: 0, y: 20, scale: 0.97 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: "-30px" }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={enableHover ? { y: -3, transition: { duration: 0.25 } } : undefined}
+      whileTap={enableHover ? { scale: 0.98 } : undefined}
       {...props}
     >
       {children}

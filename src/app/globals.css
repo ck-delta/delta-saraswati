@@ -172,6 +172,33 @@
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
+/* 3D card perspective container */
+.card-3d {
+  perspective: 800px;
+  transform-style: preserve-3d;
+}
+
+/* Elevated card with layered shadow + subtle border glow */
+.card-elevated {
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.3),
+    0 4px 8px rgba(0,0,0,0.2),
+    0 8px 24px rgba(0,0,0,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card-elevated:hover {
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.3),
+    0 8px 16px rgba(0,0,0,0.25),
+    0 16px 48px rgba(0,0,0,0.2),
+    0 0 20px rgba(245,158,11,0.04),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  border-color: rgba(245,158,11,0.15);
+}
+
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;

@@ -3,10 +3,8 @@
 import { useRouter } from "next/navigation";
 import { AnimatedPage, AnimatedSection } from "@/lib/motion/components";
 import { useDeltaTickers } from "@/hooks/use-delta-tickers";
-import { useFearGreed } from "@/hooks/use-market-data";
 import { useNews } from "@/hooks/use-news";
 import { useAppStore } from "@/store/app-store";
-import { getFearGreedLabel } from "@/lib/utils";
 import { TokenCard, TokenCardSkeleton } from "@/components/home/token-card";
 import { NewsSummary } from "@/components/home/news-summary";
 import { NewsFeed } from "@/components/home/news-feed";
@@ -16,7 +14,6 @@ import { TradeModal } from "@/components/shared/trade-modal";
 export default function HomePage() {
   const router = useRouter();
   const { tickers, isLoading: tickersLoading } = useDeltaTickers();
-  const { fearGreed, isLoading: fgLoading } = useFearGreed();
   const {
     summary,
     headlines,
@@ -26,8 +23,6 @@ export default function HomePage() {
   const openTradeModal = useAppStore((s) => s.openTradeModal);
 
   const topTickers = (tickers ?? []).slice(0, 3);
-  const fearGreedValue = fearGreed?.value ?? 50;
-  const fearGreedLabel = fearGreed?.classification ?? getFearGreedLabel(fearGreedValue);
 
   return (
     <>
@@ -43,7 +38,7 @@ export default function HomePage() {
         {/* Top tokens grid */}
         <AnimatedSection>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {tickersLoading || fgLoading
+            {tickersLoading
               ? Array.from({ length: 3 }).map((_, i) => (
                   <TokenCardSkeleton key={i} />
                 ))
@@ -54,8 +49,6 @@ export default function HomePage() {
                     name={(ticker.description as string) || (ticker.underlying_asset_symbol as string) || (ticker.symbol as string)}
                     price={Number(ticker.close ?? ticker.mark_price ?? 0)}
                     change24h={Number(ticker.mark_change_24h ?? ticker.ltp_change_24h ?? 0)}
-                    fearGreedValue={fearGreedValue}
-                    fearGreedLabel={fearGreedLabel}
                     fundingRate={Number(ticker.funding_rate ?? 0)}
                     volume24h={Number(ticker.turnover_usd ?? 0)}
                     sentimentScore={Number(ticker.sentiment_score ?? 0.5)}

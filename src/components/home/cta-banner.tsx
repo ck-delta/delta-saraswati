@@ -9,7 +9,7 @@ export function CtaBanner() {
   const openTradeModal = useAppStore((s) => s.openTradeModal);
 
   return (
-    <Card className="relative overflow-hidden ambient-glow border-primary/10">
+    <Card className="relative overflow-hidden ambient-glow border-primary/10 card-elevated">
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/3 to-transparent pointer-events-none" />
       <CardContent className="relative flex flex-col items-center gap-3 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
         <div className="space-y-1">

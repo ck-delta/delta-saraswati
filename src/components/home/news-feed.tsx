@@ -46,7 +46,7 @@ export function NewsFeed({ headlines, isLoading }: NewsFeedProps) {
   const displayHeadlines = headlines.slice(0, 10);
 
   return (
-    <Card>
+    <Card className="card-elevated">
       <CardContent className="space-y-3">
         {/* Section label */}
         <div className="flex items-center gap-2">

@@ -104,7 +104,7 @@ function RenderSummary({ text }: { text: string }) {
 
 export function NewsSummary({ summary, generatedAt, isLoading }: NewsSummaryProps) {
   return (
-    <Card>
+    <Card className="card-elevated">
       <CardContent className="space-y-3">
         <div className="flex items-center gap-2">
           <Sparkles className="size-3.5 text-primary" />
