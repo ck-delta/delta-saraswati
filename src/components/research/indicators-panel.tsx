@@ -1,10 +1,9 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedList, AnimatedListItem } from "@/lib/motion/components";
 import { formatPrice } from "@/lib/utils";
-import { Activity, Layers } from "@/components/icons";
+import { Activity, Layers, TrendingUp, TrendingDown, ArrowRight, Info } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface IndicatorsPanelProps {
@@ -19,68 +18,146 @@ interface IndicatorsPanelProps {
   isLoading: boolean;
 }
 
-function getRsiColor(rsi: number): string {
-  if (rsi > 70) return "text-loss-text";
-  if (rsi < 30) return "text-gain-text";
-  return "text-text-primary";
+function getRsiArc(value: number) {
+  if (value > 70) return { label: "Overbought", color: "#F6465D", bg: "rgba(246,70,93,0.12)", icon: "↑" };
+  if (value < 30) return { label: "Oversold", color: "#0ECB81", bg: "rgba(14,203,129,0.12)", icon: "↓" };
+  return { label: "Neutral", color: "#8E8E93", bg: "rgba(142,142,147,0.12)", icon: "→" };
 }
 
-function getRsiLabel(rsi: number): { text: string; color: string; bg: string } {
-  if (rsi > 70) return { text: "Overbought", color: "text-loss-text", bg: "bg-loss/10" };
-  if (rsi < 30) return { text: "Oversold", color: "text-gain-text", bg: "bg-gain/10" };
-  return { text: "Neutral", color: "text-text-tertiary", bg: "bg-white/[0.04]" };
-}
+// Large circular RSI gauge (90px diameter)
+function RsiGaugeCircular({ value }: { value: number }) {
+  const info = getRsiArc(value);
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius;
+  const pct = Math.max(0, Math.min(100, value)) / 100;
+  // Arc covers 270 degrees (3/4 of circle)
+  const arcLength = circumference * 0.75;
+  const dashOffset = arcLength * (1 - pct);
 
-function IndicatorRow({
-  label,
-  value,
-  color,
-  badge,
-}: {
-  label: string;
-  value: string;
-  color?: string;
-  badge?: { text: string; color: string; bg: string };
-}) {
   return (
-    <div className="flex items-center justify-between py-2.5 group/row">
-      <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">
-        {label}
-      </span>
-      <div className="flex items-center gap-2">
-        {badge && (
-          <span className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${badge.bg} ${badge.color}`}>
-            {badge.text}
-          </span>
-        )}
-        <span className={`font-mono tabular-nums text-[13px] font-semibold ${color ?? "text-text-primary"}`}>
-          {value}
+    <div className="relative flex items-center justify-center" style={{ width: 96, height: 96 }}>
+      <svg width="96" height="96" viewBox="0 0 96 96" className="absolute">
+        {/* Background track */}
+        <circle
+          cx="48" cy="48" r={radius}
+          fill="none"
+          stroke="rgba(255,255,255,0.05)"
+          strokeWidth="6"
+          strokeLinecap="round"
+          strokeDasharray={`${arcLength} ${circumference - arcLength}`}
+          transform="rotate(135 48 48)"
+        />
+        {/* Value arc */}
+        <circle
+          cx="48" cy="48" r={radius}
+          fill="none"
+          stroke={info.color}
+          strokeWidth="6"
+          strokeLinecap="round"
+          strokeDasharray={`${arcLength} ${circumference - arcLength}`}
+          strokeDashoffset={dashOffset}
+          transform="rotate(135 48 48)"
+          style={{ filter: `drop-shadow(0 0 6px ${info.color}40)` }}
+        />
+      </svg>
+      {/* Center value */}
+      <div className="flex flex-col items-center z-10">
+        <span className="font-mono tabular-nums text-xl font-bold text-text-primary leading-none">
+          {value.toFixed(1)}
         </span>
       </div>
     </div>
   );
 }
 
-function RsiGauge({ value }: { value: number }) {
-  const radius = 14;
-  const circumference = Math.PI * radius;
-  const pct = Math.max(0, Math.min(100, value)) / 100;
-  const offset = circumference * (1 - pct);
-  const color = value > 70 ? "var(--color-loss)" : value < 30 ? "var(--color-gain)" : "var(--color-text-secondary)";
+// Mini histogram bars for MACD
+function MacdHistogramBars({ histogram }: { histogram: number }) {
+  const isPositive = histogram >= 0;
+  const color = isPositive ? "#0ECB81" : "#F6465D";
+  // Show 4 bars of varying height
+  const heights = isPositive ? [40, 60, 80, 100] : [100, 80, 60, 40];
+  const absVal = Math.min(Math.abs(histogram), 500);
+  const scale = Math.max(absVal / 500, 0.3);
 
   return (
-    <svg width="36" height="20" viewBox="0 0 36 20" className="shrink-0">
-      <path d="M 4 18 A 14 14 0 0 1 32 18" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" strokeLinecap="round" />
-      <path d="M 4 18 A 14 14 0 0 1 32 18" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeDasharray={`${circumference}`} strokeDashoffset={`${offset}`} />
-    </svg>
+    <div className="flex items-end gap-[2px] h-4">
+      {heights.map((h, i) => (
+        <div
+          key={i}
+          className="w-[3px] rounded-sm"
+          style={{
+            height: `${h * scale * 0.16}px`,
+            backgroundColor: color,
+            opacity: 0.3 + (i * 0.2),
+            minHeight: 2,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// SMA row with Above/Below indicator
+function SmaRow({
+  label,
+  smaPrice,
+  currentPrice,
+  isClosest,
+  tooltip,
+}: {
+  label: string;
+  smaPrice: number;
+  currentPrice: number;
+  isClosest?: boolean;
+  tooltip: string;
+}) {
+  const isAbove = currentPrice > smaPrice;
+  const diff = ((currentPrice - smaPrice) / smaPrice) * 100;
+
+  return (
+    <div
+      className={`flex items-center justify-between py-3 group/row rounded-lg px-3 -mx-3 transition-all ${
+        isClosest ? "bg-primary/[0.04] border border-primary/10" : "hover:bg-white/[0.02]"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">
+          {label}
+        </span>
+        <div className="relative group/tip">
+          <Info className="size-3 text-text-tertiary/40 hover:text-text-tertiary cursor-help transition-colors" />
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-elevated rounded text-[10px] text-text-secondary whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-20 shadow-lg border border-white/5">
+            {tooltip}
+          </div>
+        </div>
+        {isClosest && (
+          <span className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+            Closest
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-2.5">
+        <span className={`inline-flex items-center gap-1 text-[10px] font-semibold rounded-full px-2 py-0.5 ${
+          isAbove ? "bg-gain/10 text-gain" : "bg-loss/10 text-loss"
+        }`}>
+          {isAbove ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
+          {isAbove ? "Above" : "Below"} {Math.abs(diff).toFixed(1)}%
+        </span>
+        <span className={`font-mono tabular-nums text-[13px] font-semibold ${
+          isAbove ? "text-gain" : "text-loss"
+        }`}>
+          ${formatPrice(smaPrice)}
+        </span>
+      </div>
+    </div>
   );
 }
 
 function SkeletonCard() {
   return (
-    <div className="kpi-card rounded-xl p-5">
-      <Skeleton className="h-5 w-28 mb-4" />
-      <div className="space-y-3">
+    <div className="kpi-card rounded-2xl p-7">
+      <Skeleton className="h-5 w-32 mb-6" />
+      <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="flex items-center justify-between">
             <Skeleton className="h-3 w-20" />
@@ -108,68 +185,145 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
   const oiChange6h = Number(ticker?.oi_change_usd_6h || 0);
   const basis = spotPrice > 0 ? ((markPrice - spotPrice) / spotPrice) * 100 : 0;
 
-  const rsiInfo = indicators?.rsi != null ? getRsiLabel(indicators.rsi) : null;
+  const rsiInfo = indicators?.rsi != null ? getRsiArc(indicators.rsi) : null;
+
+  // Determine which SMA is closest to current price
+  const smas = [
+    { key: "sma20", label: "SMA 20", value: indicators?.sma20, tooltip: "20-period simple moving average" },
+    { key: "sma50", label: "SMA 50", value: indicators?.sma50, tooltip: "50-period simple moving average" },
+    { key: "sma200", label: "SMA 200", value: indicators?.sma200, tooltip: "200-period simple moving average — key long-term trend" },
+  ].filter(s => s.value != null);
+
+  const closestSma = smas.length > 0
+    ? smas.reduce((closest, s) =>
+        Math.abs(markPrice - (s.value ?? 0)) < Math.abs(markPrice - (closest.value ?? 0)) ? s : closest
+      ).key
+    : null;
 
   return (
     <AnimatedList fast className="grid gap-5 md:grid-cols-2">
-      {/* Technical Indicators */}
+      {/* Technical Indicators — Premium Card */}
       <AnimatedListItem>
         <motion.div
-          className="kpi-card rounded-xl h-full"
+          className="kpi-card rounded-2xl h-full"
           whileHover={{ y: -2, transition: { duration: 0.2 } }}
         >
-          <div className="p-5">
+          <div className="p-7">
             {/* Header */}
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="flex items-center justify-center size-7 rounded-lg bg-info/10">
-                <Activity className="size-3.5 text-info" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center size-9 rounded-xl bg-[#3B82F6]/12 shadow-[0_0_12px_rgba(59,130,246,0.10)]">
+                  <Activity className="size-4 text-[#3B82F6]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-text-primary tracking-tight">Technical</h3>
+                  <p className="text-[10px] text-text-tertiary mt-0.5">Live Indicators</p>
+                </div>
               </div>
-              <h3 className="text-sm font-bold text-text-primary tracking-tight">Technical</h3>
             </div>
 
-            <div className="space-y-0 divide-y divide-white/[0.04]">
-              {indicators?.rsi != null && (
-                <div className="flex items-center justify-between py-2.5 group/row">
-                  <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">RSI (14)</span>
-                  <div className="flex items-center gap-2">
-                    {rsiInfo && (
-                      <span className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${rsiInfo.bg} ${rsiInfo.color}`}>{rsiInfo.text}</span>
-                    )}
-                    <RsiGauge value={indicators.rsi} />
-                    <span className={`font-mono tabular-nums text-[13px] font-semibold ${getRsiColor(indicators.rsi)}`}>{indicators.rsi.toFixed(1)}</span>
+            {!indicators ? (
+              <p className="py-8 text-center text-xs text-text-tertiary">
+                No indicator data available
+              </p>
+            ) : (
+              <div className="space-y-6">
+                {/* === MOMENTUM OSCILLATORS === */}
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-text-tertiary/60 mb-4">
+                    Momentum Oscillators
+                  </p>
+
+                  {/* RSI — Circular gauge */}
+                  {indicators.rsi != null && rsiInfo && (
+                    <div className="flex items-center gap-5 mb-4">
+                      <RsiGaugeCircular value={indicators.rsi} />
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[12px] text-text-tertiary">RSI (14)</span>
+                          <div className="relative group/tip">
+                            <Info className="size-3 text-text-tertiary/40 hover:text-text-tertiary cursor-help transition-colors" />
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-elevated rounded text-[10px] text-text-secondary whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-20 shadow-lg border border-white/5">
+                              RSI &gt; 70 = Overbought, RSI &lt; 30 = Oversold
+                            </div>
+                          </div>
+                        </div>
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold"
+                          style={{ backgroundColor: rsiInfo.bg, color: rsiInfo.color }}
+                        >
+                          {rsiInfo.icon} {rsiInfo.label}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* MACD section */}
+                  {indicators.macd && (
+                    <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 space-y-2.5">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-semibold text-text-secondary">MACD (12,26,9)</span>
+                          <div className="relative group/tip">
+                            <Info className="size-3 text-text-tertiary/40 hover:text-text-tertiary cursor-help transition-colors" />
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-elevated rounded text-[10px] text-text-secondary whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-20 shadow-lg border border-white/5">
+                              Moving Average Convergence Divergence
+                            </div>
+                          </div>
+                        </div>
+                        <MacdHistogramBars histogram={indicators.macd.histogram} />
+                      </div>
+                      <div className="flex items-center justify-between py-1 group/row hover:bg-white/[0.02] rounded px-1 -mx-1 transition-colors">
+                        <span className="text-[11px] text-text-tertiary">Value</span>
+                        <span className={`font-mono tabular-nums text-[13px] font-semibold ${indicators.macd.value >= 0 ? "text-gain" : "text-loss"}`}>
+                          {indicators.macd.value >= 0 ? "+" : ""}{indicators.macd.value.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between py-1 group/row hover:bg-white/[0.02] rounded px-1 -mx-1 transition-colors">
+                        <span className="text-[11px] text-text-tertiary">Signal</span>
+                        <span className="font-mono tabular-nums text-[13px] font-semibold text-text-secondary">
+                          {indicators.macd.signal.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between py-1 group/row hover:bg-white/[0.02] rounded px-1 -mx-1 transition-colors">
+                        <span className="text-[11px] text-text-tertiary">Histogram</span>
+                        <div className="flex items-center gap-1.5">
+                          {indicators.macd.histogram >= 0
+                            ? <TrendingUp className="size-3 text-gain" />
+                            : <TrendingDown className="size-3 text-loss" />
+                          }
+                          <span className={`font-mono tabular-nums text-[13px] font-bold ${indicators.macd.histogram >= 0 ? "text-gain" : "text-loss"}`}>
+                            {indicators.macd.histogram >= 0 ? "+" : ""}{indicators.macd.histogram.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div className="gradient-separator" />
+
+                {/* === TREND AVERAGES === */}
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-text-tertiary/60 mb-3">
+                    Trend Averages
+                  </p>
+                  <div className="space-y-1">
+                    {smas.map(sma => (
+                      <SmaRow
+                        key={sma.key}
+                        label={sma.label}
+                        smaPrice={sma.value!}
+                        currentPrice={markPrice}
+                        isClosest={sma.key === closestSma}
+                        tooltip={sma.tooltip}
+                      />
+                    ))}
                   </div>
                 </div>
-              )}
-              {indicators?.macd && (
-                <>
-                  <IndicatorRow
-                    label="MACD Value"
-                    value={indicators.macd.value.toFixed(2)}
-                    color={indicators.macd.value >= 0 ? "text-gain-text" : "text-loss-text"}
-                  />
-                  <IndicatorRow label="MACD Signal" value={indicators.macd.signal.toFixed(2)} />
-                  <IndicatorRow
-                    label="MACD Histogram"
-                    value={indicators.macd.histogram.toFixed(2)}
-                    color={indicators.macd.histogram >= 0 ? "text-gain-text" : "text-loss-text"}
-                  />
-                </>
-              )}
-              {indicators?.sma20 != null && (
-                <IndicatorRow label="SMA 20" value={`$${formatPrice(indicators.sma20)}`} color={markPrice > indicators.sma20 ? "text-gain-text" : "text-loss-text"} />
-              )}
-              {indicators?.sma50 != null && (
-                <IndicatorRow label="SMA 50" value={`$${formatPrice(indicators.sma50)}`} color={markPrice > indicators.sma50 ? "text-gain-text" : "text-loss-text"} />
-              )}
-              {indicators?.sma200 != null && (
-                <IndicatorRow label="SMA 200" value={`$${formatPrice(indicators.sma200)}`} color={markPrice > indicators.sma200 ? "text-gain-text" : "text-loss-text"} />
-              )}
-              {!indicators && (
-                <p className="py-6 text-center text-xs text-text-tertiary">
-                  No indicator data available
-                </p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </AnimatedListItem>
@@ -177,39 +331,71 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
       {/* Derivatives Data */}
       <AnimatedListItem>
         <motion.div
-          className="kpi-card rounded-xl h-full"
+          className="kpi-card rounded-2xl h-full"
           whileHover={{ y: -2, transition: { duration: 0.2 } }}
         >
-          <div className="p-5">
+          <div className="p-7">
             {/* Header */}
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="flex items-center justify-center size-7 rounded-lg bg-derivatives/10">
-                <Layers className="size-3.5 text-derivatives" />
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center justify-center size-9 rounded-xl bg-primary/12 shadow-[0_0_12px_rgba(245,158,11,0.10)]">
+                <Layers className="size-4 text-primary" />
               </div>
-              <h3 className="text-sm font-bold text-text-primary tracking-tight">Derivatives</h3>
+              <div>
+                <h3 className="text-base font-bold text-text-primary tracking-tight">Derivatives</h3>
+                <p className="text-[10px] text-text-tertiary mt-0.5">Perpetual Contract Data</p>
+              </div>
             </div>
 
             <div className="space-y-0 divide-y divide-white/[0.04]">
-              <IndicatorRow
-                label="Funding Rate"
-                value={`${fundingRate >= 0 ? "+" : ""}${fundingRate.toFixed(4)}%`}
-                color={fundingRate >= 0 ? "text-gain-text" : "text-loss-text"}
-              />
-              <IndicatorRow
-                label="OI Change 6h"
-                value={`${oiChange6h >= 0 ? "+" : ""}$${Math.abs(oiChange6h) >= 1e6 ? (oiChange6h / 1e6).toFixed(2) + "M" : Math.abs(oiChange6h) >= 1e3 ? (oiChange6h / 1e3).toFixed(1) + "K" : oiChange6h.toFixed(0)}`}
-                color={oiChange6h >= 0 ? "text-gain-text" : "text-loss-text"}
-              />
-              <IndicatorRow label="Mark Price" value={`$${formatPrice(markPrice)}`} />
-              <IndicatorRow
-                label="Spot Price"
-                value={spotPrice > 0 ? `$${formatPrice(spotPrice)}` : "--"}
-              />
-              <IndicatorRow
-                label="Basis"
-                value={spotPrice > 0 ? `${basis >= 0 ? "+" : ""}${basis.toFixed(3)}%` : "--"}
-                color={spotPrice > 0 ? (basis >= 0 ? "text-gain-text" : "text-loss-text") : undefined}
-              />
+              {[
+                {
+                  label: "Funding Rate",
+                  value: `${fundingRate >= 0 ? "+" : ""}${fundingRate.toFixed(4)}%`,
+                  color: fundingRate >= 0 ? "text-gain" : "text-loss",
+                  tooltip: "Rate paid between longs and shorts every 8h",
+                },
+                {
+                  label: "OI Change 6h",
+                  value: `${oiChange6h >= 0 ? "+" : ""}$${Math.abs(oiChange6h) >= 1e6 ? (oiChange6h / 1e6).toFixed(2) + "M" : Math.abs(oiChange6h) >= 1e3 ? (oiChange6h / 1e3).toFixed(1) + "K" : oiChange6h.toFixed(0)}`,
+                  color: oiChange6h >= 0 ? "text-gain" : "text-loss",
+                  tooltip: "Open interest change in last 6 hours",
+                },
+                {
+                  label: "Mark Price",
+                  value: `$${formatPrice(markPrice)}`,
+                  color: "text-text-primary",
+                  tooltip: "Fair price used for liquidation calculations",
+                },
+                {
+                  label: "Spot Price",
+                  value: spotPrice > 0 ? `$${formatPrice(spotPrice)}` : "--",
+                  color: "text-text-primary",
+                  tooltip: "Underlying spot market price",
+                },
+                {
+                  label: "Basis",
+                  value: spotPrice > 0 ? `${basis >= 0 ? "+" : ""}${basis.toFixed(3)}%` : "--",
+                  color: spotPrice > 0 ? (basis >= 0 ? "text-gain" : "text-loss") : "text-text-tertiary",
+                  tooltip: "Difference between mark and spot price",
+                },
+              ].map(row => (
+                <div key={row.label} className="flex items-center justify-between py-3 group/row hover:bg-white/[0.02] rounded-lg px-3 -mx-3 transition-all">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">
+                      {row.label}
+                    </span>
+                    <div className="relative group/tip">
+                      <Info className="size-3 text-text-tertiary/40 hover:text-text-tertiary cursor-help transition-colors" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-elevated rounded text-[10px] text-text-secondary whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-20 shadow-lg border border-white/5">
+                        {row.tooltip}
+                      </div>
+                    </div>
+                  </div>
+                  <span className={`font-mono tabular-nums text-[13px] font-semibold ${row.color}`}>
+                    {row.value}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </motion.div>
