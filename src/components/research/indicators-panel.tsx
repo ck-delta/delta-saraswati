@@ -225,7 +225,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                 {augmentedSignal && osStyle && (
                   <div className={`rounded-xl border p-5 bg-gradient-to-b ${osStyle.gradBg} ${osStyle.border} ${osStyle.glow}`}>
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-[11px] font-bold uppercase tracking-widest text-[#CBD5E1]">Overall Signal</span>
+                      <span className="text-[12px] font-bold uppercase tracking-widest text-[#CBD5E1]">Overall Signal</span>
                       <span className="text-[12px] font-mono font-bold text-[#94A3B8]">Confidence: {augmentedSignal.confidence}%</span>
                     </div>
                     <div className="flex items-center gap-3 mb-4">
@@ -236,21 +236,21 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                     <div className="space-y-1.5 mb-3">
                       {augmentedSignal.reasoning.map((r, i) => (
                         <div key={i} className="flex items-start gap-2">
-                          <span className="text-[#64748B] mt-0.5 text-[10px] shrink-0">•</span>
-                          <span className="text-[12px] leading-relaxed text-[#94A3B8]">{r}</span>
+                          <span className="text-[#64748B] mt-0.5 text-[11px] shrink-0">•</span>
+                          <span className="text-[13px] leading-relaxed text-[#94A3B8]">{r}</span>
                         </div>
                       ))}
                     </div>
                     <div className="flex items-center gap-1.5 pt-2 border-t border-white/[0.04]">
-                      <Eye className="size-3 text-[#64748B]" />
-                      <span className="text-[11px] text-[#64748B] italic">{augmentedSignal.watchNext}</span>
+                      <Eye className="size-3.5 text-[#64748B]" />
+                      <span className="text-[12px] text-[#94A3B8] italic">{augmentedSignal.watchNext}</span>
                     </div>
                   </div>
                 )}
 
                 {/* MOMENTUM OSCILLATORS */}
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#CBD5E1] mb-4">Momentum Oscillators</p>
+                  <p className="text-[12px] font-bold uppercase tracking-widest text-[#CBD5E1] mb-4">Momentum Oscillators</p>
                   {indicators.rsi != null && rsiInfo && (
                     <div className="flex items-center gap-5 mb-4">
                       <RsiGaugeCircular value={indicators.rsi} />
@@ -284,7 +284,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                 {indicators.adx && adxInfo && (
                   <>
                     <div>
-                      <p className="text-[11px] font-bold uppercase tracking-widest text-[#CBD5E1] mb-3">Trend Strength</p>
+                      <p className="text-[12px] font-bold uppercase tracking-widest text-[#CBD5E1] mb-3">Trend Strength</p>
                       <div className="flex items-center justify-between py-3.5">
                         <div className="flex items-center gap-2">
                           <span className="text-[13px] font-semibold text-[#CBD5E1]">ADX (14)</span>
@@ -307,9 +307,9 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
 
                 {/* TREND AVERAGES */}
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#CBD5E1] mb-3">Trend Averages</p>
+                  <p className="text-[12px] font-bold uppercase tracking-widest text-[#CBD5E1] mb-3">Trend Averages</p>
                   {indicators.trendSummary && (
-                    <div className={`rounded-xl px-4 py-3 mb-4 text-[12px] leading-relaxed border ${
+                    <div className={`rounded-xl px-4 py-3.5 mb-4 text-[13px] leading-relaxed border ${
                       indicators.trendSummary.toLowerCase().includes("uptrend") || indicators.trendSummary.toLowerCase().includes("bullish") || indicators.trendSummary.toLowerCase().includes("golden")
                         ? "bg-[#22C55E]/[0.06] border-[#22C55E]/15 text-[#4ADE80]"
                         : indicators.trendSummary.toLowerCase().includes("downtrend") || indicators.trendSummary.toLowerCase().includes("bearish") || indicators.trendSummary.toLowerCase().includes("death")
@@ -371,7 +371,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <Shield className="size-3.5 text-[#A855F7]" />
-                      <p className="text-[11px] font-bold uppercase tracking-widest text-[#CBD5E1]">Support & Resistance</p>
+                      <p className="text-[12px] font-bold uppercase tracking-widest text-[#CBD5E1]">Support & Resistance</p>
                     </div>
                     <div className="flex items-center gap-2">
                       {pivotSignal && (
@@ -393,8 +393,8 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                       { label: "R2", value: pp.r2, color: "text-[#F87171]", bg: "bg-[#F87171]/[0.05]", border: "border-[#F87171]/10" },
                     ].map(level => (
                       <div key={level.label} className={`rounded-lg border py-2.5 px-1.5 text-center ${level.bg} ${level.border}`}>
-                        <p className="text-[9px] font-bold uppercase text-[#64748B] mb-1">{level.label}</p>
-                        <p className={`font-mono tabular-nums text-[11px] font-bold ${level.color}`}>${formatPrice(level.value)}</p>
+                        <p className="text-[10px] font-bold uppercase text-[#64748B] mb-1">{level.label}</p>
+                        <p className={`font-mono tabular-nums text-[12px] font-bold ${level.color}`}>${formatPrice(level.value)}</p>
                       </div>
                     ))}
                   </div>
@@ -405,7 +405,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
             {/* Positioning Signal */}
             <div className="gradient-separator my-5" />
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-[#CBD5E1] mb-3">Positioning</p>
+              <p className="text-[12px] font-bold uppercase tracking-widest text-[#CBD5E1] mb-3">Positioning</p>
               <div className={`rounded-xl border p-4 ${derivSignal.color === "bullish" ? "bg-[#22C55E]/[0.04] border-[#22C55E]/12" : "bg-[#F87171]/[0.04] border-[#F87171]/12"}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${derivSignal.color === "bullish" ? "bg-[#22C55E]/15 text-[#22C55E]" : "bg-[#F87171]/15 text-[#F87171]"}`}>
@@ -413,7 +413,7 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
                     {derivSignal.signal}
                   </span>
                 </div>
-                <p className="text-[11px] leading-relaxed text-[#94A3B8]">{derivSignal.description}</p>
+                <p className="text-[12px] leading-relaxed text-[#94A3B8]">{derivSignal.description}</p>
               </div>
             </div>
           </div>

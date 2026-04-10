@@ -104,11 +104,11 @@ function RenderSection({ section }: { section: Section }) {
   return (
     <div>
       {/* Section header */}
-      <div className="flex items-center gap-2 mb-3">
-        <div className={`flex items-center justify-center size-6 rounded-lg ${config.bg}`}>
-          <Icon className={`size-3 ${config.accent}`} />
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className={`flex items-center justify-center size-7 rounded-lg ${config.bg}`}>
+          <Icon className={`size-3.5 ${config.accent}`} />
         </div>
-        <span className={`text-[11px] font-bold uppercase tracking-[0.08em] ${config.accent}`}>
+        <span className={`text-[12px] font-bold uppercase tracking-[0.08em] ${config.accent}`}>
           {section.title}
         </span>
       </div>
@@ -126,7 +126,7 @@ function RenderSection({ section }: { section: Section }) {
                     <Sparkles className="size-3 text-amber-400" />
                     <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-amber-400">AI Signal</span>
                   </div>
-                  <p className="text-[13px] italic leading-relaxed font-medium text-amber-200/90">
+                  <p className="text-[14px] italic leading-relaxed font-medium text-amber-200/90">
                     {formatInline(item.content)}
                   </p>
                 </div>
@@ -137,7 +137,7 @@ function RenderSection({ section }: { section: Section }) {
           if (item.type === "bullet") {
             return (
               <div key={i} className={`flex gap-2 pl-1 py-1.5 border-l-2 ${config.border} ml-1 rounded-r hover:bg-white/[0.02] transition-colors`}>
-                <span className="text-[13px] leading-relaxed text-[#94A3B8] pl-2">
+                <span className="text-[14px] leading-relaxed text-[#94A3B8] pl-2">
                   {formatInline(item.content)}
                 </span>
               </div>
@@ -145,7 +145,7 @@ function RenderSection({ section }: { section: Section }) {
           }
 
           return (
-            <p key={i} className="text-[13px] leading-relaxed text-[#94A3B8]">
+            <p key={i} className="text-[14px] leading-relaxed text-[#94A3B8]">
               {formatInline(item.content)}
             </p>
           );
