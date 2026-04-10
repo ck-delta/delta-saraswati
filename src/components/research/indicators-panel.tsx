@@ -3,7 +3,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedList, AnimatedListItem } from "@/lib/motion/components";
 import { formatPrice } from "@/lib/utils";
-import { Activity, Layers, TrendingUp, TrendingDown, ArrowRight, Info } from "lucide-react";
+import { Activity, Layers, TrendingUp, TrendingDown, ArrowRight, Info, Percent, Clock, BarChart3, Crosshair, Tag } from "@/components/icons";
 import { motion } from "framer-motion";
 
 interface IndicatorsPanelProps {
@@ -328,74 +328,190 @@ export function IndicatorsPanel({ ticker, indicators, isLoading }: IndicatorsPan
         </motion.div>
       </AnimatedListItem>
 
-      {/* Derivatives Data */}
+      {/* Derivatives Data — Premium Card */}
       <AnimatedListItem>
         <motion.div
-          className="kpi-card rounded-2xl h-full"
-          whileHover={{ y: -2, transition: { duration: 0.2 } }}
+          className="derivatives-card h-full"
+          whileHover={{ y: -3, transition: { duration: 0.25 } }}
         >
           <div className="p-7">
             {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center justify-center size-9 rounded-xl bg-primary/12 shadow-[0_0_12px_rgba(245,158,11,0.10)]">
-                <Layers className="size-4 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-text-primary tracking-tight">Derivatives</h3>
-                <p className="text-[10px] text-text-tertiary mt-0.5">Perpetual Contract Data</p>
+            <div className="flex items-center justify-between mb-7">
+              <div className="flex items-center gap-3.5">
+                <div className="flex items-center justify-center size-11 rounded-2xl shadow-[0_0_16px_rgba(245,158,11,0.15)]"
+                  style={{ background: "linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(234,88,12,0.12) 100%)" }}
+                >
+                  <Layers className="size-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-extrabold text-text-primary tracking-tight">Derivatives</h3>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <p className="text-[10px] text-text-tertiary/80">Perpetual Contract Data</p>
+                    <span className="flex items-center gap-1">
+                      <span className="size-1.5 rounded-full bg-gain animate-pulse" />
+                      <span className="text-[9px] font-semibold text-gain/80 uppercase tracking-wider">Live</span>
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-0 divide-y divide-white/[0.04]">
-              {[
-                {
-                  label: "Funding Rate",
-                  value: `${fundingRate >= 0 ? "+" : ""}${fundingRate.toFixed(4)}%`,
-                  color: fundingRate >= 0 ? "text-gain" : "text-loss",
-                  tooltip: "Rate paid between longs and shorts every 8h",
-                },
-                {
-                  label: "OI Change 6h",
-                  value: `${oiChange6h >= 0 ? "+" : ""}$${Math.abs(oiChange6h) >= 1e6 ? (oiChange6h / 1e6).toFixed(2) + "M" : Math.abs(oiChange6h) >= 1e3 ? (oiChange6h / 1e3).toFixed(1) + "K" : oiChange6h.toFixed(0)}`,
-                  color: oiChange6h >= 0 ? "text-gain" : "text-loss",
-                  tooltip: "Open interest change in last 6 hours",
-                },
-                {
-                  label: "Mark Price",
-                  value: `$${formatPrice(markPrice)}`,
-                  color: "text-text-primary",
-                  tooltip: "Fair price used for liquidation calculations",
-                },
-                {
-                  label: "Spot Price",
-                  value: spotPrice > 0 ? `$${formatPrice(spotPrice)}` : "--",
-                  color: "text-text-primary",
-                  tooltip: "Underlying spot market price",
-                },
-                {
-                  label: "Basis",
-                  value: spotPrice > 0 ? `${basis >= 0 ? "+" : ""}${basis.toFixed(3)}%` : "--",
-                  color: spotPrice > 0 ? (basis >= 0 ? "text-gain" : "text-loss") : "text-text-tertiary",
-                  tooltip: "Difference between mark and spot price",
-                },
-              ].map(row => (
-                <div key={row.label} className="flex items-center justify-between py-3 group/row hover:bg-white/[0.02] rounded-lg px-3 -mx-3 transition-all">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">
-                      {row.label}
-                    </span>
+            {/* === FUNDING & INTEREST === */}
+            <div className="mb-1.5">
+              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-text-tertiary/50 mb-3 px-3">
+                Funding & Interest
+              </p>
+
+              {/* Funding Rate */}
+              <div className="deriv-row flex items-center justify-between py-3 px-3 -mx-0 group/row">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-center size-6 rounded-lg bg-white/[0.04]">
+                    <Percent className="size-3 text-text-tertiary group-hover/row:text-primary transition-colors" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">Funding Rate</span>
                     <div className="relative group/tip">
-                      <Info className="size-3 text-text-tertiary/40 hover:text-text-tertiary cursor-help transition-colors" />
+                      <Info className="size-3 text-text-tertiary/30 hover:text-text-tertiary cursor-help transition-colors" />
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-elevated rounded text-[10px] text-text-secondary whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-20 shadow-lg border border-white/5">
-                        {row.tooltip}
+                        Rate paid between longs and shorts every 8h
                       </div>
                     </div>
                   </div>
-                  <span className={`font-mono tabular-nums text-[13px] font-semibold ${row.color}`}>
-                    {row.value}
+                </div>
+                <span className={`deriv-value font-mono tabular-nums text-[14px] font-bold ${fundingRate >= 0 ? "text-gain glow-green" : "text-loss glow-red"}`}>
+                  {fundingRate >= 0 ? "+" : ""}{fundingRate.toFixed(4)}%
+                </span>
+              </div>
+
+              {/* OI Change */}
+              <div className="deriv-row flex items-center justify-between py-3 px-3 -mx-0 group/row">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-center size-6 rounded-lg bg-white/[0.04]">
+                    <BarChart3 className="size-3 text-text-tertiary group-hover/row:text-primary transition-colors" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">OI Change 6h</span>
+                    <div className="relative group/tip">
+                      <Info className="size-3 text-text-tertiary/30 hover:text-text-tertiary cursor-help transition-colors" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-elevated rounded text-[10px] text-text-secondary whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-20 shadow-lg border border-white/5">
+                        Open interest change in last 6 hours
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* Mini sparkline for OI */}
+                  <svg width="32" height="14" viewBox="0 0 32 14" className="opacity-40">
+                    <polyline
+                      points={oiChange6h >= 0 ? "0,12 8,10 16,8 24,5 32,2" : "0,2 8,5 16,8 24,10 32,12"}
+                      fill="none"
+                      stroke={oiChange6h >= 0 ? "#0ECB81" : "#F6465D"}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className={`deriv-value font-mono tabular-nums text-[14px] font-bold ${oiChange6h >= 0 ? "text-gain glow-green" : "text-loss glow-red"}`}>
+                    {oiChange6h >= 0 ? "+" : ""}${Math.abs(oiChange6h) >= 1e6 ? (oiChange6h / 1e6).toFixed(2) + "M" : Math.abs(oiChange6h) >= 1e3 ? (oiChange6h / 1e3).toFixed(1) + "K" : oiChange6h.toFixed(0)}
                   </span>
                 </div>
-              ))}
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="gradient-separator my-2" />
+
+            {/* === PRICING === */}
+            <div className="mb-1.5 mt-3">
+              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-text-tertiary/50 mb-3 px-3">
+                Pricing
+              </p>
+
+              {/* Mark Price */}
+              <div className="deriv-row flex items-center justify-between py-3 px-3 -mx-0 group/row">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-center size-6 rounded-lg bg-white/[0.04]">
+                    <Crosshair className="size-3 text-text-tertiary group-hover/row:text-primary transition-colors" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">Mark Price</span>
+                    <div className="relative group/tip">
+                      <Info className="size-3 text-text-tertiary/30 hover:text-text-tertiary cursor-help transition-colors" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-elevated rounded text-[10px] text-text-secondary whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-20 shadow-lg border border-white/5">
+                        Fair price used for liquidation calculations
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span className="deriv-value font-mono tabular-nums text-[14px] font-bold text-text-primary">
+                  ${formatPrice(markPrice)}
+                </span>
+              </div>
+
+              {/* Spot Price */}
+              <div className="deriv-row flex items-center justify-between py-3 px-3 -mx-0 group/row">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-center size-6 rounded-lg bg-white/[0.04]">
+                    <Tag className="size-3 text-text-tertiary group-hover/row:text-primary transition-colors" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">Spot Price</span>
+                    <div className="relative group/tip">
+                      <Info className="size-3 text-text-tertiary/30 hover:text-text-tertiary cursor-help transition-colors" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-elevated rounded text-[10px] text-text-secondary whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-20 shadow-lg border border-white/5">
+                        Underlying spot market price
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span className="deriv-value font-mono tabular-nums text-[14px] font-bold text-text-primary">
+                  {spotPrice > 0 ? `$${formatPrice(spotPrice)}` : "--"}
+                </span>
+              </div>
+
+              {/* Basis */}
+              <div className="deriv-row flex items-center justify-between py-3 px-3 -mx-0 group/row">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-center size-6 rounded-lg bg-white/[0.04]">
+                    <ArrowRight className="size-3 text-text-tertiary group-hover/row:text-primary transition-colors" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12px] text-text-tertiary group-hover/row:text-text-secondary transition-colors">Basis</span>
+                    <div className="relative group/tip">
+                      <Info className="size-3 text-text-tertiary/30 hover:text-text-tertiary cursor-help transition-colors" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-elevated rounded text-[10px] text-text-secondary whitespace-nowrap opacity-0 pointer-events-none group-hover/tip:opacity-100 transition-opacity z-20 shadow-lg border border-white/5">
+                        Difference between mark and spot price
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* Mini sparkline for Basis */}
+                  {spotPrice > 0 && (
+                    <svg width="32" height="14" viewBox="0 0 32 14" className="opacity-40">
+                      <polyline
+                        points={basis >= 0 ? "0,10 8,8 16,7 24,5 32,4" : "0,4 8,5 16,7 24,8 32,10"}
+                        fill="none"
+                        stroke={basis >= 0 ? "#0ECB81" : "#F6465D"}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                  <span className={`deriv-value font-mono tabular-nums text-[14px] font-bold ${
+                    spotPrice > 0 ? (basis >= 0 ? "text-gain glow-green" : "text-loss glow-red") : "text-text-tertiary"
+                  }`}>
+                    {spotPrice > 0 ? `${basis >= 0 ? "+" : ""}${basis.toFixed(3)}%` : "--"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer timestamp */}
+            <div className="flex items-center gap-1.5 mt-4 pt-3 border-t border-white/[0.04]">
+              <Clock className="size-3 text-text-tertiary/40" />
+              <span className="text-[9px] text-text-tertiary/50 font-medium">Updated just now</span>
             </div>
           </div>
         </motion.div>
