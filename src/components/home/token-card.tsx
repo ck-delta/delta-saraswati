@@ -177,13 +177,21 @@ function MiniSparkline({ data, positive, brandColor }: { data: number[]; positiv
   );
 }
 
-// AI Sentiment slider — premium with colored fill, glow, and score badge
-function SentimentSlider({ score, brandColor }: { score: number; brandColor: string }) {
-  const value = Math.max(0, Math.min(10, score * 10));
+// AI Sentiment slider — 0-10 scale, 5-tier: Strong Sell / Sell / Neutral / Buy / Strong Buy
+// Colors: red, lighter red, gray, green, vibrant green (no yellow/orange)
+function getSentimentTier(value: number) {
+  if (value <= 2.5) return { label: "Strong Sell", color: "#F6465D", glow: "rgba(246,70,93,0.25)" };
+  if (value <= 4.0) return { label: "Sell", color: "#F87171", glow: "rgba(248,113,113,0.20)" };
+  if (value < 6.0) return { label: "Neutral", color: "#94A3B8", glow: "rgba(148,163,184,0.15)" };
+  if (value < 7.5) return { label: "Buy", color: "#4ADE80", glow: "rgba(74,222,128,0.20)" };
+  return { label: "Strong Buy", color: "#22C55E", glow: "rgba(34,197,94,0.25)" };
+}
+
+function SentimentSlider({ score }: { score: number }) {
+  const value = Math.max(0, Math.min(10, score));
   const pct = (value / 10) * 100;
-  const label = value >= 7 ? "Bullish" : value <= 3 ? "Bearish" : "Neutral";
-  const labelColor = value >= 7 ? "text-gain" : value <= 3 ? "text-loss" : "text-text-secondary";
-  const fillColor = value <= 3 ? "#F6465D" : value <= 5 ? "#636366" : brandColor;
+  const tier = getSentimentTier(value);
+  const fillColor = tier.color;
 
   return (
     <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] px-4 py-3.5 space-y-3">
@@ -193,7 +201,7 @@ function SentimentSlider({ score, brandColor }: { score: number; brandColor: str
           <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-[0.08em]">AI Sentiment</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`text-[11px] font-bold ${labelColor}`}>{label}</span>
+          <span className="text-[11px] font-bold" style={{ color: fillColor }}>{tier.label}</span>
           <span className="font-mono tabular-nums text-sm font-black text-text-primary">{value.toFixed(1)}<span className="text-text-tertiary/40 font-normal">/10</span></span>
         </div>
       </div>
@@ -324,7 +332,7 @@ export function TokenCard({
           </div>
 
           {/* AI Sentiment Slider — premium container */}
-          <SentimentSlider score={sentimentScore} brandColor={brand.color} />
+          <SentimentSlider score={sentimentScore} />
 
           {/* Action buttons — premium gradient */}
           <div className="flex gap-3 pt-1">

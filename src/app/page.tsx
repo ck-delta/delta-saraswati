@@ -56,17 +56,17 @@ export default function HomePage() {
         keywords.some((kw: string) => h.title?.toLowerCase().includes(kw))
       );
       if (matching.length > 0) {
-        // Convert sentiment to 0-1 scale: positive=0.8, neutral=0.5, negative=0.2
-        // Then blend with actual sentimentScore if available
+        // Convert sentiment to 0-10 scale: positive=8, neutral=5, negative=2
+        // Blend with actual sentimentScore if available
         const avg = matching.reduce((sum: number, h: any) => {
-          const base = h.sentiment === "positive" ? 0.8 : h.sentiment === "negative" ? 0.2 : 0.5;
-          const score = h.sentimentScore != null ? h.sentimentScore / 100 : base;
+          const base = h.sentiment === "positive" ? 8 : h.sentiment === "negative" ? 2 : 5;
+          const score = h.sentimentScore != null ? h.sentimentScore / 10 : base;
           return sum + score;
         }, 0) / matching.length;
         result[sym] = avg;
       } else {
-        // No matching headlines — use price momentum as proxy
-        result[sym] = 0.5;
+        // No matching headlines — default neutral
+        result[sym] = 5.0;
       }
     }
     return result;
