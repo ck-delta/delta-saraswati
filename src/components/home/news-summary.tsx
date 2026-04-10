@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { timeAgo } from "@/lib/utils";
 import {
   Sparkles, Clock, AlertCircle, RefreshCw,
-  Activity, Rocket, Globe, Zap,
+  Activity, Rocket, Globe, Zap, BarChart3,
 } from "lucide-react";
 
 interface NewsSummaryProps {
@@ -18,13 +18,14 @@ const SECTION_CONFIG: Record<string, { icon: typeof Activity; accent: string; bo
   "Market Pulse": { icon: Activity, accent: "text-[#60A5FA]", border: "border-l-[#3B82F6]/40", bg: "bg-[#3B82F6]/8" },
   "Big Movers": { icon: Rocket, accent: "text-primary", border: "border-l-primary/40", bg: "bg-primary/8" },
   "Macro Watch": { icon: Globe, accent: "text-[#34D399]", border: "border-l-[#34D399]/40", bg: "bg-[#34D399]/8" },
+  "Derivatives Insight": { icon: BarChart3, accent: "text-[#A78BFA]", border: "border-l-[#8B5CF6]/40", bg: "bg-[#8B5CF6]/8" },
   "Signal": { icon: Zap, accent: "text-amber-400", border: "border-l-amber-400/40", bg: "bg-amber-400/8" },
 };
 
 // Left column sections
 const LEFT_SECTIONS = new Set(["Market Pulse", "Big Movers"]);
 // Right column sections
-const RIGHT_SECTIONS = new Set(["Macro Watch", "Signal"]);
+const RIGHT_SECTIONS = new Set(["Macro Watch", "Derivatives Insight", "Signal"]);
 
 function formatInline(text: string): React.ReactNode {
   const parts: React.ReactNode[] = [];
