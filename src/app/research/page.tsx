@@ -29,17 +29,15 @@ function ResearchContent() {
     }
   }, [allTickers.length, fetchMarketData]);
 
-  // Auto-select token from URL param or default to BTCUSDT
   useEffect(() => {
     const tokenParam = searchParams.get('token');
     if (tokenParam && tokenParam !== selectedToken) {
       selectToken(tokenParam.toUpperCase());
     } else if (!selectedToken && allTickers.length > 0) {
-      // Default to BTCUSDT when no token is selected and tickers are loaded
-      const defaultToken = allTickers.find(t => t.symbol === 'BTCUSDT') ? 'BTCUSDT' : allTickers[0]?.symbol;
-      if (defaultToken) {
-        selectToken(defaultToken);
-      }
+      const defaultToken = allTickers.find((t) => t.symbol === 'BTCUSDT')
+        ? 'BTCUSDT'
+        : allTickers[0]?.symbol;
+      if (defaultToken) selectToken(defaultToken);
     }
   }, [searchParams, selectedToken, selectToken, allTickers]);
 
@@ -58,15 +56,22 @@ function ResearchContent() {
   );
 
   return (
-    <div className="flex flex-col lg:flex-row h-full min-h-0">
-      {/* Left sidebar -- Token Selector */}
-      <aside className="w-full lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r border-[#1e2024] bg-[#0d0e10] max-h-[220px] lg:max-h-none overflow-hidden flex flex-col">
-        <TokenSelector />
-      </aside>
+    <div className="mx-auto w-full max-w-7xl px-6 py-6">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Left: token selector */}
+        <aside
+          className="w-full lg:w-64 shrink-0 max-h-[360px] lg:max-h-[calc(100vh-8rem)] overflow-hidden flex flex-col"
+          style={{
+            background: 'var(--bg-primary)',
+            border: '1px solid var(--bg-secondary)',
+            borderRadius: 'var(--radius-2xl)',
+          }}
+        >
+          <TokenSelector />
+        </aside>
 
-      {/* Main content area */}
-      <div className="flex-1 min-w-0 overflow-y-auto bg-[#08090a]">
-        <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-5">
+        {/* Main content */}
+        <div className="flex-1 min-w-0 space-y-5">
           <ResearchPanel />
 
           <PriceChart
@@ -88,19 +93,39 @@ function ResearchContent() {
 
 function ResearchFallback() {
   return (
-    <div className="flex flex-col lg:flex-row h-full min-h-0">
-      <aside className="w-full lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r border-[#1e2024] bg-[#0d0e10]">
-        <div className="p-4 space-y-3">
-          <div className="h-3 w-20 rounded bg-[#1e2024] animate-pulse" />
-          <div className="h-10 w-full rounded-lg bg-[#111214] animate-pulse" />
-          <div className="h-9 w-full rounded-lg bg-[#111214] animate-pulse" />
-          <div className="h-9 w-full rounded-lg bg-[#111214] animate-pulse" />
-          <div className="h-9 w-full rounded-lg bg-[#111214] animate-pulse" />
+    <div className="mx-auto w-full max-w-7xl px-6 py-6">
+      <div className="flex flex-col lg:flex-row gap-6">
+        <aside
+          className="w-full lg:w-64 shrink-0 p-4 space-y-3"
+          style={{
+            background: 'var(--bg-primary)',
+            border: '1px solid var(--bg-secondary)',
+            borderRadius: 'var(--radius-2xl)',
+          }}
+        >
+          <div
+            className="h-3 w-20 rounded animate-pulse"
+            style={{ background: 'var(--bg-secondary)' }}
+          />
+          <div
+            className="h-10 w-full rounded-md animate-pulse"
+            style={{ background: 'var(--bg-secondary)' }}
+          />
+          <div
+            className="h-9 w-full rounded-md animate-pulse"
+            style={{ background: 'var(--bg-secondary)' }}
+          />
+        </aside>
+        <div className="flex-1 space-y-5">
+          <div
+            className="h-48 w-full rounded-2xl animate-pulse"
+            style={{ background: 'var(--bg-primary)' }}
+          />
+          <div
+            className="h-[400px] w-full rounded-2xl animate-pulse"
+            style={{ background: 'var(--bg-primary)' }}
+          />
         </div>
-      </aside>
-      <div className="flex-1 min-w-0 p-6 space-y-5 bg-[#08090a]">
-        <div className="h-48 w-full rounded-xl bg-[#111214] animate-pulse" />
-        <div className="h-[400px] w-full rounded-xl bg-[#111214] animate-pulse" />
       </div>
     </div>
   );

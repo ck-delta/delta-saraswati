@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import Sidebar, { MobileSidebar } from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
+import TopNav from '@/components/layout/TopNav';
 import './globals.css';
 
 // ---------------------------------------------------------------------------
@@ -41,26 +40,20 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="dark"
+      data-brand="india"
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
       suppressHydrationWarning
     >
-      <body className="h-full bg-[#08090a] text-[#eaedf3] antialiased">
-        <div className="flex h-full">
-          {/* Desktop sidebar — fixed left column */}
-          <Sidebar />
-
-          {/* Mobile sidebar overlay */}
-          <MobileSidebar />
-
-          {/* Main content area: header + scrollable body */}
-          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <Header />
-
-            <main className="flex-1 overflow-y-auto">
-              {children}
-            </main>
-          </div>
-        </div>
+      <body
+        className="h-full antialiased"
+        style={{
+          background: 'var(--bg-sub-surface)',
+          color: 'var(--text-primary)',
+        }}
+      >
+        <TopNav />
+        <main className="min-h-[calc(100vh-56px)]">{children}</main>
       </body>
     </html>
   );

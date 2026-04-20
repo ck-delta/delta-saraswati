@@ -6,8 +6,6 @@ import { formatRelativeTime } from '@/lib/format';
 
 /* ------------------------------------------------------------------ */
 /*  Lightweight Markdown renderer                                     */
-/*  Supports: **bold**, *italic*, `inline code`, ```code blocks```,   */
-/*            ### headings, - bullet lists, 1. numbered lists          */
 /* ------------------------------------------------------------------ */
 
 function renderMarkdown(text: string): React.ReactNode[] {
@@ -19,7 +17,6 @@ function renderMarkdown(text: string): React.ReactNode[] {
   while (i < lines.length) {
     const line = lines[i];
 
-    // Fenced code block
     if (line.trimStart().startsWith('```')) {
       const codeLines: string[] = [];
       i++;
@@ -31,7 +28,13 @@ function renderMarkdown(text: string): React.ReactNode[] {
       elements.push(
         <pre
           key={key++}
-          className="my-2 overflow-x-auto rounded-lg border border-[#1e2024] bg-[#08090a] p-3 font-mono text-sm text-[#eaedf3]"
+          className="my-2 overflow-x-auto p-3 font-mono text-sm"
+          style={{
+            background: 'var(--bg-sub-surface)',
+            border: '1px solid var(--divider-primary)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--text-primary)',
+          }}
         >
           <code>{codeLines.join('\n')}</code>
         </pre>,
@@ -39,7 +42,6 @@ function renderMarkdown(text: string): React.ReactNode[] {
       continue;
     }
 
-    // Heading
     const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
     if (headingMatch) {
       const level = headingMatch[1].length;
@@ -52,7 +54,11 @@ function renderMarkdown(text: string): React.ReactNode[] {
             ? 'text-base font-semibold'
             : 'text-sm font-semibold';
       elements.push(
-        <Tag key={key++} className={`${sizeClass} mt-3 mb-1 text-[#eaedf3]`}>
+        <Tag
+          key={key++}
+          className={`${sizeClass} mt-3 mb-1`}
+          style={{ color: 'var(--text-primary)' }}
+        >
           {renderInline(headingText)}
         </Tag>,
       );
@@ -60,13 +66,16 @@ function renderMarkdown(text: string): React.ReactNode[] {
       continue;
     }
 
-    // Unordered list item
     if (/^\s*[-*]\s+/.test(line)) {
       const listItems: React.ReactNode[] = [];
       while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
         const itemText = lines[i].replace(/^\s*[-*]\s+/, '');
         listItems.push(
-          <li key={key++} className="ml-4 list-disc text-[#eaedf3]/90">
+          <li
+            key={key++}
+            className="ml-4 list-disc"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {renderInline(itemText)}
           </li>,
         );
@@ -80,13 +89,16 @@ function renderMarkdown(text: string): React.ReactNode[] {
       continue;
     }
 
-    // Ordered list item
     if (/^\s*\d+\.\s+/.test(line)) {
       const listItems: React.ReactNode[] = [];
       while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
         const itemText = lines[i].replace(/^\s*\d+\.\s+/, '');
         listItems.push(
-          <li key={key++} className="ml-4 list-decimal text-[#eaedf3]/90">
+          <li
+            key={key++}
+            className="ml-4 list-decimal"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {renderInline(itemText)}
           </li>,
         );
@@ -100,16 +112,18 @@ function renderMarkdown(text: string): React.ReactNode[] {
       continue;
     }
 
-    // Empty line
     if (line.trim() === '') {
       elements.push(<div key={key++} className="h-2" />);
       i++;
       continue;
     }
 
-    // Regular paragraph
     elements.push(
-      <p key={key++} className="text-[#eaedf3]/90 leading-relaxed">
+      <p
+        key={key++}
+        className="leading-relaxed"
+        style={{ color: 'var(--text-primary)' }}
+      >
         {renderInline(line)}
       </p>,
     );
@@ -128,29 +142,42 @@ function renderInline(text: string): React.ReactNode {
 
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      parts.push(renderPriceNumbers(text.slice(lastIndex, match.index), partKey++));
+      parts.push(
+        renderPriceNumbers(text.slice(lastIndex, match.index), partKey++),
+      );
     }
 
     if (match[1]) {
-      // **bold**
       parts.push(
-        <strong key={`b-${partKey++}`} className="font-semibold text-[#eaedf3]">
+        <strong
+          key={`b-${partKey++}`}
+          className="font-semibold"
+          style={{ color: 'var(--text-primary)' }}
+        >
           {match[2]}
         </strong>,
       );
     } else if (match[3]) {
-      // *italic*
       parts.push(
-        <em key={`i-${partKey++}`} className="italic text-[#eaedf3]/80">
+        <em
+          key={`i-${partKey++}`}
+          className="italic"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           {match[4]}
         </em>,
       );
     } else if (match[5]) {
-      // `code`
       parts.push(
         <code
           key={`c-${partKey++}`}
-          className="rounded bg-[#08090a] border border-[#1e2024] px-1.5 py-0.5 font-mono text-xs text-[#f7931a]"
+          className="font-mono text-xs px-1.5 py-0.5"
+          style={{
+            background: 'var(--bg-sub-surface)',
+            border: '1px solid var(--divider-primary)',
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--brand-text)',
+          }}
         >
           {match[6]}
         </code>,
@@ -179,7 +206,11 @@ function renderPriceNumbers(text: string, baseKey: number): React.ReactNode {
       parts.push(text.slice(lastIdx, m.index));
     }
     parts.push(
-      <span key={`pn-${baseKey}-${k++}`} className="font-mono text-[#eaedf3]">
+      <span
+        key={`pn-${baseKey}-${k++}`}
+        className="font-mono-num"
+        style={{ color: 'var(--text-primary)' }}
+      >
         {m[0]}
       </span>,
     );
@@ -196,7 +227,7 @@ function renderPriceNumbers(text: string, baseKey: number): React.ReactNode {
 }
 
 /* ------------------------------------------------------------------ */
-/*  ChatMessage component                                             */
+/*  ChatMessage                                                       */
 /* ------------------------------------------------------------------ */
 
 interface ChatMessageProps {
@@ -212,37 +243,76 @@ function ChatMessageInner({ message }: ChatMessageProps) {
       style={{ animationDuration: '200ms' }}
     >
       <div
-        className={`max-w-[85%] md:max-w-[75%] ${
-          isUser
-            ? 'rounded-2xl rounded-br-md bg-[#f7931a]/10 border border-[#f7931a]/20 px-4 py-3'
-            : 'rounded-2xl rounded-bl-md bg-[#111214] border border-[#1e2024] px-4 py-3'
-        }`}
+        className="max-w-[85%] md:max-w-[75%]"
+        style={{
+          padding: '12px 16px',
+          background: isUser ? 'var(--brand-bg)' : 'var(--bg-primary)',
+          color: isUser ? 'var(--text-on-bg)' : 'var(--text-primary)',
+          border: isUser ? 'none' : '1px solid var(--bg-secondary)',
+          borderRadius: isUser
+            ? '12px 12px 2px 12px'
+            : '12px 12px 12px 2px',
+        }}
       >
         {/* Assistant label */}
         {!isUser && (
           <div className="mb-1.5 flex items-center gap-1.5">
-            <div className="size-5 rounded-full bg-gradient-to-br from-[#f7931a] to-[#ffaa3b] flex items-center justify-center">
-              <span className="text-[10px] font-bold text-black">S</span>
+            <div
+              className="flex items-center justify-center"
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 'var(--radius-pill)',
+                background: 'var(--brand-bg)',
+              }}
+            >
+              <span
+                className="text-[10px] font-bold"
+                style={{ color: 'var(--text-on-bg)' }}
+              >
+                S
+              </span>
             </div>
-            <span className="text-xs font-medium text-[#f7931a]">Saraswati</span>
+            <span
+              className="text-xs font-medium"
+              style={{ color: 'var(--brand-text)' }}
+            >
+              Saraswati
+            </span>
           </div>
         )}
 
         {/* Message content */}
-        <div className={`text-sm ${isUser ? 'text-[#eaedf3]' : ''}`}>
+        <div className="text-sm">
           {isUser ? (
-            <p className="whitespace-pre-wrap text-[#eaedf3]">{message.content}</p>
+            <p
+              className="whitespace-pre-wrap"
+              style={{ color: 'var(--text-on-bg)' }}
+            >
+              {message.content}
+            </p>
           ) : (
             <div className="space-y-0.5">{renderMarkdown(message.content)}</div>
           )}
           {message.isStreaming && (
-            <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-[#f7931a]" />
+            <span
+              className="ml-0.5 inline-block h-4 w-1.5 animate-pulse"
+              style={{
+                background: 'var(--brand-bg)',
+                borderRadius: 'var(--radius-xs)',
+              }}
+            />
           )}
         </div>
 
         {/* Timestamp */}
         <div
-          className={`mt-1.5 text-[10px] text-[#555a65] ${isUser ? 'text-right' : 'text-left'}`}
+          className={`mt-1.5 text-[10px] ${isUser ? 'text-right' : 'text-left'}`}
+          style={{
+            color: isUser
+              ? 'rgba(255,255,255,0.7)'
+              : 'var(--text-tertiary)',
+          }}
         >
           {formatRelativeTime(message.timestamp)}
         </div>

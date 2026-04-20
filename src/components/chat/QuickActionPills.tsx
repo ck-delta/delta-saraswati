@@ -33,9 +33,23 @@ export function QuickActionPills({ onAction }: QuickActionPillsProps) {
           <button
             key={action.id}
             onClick={() => onAction(action.prompt, action.contextType)}
-            className="flex shrink-0 items-center gap-2 rounded-full border border-[#1e2024] bg-[#111214] px-4 py-2 text-sm text-[#8b8f99] transition-all duration-150 hover:border-[#f7931a]/40 hover:text-[#eaedf3] cursor-pointer"
+            className="flex shrink-0 items-center gap-2 text-xs transition-colors duration-150 cursor-pointer"
+            style={{
+              padding: '6px 12px',
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-secondary)',
+              borderRadius: 'var(--radius-pill)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--bg-tertiary)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--bg-secondary)';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+            }}
           >
-            {Icon && <Icon className="size-4" />}
+            {Icon && <Icon className="size-3.5" />}
             <span>{action.label}</span>
           </button>
         );

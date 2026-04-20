@@ -2,118 +2,404 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* =============================================================================
+   Delta Design System — Saraswati (Dark-mode only, India brand)
+   Primitive → Semantic → Component token pipeline, all hex lives here.
+   ============================================================================= */
+
+:root {
+  /* ── Primitives ─────────────────────────────────────────────────────── */
+
+  /* WB — Light grayscale (kept as reference; not used in dark-only build) */
+  --wb-50:  #EBECF0;
+  --wb-100: #FFFFFF;
+  --wb-150: #FBFCFD;
+  --wb-200: #F3F4F6;
+  --wb-300: #E6E9EF;
+  --wb-400: #D7DDE7;
+
+  /* DB — Dark blue-black */
+  --db-50:  #0C0C0F;
+  --db-100: #111114;
+  --db-150: #18191E;
+  --db-200: #22242C;
+  --db-300: #2D303A;
+  --db-400: #353845;
+
+  /* Grey — neutral scale */
+  --grey-100: #FFFFFF;
+  --grey-150: #E1E1E2;
+  --grey-200: #CBCED2;
+  --grey-300: #ADB1B7;
+  --grey-350: #949AA3;
+  --grey-400: #8E9298;
+  --grey-500: #71747A;
+  --grey-600: #44464A;
+  --grey-700: #121214;
+
+  /* Blue — brand-global + accent-blue */
+  --blue-50:   #E6F2FD;
+  --blue-100:  #B2D6F8;
+  --blue-200:  #8CC2F4;
+  --blue-300:  #58A7F0;
+  --blue-400:  #3895ED;
+  --blue-500:  #067BE8;
+  --blue-600:  #0570D3;
+  --blue-700:  #0457A5;
+  --blue-800:  #034480;
+  --blue-900:  #033461;
+  --blue-1000: #071624;
+
+  /* Green — positive */
+  --green-50:   #E6F6F1;
+  --green-100:  #D2EFE6;
+  --green-200:  #8AD7C0;
+  --green-300:  #54C5A3;
+  --green-400:  #33B991;
+  --green-500:  #00A876;
+  --green-600:  #00996B;
+  --green-700:  #007754;
+  --green-800:  #005C41;
+  --green-900:  #004732;
+  --green-950:  #003224;
+  --green-1000: #162626;
+
+  /* Yellow — warning */
+  --yellow-50:   #FFF3CC;
+  --yellow-100:  #FFF3CC;
+  --yellow-200:  #FFE799;
+  --yellow-300:  #FFDC66;
+  --yellow-400:  #FFD64D;
+  --yellow-500:  #FFD033;
+  --yellow-600:  #FFC400;
+  --yellow-700:  #DCAA05;
+  --yellow-800:  #BA9109;
+  --yellow-900:  #97770E;
+  --yellow-950:  #745D12;
+  --yellow-1000: #3A3304;
+
+  /* Orange — brand-india */
+  --orange-50:   #FFF0E6;
+  --orange-100:  #FFD1B1;
+  --orange-200:  #FFBB8B;
+  --orange-300:  #FE9D55;
+  --orange-400:  #FE8935;
+  --orange-500:  #FE6C02;
+  --orange-600:  #E76202;
+  --orange-700:  #A24B0D;
+  --orange-800:  #8C3B01;
+  --orange-900:  #592705;
+  --orange-1000: #2F231B;
+
+  /* Red — negative */
+  --red-50:   #FBEDED;
+  --red-100:  #F8DEDE;
+  --red-200:  #F4AEAE;
+  --red-300:  #FF7676;
+  --red-400:  #FF5C5C;
+  --red-500:  #EB5454;
+  --red-600:  #DC4E4E;
+  --red-700:  #C54043;
+  --red-800:  #9A3235;
+  --red-900:  #772729;
+  --red-950:  #5B1D1F;
+  --red-1000: #411516;
+
+  /* Purple — brand-demo + accent-purple */
+  --purple-50:   #F0ECFF;
+  --purple-100:  #D6CCFF;
+  --purple-200:  #C1B1FF;
+  --purple-300:  #A68FFF;
+  --purple-400:  #9276FF;
+  --purple-500:  #7856FF;
+  --purple-600:  #6E50E6;
+  --purple-700:  #5B44BB;
+  --purple-800:  #453688;
+  --purple-900:  #332A5D;
+  --purple-1000: #1F1D2E;
+
+  /* Brown */
+  --brown-50:  #F7F3ED;
+  --brown-100: #E0D6CC;
+  --brown-200: #C9B7A6;
+  --brown-300: #B9A28D;
+  --brown-400: #A28467;
+  --brown-500: #7E654E;
+  --brown-600: #514132;
+  --brown-700: #3F3327;
+  --brown-800: #2F261D;
+  --brown-900: #191410;
+
+  /* ── Semantic (Dark mode — the only mode shipped) ──────────────────── */
+  --bg-sub-surface:   var(--db-100);
+  --bg-surface-alt:   var(--db-150);
+  --bg-surface:       var(--db-150);
+  --bg-primary:       var(--db-200);
+  --bg-primary-alt:   var(--db-200);
+  --bg-secondary:     var(--db-300);
+  --bg-secondary-alt: var(--db-300);
+  --bg-tertiary:      var(--db-400);
+  --bg-header:        #262832;
+  --bg-input:         #191A1F;
+  --bg-modal:         #141418;
+
+  --text-primary:    var(--grey-150);
+  --text-secondary:  var(--grey-400);
+  --text-tertiary:   var(--grey-500);
+  --text-quaternary: var(--grey-600);
+  --text-on-bg:      #FFFFFF;
+
+  --brand-bg:          var(--orange-500);
+  --brand-bg-hover:    var(--orange-600);
+  --brand-bg-muted:    var(--orange-1000);
+  --brand-bg-onmuted:  var(--orange-900);
+  --brand-bg-disabled: var(--orange-900);
+  --brand-text:        var(--orange-400);
+  --brand-text-onmuted:var(--orange-300);
+  --brand-border:      var(--orange-400);
+  --brand-border-muted:var(--orange-800);
+
+  --positive-bg:       var(--green-500);
+  --positive-bg-hover: var(--green-600);
+  --positive-bg-muted: var(--green-950);
+  --positive-text:     var(--green-400);
+  --positive-border:   var(--green-400);
+
+  --negative-bg:       var(--red-500);
+  --negative-bg-hover: var(--red-600);
+  --negative-bg-muted: var(--red-1000);
+  --negative-text:     var(--red-400);
+  --negative-border:   var(--red-400);
+
+  --warning-bg:       var(--yellow-500);
+  --warning-bg-muted: var(--yellow-1000);
+  --warning-text:     var(--yellow-400);
+  --warning-border:   var(--yellow-400);
+
+  --divider-primary:  rgba(255, 255, 255, 0.08);
+  --divider-strong:   #44464A;
+  --focus-ring:       var(--blue-400);
+  --scrim:            rgba(0, 0, 0, 0.60);
+
+  /* Chart translucent fills */
+  --chart-bg-positive: rgba(0, 168, 118, 0.05);
+  --chart-bg-negative: rgba(217, 70, 74, 0.07);
+  --chart-bg-brand:    rgba(254, 108, 2, 0.18);
+  --chart-bg-neutral:  rgba(174, 177, 183, 0.08);
+
+  /* ── Spacing ──────────────────────────────────────────────────────── */
+  --space-4xs:     1px;
+  --space-3xs:     2px;
+  --space-3xsplus: 3px;
+  --space-2xs:     4px;
+  --space-2xsplus: 5px;
+  --space-xs:      6px;
+  --space-xsplus:  7px;
+  --space-sm:      8px;
+  --space-smplus:  10px;
+  --space-md:      12px;
+  --space-mdplus:  14px;
+  --space-lg:      16px;
+  --space-xl:      20px;
+  --space-2xl:     24px;
+  --space-3xl:     32px;
+  --space-4xl:     40px;
+  --space-hg:      48px;
+  --space-2hg:     56px;
+  --space-3hg:     64px;
+  --space-4hg:     96px;
+
+  /* ── Radii ────────────────────────────────────────────────────────── */
+  --radius-xs:   1px;
+  --radius-sm:   2px;
+  --radius-md:   4px;
+  --radius-lg:   6px;
+  --radius-xl:   8px;
+  --radius-2xl:  12px;
+  --radius-3xl:  16px;
+  --radius-4xl:  20px;
+  --radius-5xl:  24px;
+  --radius-pill: 999px;
+}
+
+/* ============================================================================
+   Tailwind v4 theme mapping — exposes Delta tokens + shadcn aliases as
+   utility classes (bg-*, text-*, border-*, etc.)
+   ============================================================================ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-geist-sans);
+  /* Fonts */
+  --font-sans:    var(--font-geist-sans), 'Inter', system-ui, sans-serif;
+  --font-mono:    var(--font-geist-mono), 'Space Mono', 'JetBrains Mono', ui-monospace, monospace;
+  --font-heading: var(--font-geist-sans), 'Inter', system-ui, sans-serif;
 
-  /* Delta Saraswati — Premium Dark Palette */
-  --color-delta-body: #08090a;
-  --color-delta-surface: #111214;
-  --color-delta-surface-elevated: #181a1d;
-  --color-delta-border: #1e2024;
-  --color-delta-border-hover: #2a2d33;
-  --color-delta-accent: #f7931a;
-  --color-delta-accent-hover: #ffaa3b;
-  --color-delta-blue: #3b82f6;
-  --color-delta-buy: #22c55e;
-  --color-delta-sell: #ef4444;
-  --color-delta-text-primary: #eaedf3;
-  --color-delta-text-secondary: #8b8f99;
-  --color-delta-text-muted: #555a65;
+  /* Core background/foreground */
+  --color-background: var(--bg-sub-surface);
+  --color-foreground: var(--text-primary);
 
-  /* shadcn color mappings */
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Delta semantic tokens (exposed as Tailwind utilities) */
+  --color-bg-sub-surface:   var(--bg-sub-surface);
+  --color-bg-surface-alt:   var(--bg-surface-alt);
+  --color-bg-surface:       var(--bg-surface);
+  --color-bg-primary:       var(--bg-primary);
+  --color-bg-primary-alt:   var(--bg-primary-alt);
+  --color-bg-secondary:     var(--bg-secondary);
+  --color-bg-secondary-alt: var(--bg-secondary-alt);
+  --color-bg-tertiary:      var(--bg-tertiary);
+  --color-bg-header:        var(--bg-header);
+  --color-bg-input:         var(--bg-input);
+
+  --color-text-primary:    var(--text-primary);
+  --color-text-secondary:  var(--text-secondary);
+  --color-text-tertiary:   var(--text-tertiary);
+  --color-text-quaternary: var(--text-quaternary);
+  --color-text-on-bg:      var(--text-on-bg);
+
+  --color-brand:          var(--brand-bg);
+  --color-brand-hover:    var(--brand-bg-hover);
+  --color-brand-muted:    var(--brand-bg-muted);
+  --color-brand-onmuted:  var(--brand-bg-onmuted);
+  --color-brand-text:     var(--brand-text);
+  --color-brand-border:   var(--brand-border);
+
+  --color-positive:        var(--positive-bg);
+  --color-positive-hover:  var(--positive-bg-hover);
+  --color-positive-muted:  var(--positive-bg-muted);
+  --color-positive-text:   var(--positive-text);
+  --color-positive-border: var(--positive-border);
+
+  --color-negative:        var(--negative-bg);
+  --color-negative-hover:  var(--negative-bg-hover);
+  --color-negative-muted:  var(--negative-bg-muted);
+  --color-negative-text:   var(--negative-text);
+  --color-negative-border: var(--negative-border);
+
+  --color-warning:        var(--warning-bg);
+  --color-warning-muted:  var(--warning-bg-muted);
+  --color-warning-text:   var(--warning-text);
+  --color-warning-border: var(--warning-border);
+
+  --color-divider: var(--divider-primary);
+
+  /* Primitive palettes for rare edge cases */
+  --color-orange-300: var(--orange-300);
+  --color-orange-400: var(--orange-400);
+  --color-orange-500: var(--orange-500);
+  --color-orange-600: var(--orange-600);
+  --color-green-400:  var(--green-400);
+  --color-green-500:  var(--green-500);
+  --color-green-600:  var(--green-600);
+  --color-red-400:    var(--red-400);
+  --color-red-500:    var(--red-500);
+  --color-red-600:    var(--red-600);
+  --color-yellow-400: var(--yellow-400);
+  --color-yellow-500: var(--yellow-500);
+
+  /* shadcn aliases → Delta semantic tokens */
+  --color-card:              var(--bg-primary);
+  --color-card-foreground:   var(--text-primary);
+  --color-popover:           var(--bg-primary);
+  --color-popover-foreground:var(--text-primary);
+  --color-primary:           var(--brand-bg);
+  --color-primary-foreground:var(--text-on-bg);
+  --color-secondary:         var(--bg-secondary);
+  --color-secondary-foreground: var(--text-primary);
+  --color-muted:             var(--bg-secondary);
+  --color-muted-foreground:  var(--text-secondary);
+  --color-accent:            var(--brand-bg-muted);
+  --color-accent-foreground: var(--brand-text);
+  --color-destructive:       var(--negative-bg);
+  --color-destructive-foreground: var(--text-on-bg);
+  --color-border:            var(--divider-primary);
+  --color-input:             var(--bg-input);
+  --color-ring:              var(--brand-bg);
+
+  --color-chart-1: var(--orange-500);
+  --color-chart-2: var(--blue-500);
+  --color-chart-3: var(--green-500);
+  --color-chart-4: var(--red-500);
+  --color-chart-5: var(--grey-400);
+
+  /* Spacing */
+  --spacing-4xs:     var(--space-4xs);
+  --spacing-3xs:     var(--space-3xs);
+  --spacing-3xsplus: var(--space-3xsplus);
+  --spacing-2xs:     var(--space-2xs);
+  --spacing-2xsplus: var(--space-2xsplus);
+  --spacing-xs:      var(--space-xs);
+  --spacing-xsplus:  var(--space-xsplus);
+  --spacing-sm:      var(--space-sm);
+  --spacing-smplus:  var(--space-smplus);
+  --spacing-md:      var(--space-md);
+  --spacing-mdplus:  var(--space-mdplus);
+  --spacing-lg:      var(--space-lg);
+  --spacing-xl:      var(--space-xl);
+  --spacing-2xl:     var(--space-2xl);
+  --spacing-3xl:     var(--space-3xl);
+  --spacing-4xl:     var(--space-4xl);
+  --spacing-hg:      var(--space-hg);
+  --spacing-2hg:     var(--space-2hg);
+  --spacing-3hg:     var(--space-3hg);
+  --spacing-4hg:     var(--space-4hg);
+
+  /* Radii — Tailwind defaults become Delta's scale.
+     rounded-md = 4px (button/input), rounded-2xl = 12px (card) */
+  --radius-xs:   1px;
+  --radius-sm:   2px;
+  --radius-md:   4px;
+  --radius-lg:   6px;
+  --radius-xl:   8px;
+  --radius-2xl:  12px;
+  --radius-3xl:  16px;
+  --radius-4xl:  20px;
+  --radius-5xl:  24px;
+  --radius-pill: 999px;
+  --radius:      var(--radius-2xl);
 }
 
-/* === DARK ONLY — Premium Crypto Trading Theme === */
-:root {
-  --background: #08090a;
-  --foreground: #eaedf3;
-  --card: #111214;
-  --card-foreground: #eaedf3;
-  --popover: #111214;
-  --popover-foreground: #eaedf3;
-  --primary: #f7931a;
-  --primary-foreground: #08090a;
-  --secondary: #181a1d;
-  --secondary-foreground: #eaedf3;
-  --muted: #181a1d;
-  --muted-foreground: #8b8f99;
-  --accent: #f7931a;
-  --accent-foreground: #08090a;
-  --destructive: #ef4444;
-  --border: #1e2024;
-  --input: #1e2024;
-  --ring: #f7931a;
-  --chart-1: #f7931a;
-  --chart-2: #3b82f6;
-  --chart-3: #22c55e;
-  --chart-4: #ef4444;
-  --chart-5: #8b8f99;
-  --radius: 0.625rem;
-  --sidebar: #0d0e10;
-  --sidebar-foreground: #eaedf3;
-  --sidebar-primary: #f7931a;
-  --sidebar-primary-foreground: #08090a;
-  --sidebar-accent: #181a1d;
-  --sidebar-accent-foreground: #eaedf3;
-  --sidebar-border: #1e2024;
-  --sidebar-ring: #f7931a;
-}
+/* ============================================================================
+   Base layer
+   ============================================================================ */
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--divider-primary);
   }
-  body {
-    @apply bg-background text-foreground;
+
+  html, body {
+    background: var(--bg-sub-surface);
+    color: var(--text-primary);
   }
+
   html {
-    @apply font-sans;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* === Scrollbar — ultra-dark, thin === */
+/* ============================================================================
+   Number / price typography — tabular numbers everywhere money is shown
+   ============================================================================ */
+.font-mono-num,
+.num,
+.font-price {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.font-mono,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+   Scrollbars — thin, 5px, Delta-style
+   ============================================================================ */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -122,194 +408,181 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e2024;
-  border-radius: 3px;
+  background: var(--bg-secondary);
+  border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a2d33;
+  background: var(--grey-500);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-secondary) transparent;
 }
 
-/* === Price change colors === */
-.price-up {
-  color: #22c55e;
-}
-.price-down {
-  color: #ef4444;
-}
-
-/* === Monospace for financial data === */
-.font-price {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-variant-numeric: tabular-nums;
+/* ============================================================================
+   Focus states
+   ============================================================================ */
+*:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
 }
 
-/* === Gradient text — orange accent for headings === */
-.text-gradient-orange {
-  background: linear-gradient(135deg, #f7931a 0%, #ffaa3b 50%, #f7931a 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* ============================================================================
+   Utilities
+   ============================================================================ */
+
+.delta-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--bg-secondary);
+  border-radius: 12px;
+}
+.delta-divider {
+  border-top: 1px solid var(--divider-primary);
 }
 
+/* Orange gradient text (for headings/logos) */
+.text-gradient-orange,
 .text-gradient {
-  background: linear-gradient(135deg, #f7931a 0%, #ffaa3b 50%, #f7931a 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* === Card glow — subtle orange border shimmer === */
-.card-glow {
-  position: relative;
-}
-.card-glow::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
   background: linear-gradient(
     135deg,
-    rgba(247, 147, 26, 0.15),
-    transparent 40%,
-    transparent 60%,
-    rgba(247, 147, 26, 0.08)
+    var(--orange-500) 0%,
+    var(--orange-400) 50%,
+    var(--orange-500) 100%
   );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* === Subtle grid background === */
+/* Subtle grid background */
 .bg-grid {
   background-image:
-    linear-gradient(rgba(30, 32, 36, 0.18) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(30, 32, 36, 0.18) 1px, transparent 1px);
+    linear-gradient(var(--divider-primary) 1px, transparent 1px),
+    linear-gradient(90deg, var(--divider-primary) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
-/* === Glass morphism === */
+/* Glass / blurred surface */
 .glass {
-  background: rgba(17, 18, 20, 0.8);
+  background: color-mix(in srgb, var(--bg-primary) 80%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* === Active nav underline accent === */
-.nav-active {
-  position: relative;
-}
-.nav-active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #f7931a;
-  border-radius: 1px;
-}
-
-/* === Focus states === */
-*:focus-visible {
-  outline: 2px solid #f7931a;
-  outline-offset: 2px;
-}
-
-/* === Trading badges === */
-.badge-buy {
-  background: rgba(34, 197, 94, 0.12);
-  color: #22c55e;
-  border: 1px solid rgba(34, 197, 94, 0.25);
-}
-.badge-sell {
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.25);
-}
-.badge-neutral {
-  background: rgba(139, 143, 153, 0.12);
-  color: #8b8f99;
-  border: 1px solid rgba(139, 143, 153, 0.25);
-}
-
-/* === Pulse animation for live data === */
+/* Live-dot pulse */
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50%      { opacity: 0.4; }
 }
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
-/* === Shimmer loading === */
+/* Shimmer loading */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
+  0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 .animate-shimmer {
-  background: linear-gradient(90deg, #111214 25%, #1e2024 50%, #111214 75%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-primary) 25%,
+    var(--bg-secondary) 50%,
+    var(--bg-primary) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
-/* === Micro-animations === */
+/* Micro-animations */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes slide-in-left {
   from { opacity: 0; transform: translateX(-12px); }
-  to { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 @keyframes slide-in-right {
   from { opacity: 0; transform: translateX(12px); }
-  to { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  to   { opacity: 1; transform: scale(1); }
 }
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(247, 147, 26, 0); }
-  50% { box-shadow: 0 0 16px 4px rgba(247, 147, 26, 0.12); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(254, 108, 2, 0); }
+  50%      { box-shadow: 0 0 16px 4px rgba(254, 108, 2, 0.12); }
 }
 @keyframes number-tick {
-  0% { transform: translateY(-100%); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
+  0%   { transform: translateY(-100%); opacity: 0; }
+  100% { transform: translateY(0);     opacity: 1; }
 }
 
-.animate-fade-in { animation: fade-in 0.4s ease-out both; }
-.animate-fade-in-up { animation: fade-in-up 0.5s ease-out both; }
-.animate-slide-in-left { animation: slide-in-left 0.3s ease-out both; }
+.animate-fade-in        { animation: fade-in        0.4s ease-out both; }
+.animate-fade-in-up     { animation: fade-in-up     0.5s ease-out both; }
+.animate-slide-in-left  { animation: slide-in-left  0.3s ease-out both; }
 .animate-slide-in-right { animation: slide-in-right 0.3s ease-out both; }
-.animate-scale-in { animation: scale-in 0.3s ease-out both; }
-.animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
-.animate-number-tick { animation: number-tick 0.2s ease-out both; }
+.animate-scale-in       { animation: scale-in       0.3s ease-out both; }
+.animate-glow-pulse     { animation: glow-pulse     2s ease-in-out infinite; }
+.animate-number-tick    { animation: number-tick    0.2s ease-out both; }
 
-/* Staggered animation delays */
 .stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.10s; }
 .stagger-3 { animation-delay: 0.15s; }
-.stagger-4 { animation-delay: 0.2s; }
+.stagger-4 { animation-delay: 0.20s; }
 .stagger-5 { animation-delay: 0.25s; }
 
-/* === Hover lift === */
 .hover-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .hover-lift:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.40);
 }
-
-/* === Smooth transitions === */
 .transition-smooth {
   transition: all 0.2s ease;
+}
+
+/* Price helpers */
+.price-up   { color: var(--positive-text); }
+.price-down { color: var(--negative-text); }
+
+/* Trading badges */
+.badge-buy {
+  background: var(--positive-bg-muted);
+  color:      var(--positive-text);
+  border: 1px solid var(--positive-border);
+}
+.badge-sell {
+  background: var(--negative-bg-muted);
+  color:      var(--negative-text);
+  border: 1px solid var(--negative-border);
+}
+.badge-neutral {
+  background: var(--bg-secondary);
+  color:      var(--text-secondary);
+  border: 1px solid var(--divider-primary);
+}
+
+/* Hide scrollbars utility */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { scrollbar-width: none; }
+
+/* Active nav underline (used on top-nav) */
+.nav-active { position: relative; }
+.nav-active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--brand-bg);
 }

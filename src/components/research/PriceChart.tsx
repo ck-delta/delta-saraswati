@@ -21,6 +21,19 @@ const TIME_RANGES = [
   { label: '3M', value: '3m' },
 ] as const;
 
+// ── Delta primitive hex (for lightweight-charts which needs literal strings) ──
+const GREEN_500 = '#00A876';
+const RED_500 = '#EB5454';
+const ORANGE_500 = '#FE6C02';
+
+// Resolves a CSS var against the given element to a literal string.
+function readCssVar(el: HTMLElement, name: string, fallback: string): string {
+  if (typeof window === 'undefined') return fallback;
+  return (
+    getComputedStyle(el).getPropertyValue(name).trim() || fallback
+  );
+}
+
 export function PriceChart({
   candles,
   symbol,
@@ -44,51 +57,56 @@ export function PriceChart({
       chartRef.current = null;
     }
 
-    const chart = lc.createChart(containerRef.current, {
+    const el = containerRef.current;
+    const bgSurface = readCssVar(el, '--bg-surface', '#18191E');
+    const bgTertiary = readCssVar(el, '--bg-tertiary', '#353845');
+    const textTertiary = readCssVar(el, '--text-tertiary', '#71747A');
+
+    const chart = lc.createChart(el, {
       layout: {
-        background: { color: '#08090a' },
-        textColor: '#8b8f99',
+        background: { color: bgSurface },
+        textColor: textTertiary,
         fontFamily:
           'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: '#1e2024' },
-        horzLines: { color: '#1e2024' },
+        vertLines: { color: bgTertiary },
+        horzLines: { color: bgTertiary },
       },
       crosshair: {
         mode: lc.CrosshairMode.Normal,
         vertLine: {
-          color: '#f7931a',
+          color: ORANGE_500,
           width: 1,
           style: lc.LineStyle.Dashed,
-          labelBackgroundColor: '#f7931a',
+          labelBackgroundColor: ORANGE_500,
         },
         horzLine: {
-          color: '#f7931a',
+          color: ORANGE_500,
           width: 1,
           style: lc.LineStyle.Dashed,
-          labelBackgroundColor: '#f7931a',
+          labelBackgroundColor: ORANGE_500,
         },
       },
       timeScale: {
-        borderColor: '#1e2024',
+        borderColor: bgTertiary,
         timeVisible: true,
         secondsVisible: false,
       },
       rightPriceScale: {
-        borderColor: '#1e2024',
+        borderColor: bgTertiary,
       },
       autoSize: true,
     });
 
     const candleSeries = chart.addSeries(lc.CandlestickSeries, {
-      upColor: '#22c55e',
-      downColor: '#ef4444',
-      borderUpColor: '#22c55e',
-      borderDownColor: '#ef4444',
-      wickUpColor: '#22c55e',
-      wickDownColor: '#ef4444',
+      upColor: GREEN_500,
+      downColor: RED_500,
+      borderUpColor: GREEN_500,
+      borderDownColor: RED_500,
+      wickUpColor: GREEN_500,
+      wickDownColor: RED_500,
     });
 
     const volumeSeries = chart.addSeries(lc.HistogramSeries, {
@@ -97,10 +115,7 @@ export function PriceChart({
     });
 
     chart.priceScale('volume').applyOptions({
-      scaleMargins: {
-        top: 0.8,
-        bottom: 0,
-      },
+      scaleMargins: { top: 0.8, bottom: 0 },
     });
 
     chartRef.current = chart;
@@ -120,7 +135,8 @@ export function PriceChart({
   }, [initChart]);
 
   useEffect(() => {
-    if (!chartReady || !candleSeriesRef.current || !volumeSeriesRef.current) return;
+    if (!chartReady || !candleSeriesRef.current || !volumeSeriesRef.current)
+      return;
     if (candles.length === 0) return;
 
     const sorted = [...candles].sort((a, b) => a.time - b.time);
@@ -136,7 +152,10 @@ export function PriceChart({
     const volumeData = sorted.map((c) => ({
       time: c.time as import('lightweight-charts').UTCTimestamp,
       value: c.volume,
-      color: c.close >= c.open ? 'rgba(34, 197, 94, 0.25)' : 'rgba(239, 68, 68, 0.25)',
+      color:
+        c.close >= c.open
+          ? 'rgba(0, 168, 118, 0.25)'
+          : 'rgba(235, 84, 84, 0.25)',
     }));
 
     candleSeriesRef.current.setData(candleData);
@@ -151,44 +170,83 @@ export function PriceChart({
 
   if (!symbol && candles.length === 0) {
     return (
-      <div className="bg-[#111214] border border-[#1e2024] rounded-xl flex items-center justify-center h-[400px]">
-        <p className="text-sm text-[#555a65]">Select a token to view chart</p>
+      <div
+        className="flex items-center justify-center h-[400px]"
+        style={{
+          background: 'var(--bg-primary)',
+          border: '1px solid var(--bg-secondary)',
+          borderRadius: 'var(--radius-2xl)',
+        }}
+      >
+        <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+          Select a token to view chart
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#111214] border border-[#1e2024] rounded-xl overflow-hidden">
+    <div
+      className="overflow-hidden"
+      style={{
+        background: 'var(--bg-primary)',
+        border: '1px solid var(--bg-secondary)',
+        borderRadius: 'var(--radius-2xl)',
+      }}
+    >
       {/* Time range selector */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#1e2024]">
-        <span className="text-xs text-[#555a65] uppercase tracking-wider">
+      <div
+        className="flex items-center justify-between px-4 py-2.5"
+        style={{ borderBottom: '1px solid var(--divider-primary)' }}
+      >
+        <span
+          className="text-xs uppercase tracking-wider"
+          style={{ color: 'var(--text-tertiary)' }}
+        >
           {symbol} Chart
         </span>
         <div className="flex gap-1">
-          {TIME_RANGES.map(({ label, value }) => (
-            <button
-              key={value}
-              onClick={() => handleRangeChange(value)}
-              className={cn(
-                'px-3 py-1 text-xs rounded-full transition-colors duration-150 cursor-pointer',
-                activeRange === value
-                  ? 'bg-[#f7931a] text-black font-medium'
-                  : 'text-[#8b8f99] hover:text-[#eaedf3] hover:bg-[#181a1d]',
-              )}
-            >
-              {label}
-            </button>
-          ))}
+          {TIME_RANGES.map(({ label, value }) => {
+            const active = activeRange === value;
+            return (
+              <button
+                key={value}
+                onClick={() => handleRangeChange(value)}
+                className={cn(
+                  'px-3 py-1 text-xs transition-colors duration-150 cursor-pointer',
+                )}
+                style={{
+                  borderRadius: 'var(--radius-pill)',
+                  background: active ? 'var(--brand-bg)' : 'transparent',
+                  color: active
+                    ? 'var(--text-on-bg)'
+                    : 'var(--text-secondary)',
+                  fontWeight: active ? 500 : 400,
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Chart container */}
       <div className="relative h-[400px]">
         {loading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#08090a]/80">
+          <div
+            className="absolute inset-0 z-10 flex items-center justify-center"
+            style={{ background: 'rgba(12,12,15,0.6)' }}
+          >
             <div className="flex flex-col items-center gap-2">
-              <div className="h-4 w-32 rounded bg-[#1e2024] animate-pulse" />
-              <div className="h-3 w-24 rounded bg-[#1e2024] animate-pulse" />
+              <div
+                className="h-4 w-32 rounded animate-pulse"
+                style={{ background: 'var(--bg-secondary)' }}
+              />
+              <div
+                className="h-3 w-24 rounded animate-pulse"
+                style={{ background: 'var(--bg-secondary)' }}
+              />
             </div>
           </div>
         )}

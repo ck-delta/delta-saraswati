@@ -3,7 +3,6 @@
 import { useResearchStore } from '@/stores/research-store';
 import { TOKEN_INFO } from '@/lib/constants';
 import { formatPrice, formatPercent, formatCompact } from '@/lib/format';
-import { cn } from '@/lib/utils';
 import { MetricCard } from './MetricCard';
 import {
   DollarSign,
@@ -23,10 +22,15 @@ function RSIGauge({ value }: { value: number }) {
   const isOversold = value < 30;
   const isOverbought = value > 70;
   const color = isOversold
-    ? '#22c55e'
+    ? 'var(--positive-text)'
     : isOverbought
-      ? '#ef4444'
-      : '#f7931a';
+      ? 'var(--negative-text)'
+      : 'var(--brand-text)';
+  const bg = isOversold
+    ? 'var(--positive-bg-muted)'
+    : isOverbought
+      ? 'var(--negative-bg-muted)'
+      : 'var(--brand-bg-muted)';
   const label = isOversold
     ? 'Oversold'
     : isOverbought
@@ -38,34 +42,57 @@ function RSIGauge({ value }: { value: number }) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-[#555a65]">RSI(14)</span>
+        <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          RSI(14)
+        </span>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-mono font-semibold text-[#eaedf3]">
+          <span
+            className="text-sm font-mono-num font-semibold"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {value.toFixed(1)}
           </span>
           <span
-            className="text-[10px] font-medium px-1.5 py-0.5 rounded"
+            className="text-[10px] font-medium"
             style={{
+              padding: '2px 6px',
+              borderRadius: 'var(--radius-sm)',
               color,
-              backgroundColor: `${color}20`,
+              background: bg,
             }}
           >
             {label}
           </span>
         </div>
       </div>
-      <div className="relative h-1.5 w-full rounded-full bg-[#1e2024] overflow-hidden">
-        <div className="absolute left-[30%] top-0 bottom-0 w-px bg-[#555a65]/30" />
-        <div className="absolute left-[70%] top-0 bottom-0 w-px bg-[#555a65]/30" />
+      <div
+        className="relative h-1.5 w-full overflow-hidden"
+        style={{
+          background: 'var(--bg-secondary)',
+          borderRadius: 'var(--radius-pill)',
+        }}
+      >
         <div
-          className="absolute left-0 top-0 bottom-0 rounded-full transition-all duration-500"
+          className="absolute left-[30%] top-0 bottom-0 w-px"
+          style={{ background: 'var(--divider-strong)' }}
+        />
+        <div
+          className="absolute left-[70%] top-0 bottom-0 w-px"
+          style={{ background: 'var(--divider-strong)' }}
+        />
+        <div
+          className="absolute left-0 top-0 bottom-0 transition-all duration-500"
           style={{
             width: `${fillPercent}%`,
-            backgroundColor: color,
+            background: color,
+            borderRadius: 'var(--radius-pill)',
           }}
         />
       </div>
-      <div className="flex justify-between text-[10px] text-[#555a65]">
+      <div
+        className="flex justify-between text-[10px]"
+        style={{ color: 'var(--text-tertiary)' }}
+      >
         <span>0</span>
         <span>30</span>
         <span>70</span>
@@ -76,7 +103,7 @@ function RSIGauge({ value }: { value: number }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  MACD Indicator                                                    */
+/*  MACD                                                               */
 /* ------------------------------------------------------------------ */
 
 function MACDIndicator({
@@ -93,34 +120,69 @@ function MACDIndicator({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-[#555a65]">MACD</span>
+        <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          MACD
+        </span>
         <span
-          className={cn(
-            'text-[10px] font-medium px-1.5 py-0.5 rounded',
-            isBullish
-              ? 'text-[#22c55e] bg-[#22c55e]/10'
-              : 'text-[#ef4444] bg-[#ef4444]/10',
-          )}
+          className="text-[10px] font-medium"
+          style={{
+            padding: '2px 6px',
+            borderRadius: 'var(--radius-sm)',
+            color: isBullish
+              ? 'var(--positive-text)'
+              : 'var(--negative-text)',
+            background: isBullish
+              ? 'var(--positive-bg-muted)'
+              : 'var(--negative-bg-muted)',
+          }}
         >
           {isBullish ? 'Bullish' : 'Bearish'}
         </span>
       </div>
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col">
-          <span className="text-[10px] text-[#555a65]">MACD</span>
-          <span className="text-xs font-mono text-[#eaedf3]">{macd.toFixed(2)}</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-[10px] text-[#555a65]">Signal</span>
-          <span className="text-xs font-mono text-[#eaedf3]">{signal.toFixed(2)}</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-[10px] text-[#555a65]">Histogram</span>
           <span
-            className={cn(
-              'text-xs font-mono',
-              histogram >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]',
-            )}
+            className="text-[10px]"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            MACD
+          </span>
+          <span
+            className="text-xs font-mono-num"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            {macd.toFixed(2)}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span
+            className="text-[10px]"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            Signal
+          </span>
+          <span
+            className="text-xs font-mono-num"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            {signal.toFixed(2)}
+          </span>
+        </div>
+        <div className="flex flex-col">
+          <span
+            className="text-[10px]"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            Histogram
+          </span>
+          <span
+            className="text-xs font-mono-num"
+            style={{
+              color:
+                histogram >= 0
+                  ? 'var(--positive-text)'
+                  : 'var(--negative-text)',
+            }}
           >
             {histogram >= 0 ? '+' : ''}
             {histogram.toFixed(2)}
@@ -132,7 +194,7 @@ function MACDIndicator({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Bollinger Bands                                                   */
+/*  Bollinger                                                         */
 /* ------------------------------------------------------------------ */
 
 function BollingerBands({
@@ -146,23 +208,49 @@ function BollingerBands({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs text-[#555a65]">Bollinger Bands (20, 2)</span>
+      <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+        Bollinger Bands (20, 2)
+      </span>
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col">
-          <span className="text-[10px] text-[#555a65]">Upper</span>
-          <span className="text-xs font-mono text-[#ef4444]">
+          <span
+            className="text-[10px]"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            Upper
+          </span>
+          <span
+            className="text-xs font-mono-num"
+            style={{ color: 'var(--negative-text)' }}
+          >
             {formatPrice(upper)}
           </span>
         </div>
         <div className="flex flex-col">
-          <span className="text-[10px] text-[#555a65]">Middle</span>
-          <span className="text-xs font-mono text-[#eaedf3]">
+          <span
+            className="text-[10px]"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            Middle
+          </span>
+          <span
+            className="text-xs font-mono-num"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {formatPrice(middle)}
           </span>
         </div>
         <div className="flex flex-col">
-          <span className="text-[10px] text-[#555a65]">Lower</span>
-          <span className="text-xs font-mono text-[#22c55e]">
+          <span
+            className="text-[10px]"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            Lower
+          </span>
+          <span
+            className="text-xs font-mono-num"
+            style={{ color: 'var(--positive-text)' }}
+          >
             {formatPrice(lower)}
           </span>
         </div>
@@ -172,31 +260,63 @@ function BollingerBands({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Loading Skeletons                                                 */
+/*  Skeletons                                                         */
 /* ------------------------------------------------------------------ */
 
 function MetricSkeleton() {
   return (
-    <div className="bg-[#111214] border border-[#1e2024] rounded-xl p-4 flex flex-col gap-2">
-      <div className="h-3 w-20 rounded bg-[#1e2024] animate-pulse" />
-      <div className="h-6 w-28 rounded bg-[#1e2024] animate-pulse" />
-      <div className="h-3 w-16 rounded bg-[#1e2024] animate-pulse" />
+    <div
+      className="flex flex-col gap-2 p-4"
+      style={{
+        background: 'var(--bg-primary)',
+        border: '1px solid var(--bg-secondary)',
+        borderRadius: 'var(--radius-2xl)',
+      }}
+    >
+      <div
+        className="h-3 w-20 rounded animate-pulse"
+        style={{ background: 'var(--bg-secondary)' }}
+      />
+      <div
+        className="h-6 w-28 rounded animate-pulse"
+        style={{ background: 'var(--bg-secondary)' }}
+      />
+      <div
+        className="h-3 w-16 rounded animate-pulse"
+        style={{ background: 'var(--bg-secondary)' }}
+      />
     </div>
   );
 }
 
 function IndicatorSkeleton() {
   return (
-    <div className="bg-[#111214] border border-[#1e2024] rounded-xl p-4 flex flex-col gap-3">
-      <div className="h-3 w-20 rounded bg-[#1e2024] animate-pulse" />
-      <div className="h-4 w-full rounded bg-[#1e2024] animate-pulse" />
-      <div className="h-3 w-32 rounded bg-[#1e2024] animate-pulse" />
+    <div
+      className="flex flex-col gap-3 p-4"
+      style={{
+        background: 'var(--bg-primary)',
+        border: '1px solid var(--bg-secondary)',
+        borderRadius: 'var(--radius-2xl)',
+      }}
+    >
+      <div
+        className="h-3 w-20 rounded animate-pulse"
+        style={{ background: 'var(--bg-secondary)' }}
+      />
+      <div
+        className="h-4 w-full rounded animate-pulse"
+        style={{ background: 'var(--bg-secondary)' }}
+      />
+      <div
+        className="h-3 w-32 rounded animate-pulse"
+        style={{ background: 'var(--bg-secondary)' }}
+      />
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Main Panel                                                        */
+/*  Panel                                                             */
 /* ------------------------------------------------------------------ */
 
 export function ResearchPanel() {
@@ -204,7 +324,10 @@ export function ResearchPanel() {
 
   if (!selectedToken) {
     return (
-      <div className="flex items-center justify-center h-48 text-[#555a65] text-sm">
+      <div
+        className="flex items-center justify-center h-48 text-sm"
+        style={{ color: 'var(--text-tertiary)' }}
+      >
         Select a token to begin research
       </div>
     );
@@ -228,12 +351,15 @@ export function ResearchPanel() {
   }
 
   const tokenInfo = TOKEN_INFO[selectedToken];
-  // ticker can be either DeltaTicker (string fields) or TokenCardData (number fields)
-  // Handle both formats gracefully
-  const t = ticker as Record<string, unknown>;
+  const t = ticker as unknown as Record<string, unknown>;
   const price = Number(t.price ?? t.close ?? 0);
-  const change24h = Number(t.priceChange24h ?? 0) || (price - Number(t.open ?? price));
-  const changePct24h = Number(t.priceChangePct24h ?? 0) || (Number(t.open) ? ((price - Number(t.open)) / Number(t.open)) * 100 : 0);
+  const change24h =
+    Number(t.priceChange24h ?? 0) || price - Number(t.open ?? price);
+  const changePct24h =
+    Number(t.priceChangePct24h ?? 0) ||
+    (Number(t.open)
+      ? ((price - Number(t.open)) / Number(t.open)) * 100
+      : 0);
   const fundingRate = Number(t.fundingRate ?? t.funding_rate ?? 0);
   const oiUsd = Number(t.openInterestUsd ?? t.oi_value_usd ?? 0);
   const volume = Number(t.turnoverUsd ?? t.turnover_usd ?? 0);
@@ -245,14 +371,22 @@ export function ResearchPanel() {
       {/* Token header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-[#eaedf3]">
+          <h1
+            className="text-xl font-bold"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {tokenInfo?.name ?? selectedToken}
           </h1>
-          <span className="text-sm text-[#555a65]">{selectedToken}</span>
+          <span
+            className="text-sm"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
+            {selectedToken}
+          </span>
         </div>
       </div>
 
-      {/* Metric cards grid */}
+      {/* Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <MetricCard
           title="Price"
@@ -264,7 +398,9 @@ export function ResearchPanel() {
         <MetricCard
           title="Funding Rate"
           value={`${fundingRate >= 0 ? '+' : ''}${(fundingRate * 100).toFixed(4)}%`}
-          subtitle={fundingRate >= 0 ? 'Longs pay shorts' : 'Shorts pay longs'}
+          subtitle={
+            fundingRate >= 0 ? 'Longs pay shorts' : 'Shorts pay longs'
+          }
           trend={fundingRate >= 0 ? 'up' : 'down'}
           icon={<Activity className="h-3.5 w-3.5" />}
         />
@@ -294,20 +430,35 @@ export function ResearchPanel() {
         />
       </div>
 
-      {/* Technical Analysis section */}
+      {/* Technical Analysis */}
       <div className="space-y-4">
-        <h2 className="text-xs font-semibold text-[#555a65] uppercase tracking-wider">
+        <h2
+          className="text-xs font-semibold uppercase tracking-wider"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           Technical Analysis
         </h2>
 
-        <div className="bg-[#111214] border border-[#1e2024] rounded-xl p-4 space-y-5">
+        <div
+          className="p-4 space-y-5"
+          style={{
+            background: 'var(--bg-primary)',
+            border: '1px solid var(--bg-secondary)',
+            borderRadius: 'var(--radius-2xl)',
+          }}
+        >
           {indicators.rsi ? (
             <RSIGauge value={indicators.rsi.value} />
           ) : (
-            <div className="text-xs text-[#555a65]">RSI: Insufficient data</div>
+            <div
+              className="text-xs"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
+              RSI: Insufficient data
+            </div>
           )}
 
-          <div className="border-t border-[#1e2024]" />
+          <div style={{ borderTop: '1px solid var(--divider-primary)' }} />
 
           {indicators.macd ? (
             <MACDIndicator
@@ -316,10 +467,15 @@ export function ResearchPanel() {
               histogram={indicators.macd.histogram}
             />
           ) : (
-            <div className="text-xs text-[#555a65]">MACD: Insufficient data</div>
+            <div
+              className="text-xs"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
+              MACD: Insufficient data
+            </div>
           )}
 
-          <div className="border-t border-[#1e2024]" />
+          <div style={{ borderTop: '1px solid var(--divider-primary)' }} />
 
           {indicators.bollinger ? (
             <BollingerBands
@@ -328,23 +484,33 @@ export function ResearchPanel() {
               lower={indicators.bollinger.lower}
             />
           ) : (
-            <div className="text-xs text-[#555a65]">
+            <div
+              className="text-xs"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
               Bollinger Bands: Insufficient data
             </div>
           )}
         </div>
       </div>
 
-      {/* Trade Now button */}
+      {/* Trade button */}
       <a
         href={`https://www.delta.exchange/app/futures/trade/${selectedToken}`}
         target="_blank"
         rel="noopener noreferrer"
-        className={cn(
-          'flex items-center justify-center gap-2 w-full py-3 px-4 rounded-lg',
-          'bg-[#f7931a] hover:bg-[#ffaa3b] text-black font-semibold',
-          'transition-colors duration-150',
-        )}
+        className="flex items-center justify-center gap-2 w-full py-3 px-4 font-semibold transition-colors duration-150"
+        style={{
+          background: 'var(--brand-bg)',
+          color: 'var(--text-on-bg)',
+          borderRadius: 'var(--radius-md)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'var(--brand-bg-hover)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'var(--brand-bg)';
+        }}
       >
         Trade {selectedToken} on Delta Exchange
         <ExternalLink className="h-4 w-4" />

@@ -9,8 +9,7 @@ import DailyPulseSummary from '@/components/home/DailyPulseSummary';
 import NewsSection from '@/components/home/NewsSection';
 
 /**
- * Home / Daily Pulse page.
- * Premium layout: Markets grid, two-column AI pulse + news, subtle CTA.
+ * Home page — hero, token grid, AI pulse, news.
  * Auto-fetches on mount, refreshes market data every 30s.
  */
 export default function Home() {
@@ -20,46 +19,71 @@ export default function Home() {
 
   const didFetch = useRef(false);
 
-  // Initial fetch
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
-
     fetchMarketData();
     fetchNews();
     fetchDailyPulse();
   }, [fetchMarketData, fetchNews, fetchDailyPulse]);
 
-  // 30s market data refresh
   useEffect(() => {
     const interval = setInterval(() => {
       fetchMarketData();
     }, CACHE_TTL.MARKET_DATA);
-
     return () => clearInterval(interval);
   }, [fetchMarketData]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6 md:px-6 animate-fade-in">
-      {/* ================================================================
-          Markets Section
-          ================================================================ */}
-      <section className="mb-8">
-        <div className="mb-4 flex items-center gap-3">
-          <h2 className="text-sm font-semibold text-[#eaedf3]">Markets</h2>
-          <div className="h-px flex-1 bg-[#1e2024]" />
+    <div className="mx-auto w-full max-w-7xl px-6 py-8 space-y-8 animate-fade-in">
+      {/* ---- Hero ---- */}
+      <section className="flex flex-col gap-3">
+        <h1
+          className="text-3xl md:text-5xl font-bold tracking-tight"
+          style={{ color: 'var(--text-primary)' }}
+        >
+          Your AI co-pilot for crypto
+        </h1>
+        <p
+          className="max-w-2xl text-base md:text-lg"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          Live market data, AI-powered research, and conversational insights —
+          built on Delta Exchange.
+        </p>
+      </section>
+
+      {/* ---- Markets ---- */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-3">
+          <h2
+            className="text-sm font-semibold uppercase tracking-wider"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            Markets
+          </h2>
+          <div
+            className="h-px flex-1"
+            style={{ background: 'var(--divider-primary)' }}
+          />
           <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#22c55e] animate-pulse" />
-            <span className="text-[10px] text-[#555a65]">Live</span>
+            <span
+              className="h-1.5 w-1.5 rounded-full animate-pulse-dot"
+              style={{ background: 'var(--positive-text)' }}
+            />
+            <span
+              className="text-[10px]"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
+              Live
+            </span>
           </div>
         </div>
         <TokenCardGrid />
       </section>
 
-      {/* ================================================================
-          Two-column: Daily Pulse (3/5) + News (2/5)
-          ================================================================ */}
-      <section className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-5">
+      {/* ---- Two-col: AI Pulse + News ---- */}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <div className="lg:col-span-3">
           <DailyPulseSummary />
         </div>
@@ -68,21 +92,43 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================================================================
-          Bottom CTA
-          ================================================================ */}
-      <section className="mb-6">
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-[#1e2024] bg-[#111214] px-6 py-8 text-center">
-          <h2 className="text-base font-semibold text-[#eaedf3]">
+      {/* ---- Bottom CTA ---- */}
+      <section>
+        <div
+          className="flex flex-col items-center gap-3 px-6 py-8 text-center"
+          style={{
+            background: 'var(--bg-primary)',
+            border: '1px solid var(--bg-secondary)',
+            borderRadius: 'var(--radius-2xl)',
+          }}
+        >
+          <h2
+            className="text-base font-semibold"
+            style={{ color: 'var(--text-primary)' }}
+          >
             Ready to dive deeper?
           </h2>
-          <p className="max-w-md text-sm text-[#8b8f99]">
+          <p
+            className="max-w-md text-sm"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             Ask Saraswati anything about the crypto markets — technical
             analysis, news summaries, whale activity, and more.
           </p>
           <Link
             href="/chat"
-            className="mt-2 inline-flex h-9 items-center justify-center rounded-lg bg-[#f7931a] px-6 text-sm font-medium text-black transition-colors hover:bg-[#ffaa3b]"
+            className="mt-2 inline-flex h-9 items-center justify-center px-6 text-sm font-medium transition-colors duration-150"
+            style={{
+              background: 'var(--brand-bg)',
+              color: 'var(--text-on-bg)',
+              borderRadius: 'var(--radius-md)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--brand-bg-hover)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--brand-bg)';
+            }}
           >
             Start Exploring
           </Link>

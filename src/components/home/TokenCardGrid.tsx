@@ -4,8 +4,7 @@ import { useMarketStore } from '@/stores/market-store';
 import TokenCard, { TokenCardSkeleton } from '@/components/home/TokenCard';
 
 /**
- * Responsive grid for the 3 featured token cards (BTC, ETH, SOL).
- * Reads from the market store and handles loading / error / empty states.
+ * Responsive grid for the 3 featured token cards.
  */
 export default function TokenCardGrid() {
   const tokens = useMarketStore((s) => s.tokens);
@@ -14,12 +13,19 @@ export default function TokenCardGrid() {
   const error = useMarketStore((s) => s.errorMarket);
   const fetchMarketData = useMarketStore((s) => s.fetchMarketData);
 
-  // Error with no cached data
   if (error && tokens.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-xl border border-[#1e2024] bg-[#111214] p-8 text-center">
+      <div
+        className="flex flex-col items-center gap-3 p-8 text-center"
+        style={{
+          background: 'var(--bg-primary)',
+          border: '1px solid var(--bg-secondary)',
+          borderRadius: 'var(--radius-2xl)',
+        }}
+      >
         <svg
-          className="h-6 w-6 text-[#ef4444]"
+          className="h-6 w-6"
+          style={{ color: 'var(--negative-text)' }}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -31,11 +37,26 @@ export default function TokenCardGrid() {
             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
           />
         </svg>
-        <p className="text-sm text-[#8b8f99]">Failed to load market data</p>
-        <p className="text-xs text-[#555a65]">{error}</p>
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          Failed to load market data
+        </p>
+        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          {error}
+        </p>
         <button
           onClick={() => fetchMarketData()}
-          className="mt-1 rounded-lg bg-[#f7931a] px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-[#ffaa3b]"
+          className="mt-1 px-4 py-2 text-sm font-medium transition-colors duration-150"
+          style={{
+            background: 'var(--brand-bg)',
+            color: 'var(--text-on-bg)',
+            borderRadius: 'var(--radius-md)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--brand-bg-hover)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--brand-bg)';
+          }}
         >
           Retry
         </button>
@@ -43,10 +64,9 @@ export default function TokenCardGrid() {
     );
   }
 
-  // Loading skeleton
   if (loading && tokens.length === 0) {
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <TokenCardSkeleton />
         <TokenCardSkeleton />
         <TokenCardSkeleton />
@@ -57,7 +77,7 @@ export default function TokenCardGrid() {
   if (tokens.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {tokens.map((token, index) => (
         <div
           key={token.symbol}

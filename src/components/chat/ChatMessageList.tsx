@@ -38,66 +38,114 @@ export function ChatMessageList({ onQuickAction }: ChatMessageListProps) {
   const showTypingIndicator = isStreaming && !streamingContent;
 
   return (
-    <div ref={containerRef} className="relative flex-1 overflow-y-auto px-4 py-4">
+    <div
+      ref={containerRef}
+      className="relative flex-1 overflow-y-auto px-4 py-6 space-y-4"
+    >
       {isEmpty ? (
-        /* Empty state */
         <div className="flex h-full flex-col items-center justify-center gap-6 px-4">
-          {/* Greeting */}
           <div className="flex flex-col items-center gap-3 text-center">
-            <div className="flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-[#f7931a] to-[#ffaa3b]">
-              <span className="text-2xl font-bold text-black">S</span>
+            <div
+              className="flex items-center justify-center"
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 'var(--radius-pill)',
+                background: 'var(--brand-bg)',
+              }}
+            >
+              <span
+                className="text-2xl font-bold"
+                style={{ color: 'var(--text-on-bg)' }}
+              >
+                S
+              </span>
             </div>
-            <h2 className="text-xl font-semibold text-[#eaedf3]">
+            <h2
+              className="text-xl font-semibold"
+              style={{ color: 'var(--text-primary)' }}
+            >
               Hello, I&apos;m Saraswati
             </h2>
-            <p className="max-w-md text-sm text-[#8b8f99]">
+            <p
+              className="max-w-md text-sm"
+              style={{ color: 'var(--text-secondary)' }}
+            >
               Your AI trading assistant for Delta Exchange. Ask me about market
               analysis, trading strategies, price movements, and more.
             </p>
           </div>
 
-          {/* Quick actions */}
           <div className="w-full max-w-xl">
-            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[#555a65]">
+            <p
+              className="mb-2 text-xs font-medium uppercase tracking-wider"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
               Quick actions
             </p>
             <QuickActionPills onAction={onQuickAction} />
           </div>
         </div>
       ) : (
-        /* Message list */
         <div className="mx-auto flex max-w-3xl flex-col gap-4">
           {messages.map((msg) => (
             <ChatMessage key={msg.id} message={msg} />
           ))}
 
-          {/* Streaming assistant message */}
-          {streamingMessage && (
-            <ChatMessage message={streamingMessage} />
-          )}
+          {streamingMessage && <ChatMessage message={streamingMessage} />}
 
-          {/* Typing indicator (before any content arrives) */}
           {showTypingIndicator && (
             <div className="flex justify-start">
-              <div className="rounded-2xl rounded-bl-md bg-[#111214] border border-[#1e2024] px-4 py-3">
+              <div
+                className="px-4 py-3"
+                style={{
+                  background: 'var(--bg-primary)',
+                  border: '1px solid var(--bg-secondary)',
+                  borderRadius: '12px 12px 12px 2px',
+                }}
+              >
                 <div className="mb-1.5 flex items-center gap-1.5">
-                  <div className="flex size-5 items-center justify-center rounded-full bg-gradient-to-br from-[#f7931a] to-[#ffaa3b]">
-                    <span className="text-[10px] font-bold text-black">S</span>
+                  <div
+                    className="flex items-center justify-center"
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 'var(--radius-pill)',
+                      background: 'var(--brand-bg)',
+                    }}
+                  >
+                    <span
+                      className="text-[10px] font-bold"
+                      style={{ color: 'var(--text-on-bg)' }}
+                    >
+                      S
+                    </span>
                   </div>
-                  <span className="text-xs font-medium text-[#f7931a]">
+                  <span
+                    className="text-xs font-medium"
+                    style={{ color: 'var(--brand-text)' }}
+                  >
                     Saraswati
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <span className="size-1.5 animate-bounce rounded-full bg-[#555a65] [animation-delay:0ms]" />
-                  <span className="size-1.5 animate-bounce rounded-full bg-[#555a65] [animation-delay:150ms]" />
-                  <span className="size-1.5 animate-bounce rounded-full bg-[#555a65] [animation-delay:300ms]" />
+                  <span
+                    className="size-1.5 animate-bounce rounded-full [animation-delay:0ms]"
+                    style={{ background: 'var(--text-tertiary)' }}
+                  />
+                  <span
+                    className="size-1.5 animate-bounce rounded-full [animation-delay:150ms]"
+                    style={{ background: 'var(--text-tertiary)' }}
+                  />
+                  <span
+                    className="size-1.5 animate-bounce rounded-full [animation-delay:300ms]"
+                    style={{ background: 'var(--text-tertiary)' }}
+                  />
                 </div>
               </div>
             </div>
           )}
 
-          {/* Invisible anchor for auto-scroll */}
           <div ref={bottomRef} />
         </div>
       )}

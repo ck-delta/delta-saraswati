@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { cn } from '@/lib/utils';
 import { Send, Bot, User, Loader2 } from 'lucide-react';
 
 interface ResearchChatBoxProps {
@@ -52,16 +51,11 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             messages: [{ role: 'user', content: trimmed }],
-            context: {
-              type: 'token_research',
-              tokenSymbol,
-            },
+            context: { type: 'token_research', tokenSymbol },
           }),
         });
 
-        if (!res.ok) {
-          throw new Error(`Chat request failed: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Chat request failed: ${res.status}`);
 
         const reader = res.body?.getReader();
         if (!reader) throw new Error('No response stream');
@@ -143,37 +137,68 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
   const visibleMessages = messages.slice(-2);
 
   return (
-    <div className="bg-[#111214] border border-[#1e2024] rounded-xl overflow-hidden">
+    <div
+      className="overflow-hidden"
+      style={{
+        background: 'var(--bg-primary)',
+        border: '1px solid var(--bg-secondary)',
+        borderRadius: 'var(--radius-2xl)',
+      }}
+    >
       {/* Header */}
-      <div className="px-4 py-2.5 border-b border-[#1e2024]">
+      <div
+        className="px-4 py-2.5"
+        style={{ borderBottom: '1px solid var(--divider-primary)' }}
+      >
         <div className="flex items-center gap-2">
-          <Bot className="h-3.5 w-3.5 text-[#f7931a]" />
-          <span className="text-xs uppercase tracking-wider text-[#555a65]">
+          <Bot
+            className="h-3.5 w-3.5"
+            style={{ color: 'var(--brand-text)' }}
+          />
+          <span
+            className="text-xs uppercase tracking-wider"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             AI Research Assistant
           </span>
         </div>
       </div>
 
-      {/* Messages area */}
+      {/* Messages */}
       {visibleMessages.length > 0 && (
-        <div ref={scrollRef} className="max-h-[200px] overflow-y-auto p-3 space-y-3">
+        <div
+          ref={scrollRef}
+          className="max-h-[200px] overflow-y-auto p-3 space-y-3"
+        >
           {visibleMessages.map((msg, i) => (
             <div key={i} className="flex gap-2">
               <div className="shrink-0 mt-0.5">
                 {msg.role === 'user' ? (
-                  <User className="h-3.5 w-3.5 text-[#8b8f99]" />
+                  <User
+                    className="h-3.5 w-3.5"
+                    style={{ color: 'var(--text-secondary)' }}
+                  />
                 ) : (
-                  <Bot className="h-3.5 w-3.5 text-[#f7931a]" />
+                  <Bot
+                    className="h-3.5 w-3.5"
+                    style={{ color: 'var(--brand-text)' }}
+                  />
                 )}
               </div>
               <div
-                className={cn(
-                  'text-xs leading-relaxed',
-                  msg.role === 'user' ? 'text-[#8b8f99]' : 'text-[#eaedf3]',
-                )}
+                className="text-xs leading-relaxed"
+                style={{
+                  color:
+                    msg.role === 'user'
+                      ? 'var(--text-secondary)'
+                      : 'var(--text-primary)',
+                }}
               >
                 {msg.content || (
-                  <span className="flex items-center gap-1 text-[#555a65]">
+                  <span
+                    className="flex items-center gap-1"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  >
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Thinking...
                   </span>
@@ -185,7 +210,11 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
       )}
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-3 border-t border-[#1e2024]">
+      <form
+        onSubmit={handleSubmit}
+        className="p-3"
+        style={{ borderTop: '1px solid var(--divider-primary)' }}
+      >
         <div className="relative">
           <input
             ref={inputRef}
@@ -193,23 +222,31 @@ export function ResearchChatBox({ tokenSymbol }: ResearchChatBoxProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={isStreaming}
-            className={cn(
-              'w-full pr-10 h-9 px-3 text-xs bg-[#181a1d] border border-[#1e2024] rounded-lg',
-              'text-[#eaedf3] placeholder-[#555a65] outline-none',
-              'focus:border-[#f7931a]/50 transition-colors duration-150',
-              'disabled:opacity-50',
-            )}
+            className="w-full pr-10 h-9 px-3 text-xs outline-none transition-colors duration-150 disabled:opacity-50"
+            style={{
+              background: 'var(--bg-input)',
+              border: '1px solid var(--divider-primary)',
+              borderRadius: 'var(--radius-md)',
+              color: 'var(--text-primary)',
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = 'var(--brand-border)';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = 'var(--divider-primary)';
+            }}
           />
           <button
             type="submit"
             disabled={isStreaming || !input.trim()}
-            className={cn(
-              'absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-md',
-              'transition-colors duration-150 cursor-pointer',
-              input.trim() && !isStreaming
-                ? 'text-[#f7931a] hover:bg-[#f7931a]/10'
-                : 'text-[#555a65]',
-            )}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 transition-colors duration-150 cursor-pointer"
+            style={{
+              borderRadius: 'var(--radius-md)',
+              color:
+                input.trim() && !isStreaming
+                  ? 'var(--brand-text)'
+                  : 'var(--text-tertiary)',
+            }}
           >
             {isStreaming ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />

@@ -12,9 +12,7 @@ export function ChatInterface() {
   const hydrate = useChatStore((s) => s.hydrate);
 
   useEffect(() => {
-    if (!hydrated) {
-      hydrate();
-    }
+    if (!hydrated) hydrate();
   }, [hydrated, hydrate]);
 
   const handleSend = useCallback(
@@ -32,27 +30,35 @@ export function ChatInterface() {
   );
 
   return (
-    <div className="relative flex h-full flex-col bg-[#08090a]">
-      {/* Subtle dot grid pattern */}
+    <div
+      className="relative flex h-full flex-col"
+      style={{ background: 'var(--bg-sub-surface)' }}
+    >
+      {/* Subtle dot grid */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
-            'radial-gradient(circle, #1e2024 0.5px, transparent 0.5px)',
+            'radial-gradient(circle, var(--divider-primary) 0.5px, transparent 0.5px)',
           backgroundSize: '24px 24px',
-          opacity: 0.3,
+          opacity: 0.6,
         }}
       />
 
-      {/* Message list (scrollable, fills available space) */}
       <ChatMessageList onQuickAction={handleQuickAction} />
-
-      {/* Input bar (sticky at bottom) */}
       <ChatInput onSend={handleSend} disabled={isStreaming} />
 
-      {/* Disclaimer */}
-      <div className="relative border-t border-[#1e2024]/50 bg-[#08090a] px-4 py-2 text-center">
-        <p className="text-[10px] text-[#555a65]">
+      <div
+        className="relative px-4 py-2 text-center"
+        style={{
+          background: 'var(--bg-sub-surface)',
+          borderTop: '1px solid var(--divider-primary)',
+        }}
+      >
+        <p
+          className="text-[10px]"
+          style={{ color: 'var(--text-tertiary)' }}
+        >
           AI-generated content. For reference only. Not financial advice.
         </p>
       </div>

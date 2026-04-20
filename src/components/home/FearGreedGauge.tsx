@@ -5,44 +5,39 @@ interface FearGreedGaugeProps {
   classification: string;
 }
 
-/** Map classification to a color */
+/**
+ * Map classification → Delta semantic color.
+ * 0-30 negative (red), 30-70 warning (yellow), 70-100 positive (green).
+ */
 function getColor(classification: string): string {
   switch (classification) {
     case 'Extreme Fear':
-      return '#ef4444';
     case 'Fear':
-      return '#f97316';
+      return 'var(--negative-text)';
     case 'Neutral':
-      return '#eab308';
+      return 'var(--warning-text)';
     case 'Greed':
-      return '#22c55e';
     case 'Extreme Greed':
-      return '#16a34a';
+      return 'var(--positive-text)';
     default:
-      return '#eab308';
+      return 'var(--warning-text)';
   }
 }
 
 /**
- * Compact semicircle SVG gauge for the Fear & Greed Index.
- * 64px wide — designed to sit inline inside a token card.
- * Gradient arc from red (fear) to green (greed) with a needle.
+ * Compact Fear & Greed semicircle gauge.
  */
 export default function FearGreedGauge({
   value,
   classification,
 }: FearGreedGaugeProps) {
   const clamped = Math.max(0, Math.min(100, value));
-
-  // Convert 0-100 to angle on semicircle: 0 = left (180deg), 100 = right (0deg)
   const angleRad = Math.PI * (1 - clamped / 100);
-
   const cx = 32;
   const cy = 34;
   const r = 26;
   const needleX = cx + r * Math.cos(angleRad);
   const needleY = cy - r * Math.sin(angleRad);
-
   const color = getColor(classification);
 
   return (
@@ -56,11 +51,9 @@ export default function FearGreedGauge({
       >
         <defs>
           <linearGradient id="fgArc" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#ef4444" />
-            <stop offset="25%" stopColor="#f97316" />
-            <stop offset="50%" stopColor="#eab308" />
-            <stop offset="75%" stopColor="#22c55e" />
-            <stop offset="100%" stopColor="#16a34a" />
+            <stop offset="0%" stopColor="var(--red-500)" />
+            <stop offset="50%" stopColor="var(--yellow-500)" />
+            <stop offset="100%" stopColor="var(--green-500)" />
           </linearGradient>
         </defs>
 
@@ -68,7 +61,7 @@ export default function FearGreedGauge({
         <path
           d={describeArc(cx, cy, r, 180, 0)}
           fill="none"
-          stroke="#1e2024"
+          stroke="var(--bg-secondary)"
           strokeWidth={5}
           strokeLinecap="round"
         />
@@ -93,27 +86,33 @@ export default function FearGreedGauge({
           strokeLinecap="round"
         />
         <circle cx={needleX} cy={needleY} r={2} fill={color} />
-        <circle cx={cx} cy={cy} r={1.5} fill="#555a65" />
+        <circle cx={cx} cy={cy} r={1.5} fill="var(--text-tertiary)" />
 
-        {/* Value */}
         <text
           x={cx}
           y={cy - 5}
           textAnchor="middle"
-          className="fill-[#eaedf3] text-[9px] font-mono font-bold"
+          style={{
+            fill: 'var(--text-primary)',
+            fontSize: 9,
+            fontWeight: 700,
+          }}
+          className="font-mono-num"
         >
           {clamped}
         </text>
       </svg>
 
-      <span className="text-[9px] font-medium leading-none" style={{ color }}>
+      <span
+        className="text-[9px] font-medium leading-none"
+        style={{ color }}
+      >
         {classification}
       </span>
     </div>
   );
 }
 
-/** SVG arc path from startAngle to endAngle (degrees). */
 function describeArc(
   cx: number,
   cy: number,

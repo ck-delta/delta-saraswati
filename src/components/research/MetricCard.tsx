@@ -1,7 +1,6 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface MetricCardProps {
@@ -12,42 +11,69 @@ interface MetricCardProps {
   icon?: ReactNode;
 }
 
-const trendConfig = {
-  up: { icon: TrendingUp, color: 'text-[#22c55e]' },
-  down: { icon: TrendingDown, color: 'text-[#ef4444]' },
-  neutral: { icon: Minus, color: 'text-[#8b8f99]' },
+function trendColor(trend?: 'up' | 'down' | 'neutral'): string {
+  if (trend === 'up') return 'var(--positive-text)';
+  if (trend === 'down') return 'var(--negative-text)';
+  return 'var(--text-secondary)';
+}
+
+const TREND_ICON = {
+  up: TrendingUp,
+  down: TrendingDown,
+  neutral: Minus,
 } as const;
 
-export function MetricCard({ title, value, subtitle, trend, icon }: MetricCardProps) {
-  const trendInfo = trend ? trendConfig[trend] : null;
+export function MetricCard({
+  title,
+  value,
+  subtitle,
+  trend,
+  icon,
+}: MetricCardProps) {
+  const TrendIcon = trend ? TREND_ICON[trend] : null;
+  const color = trendColor(trend);
 
   return (
-    <div className="bg-[#111214] border border-[#1e2024] rounded-xl p-4 flex flex-col gap-1.5 hover:border-[#2a2d33] transition-colors duration-150">
+    <div
+      className="flex flex-col gap-1.5 p-4 transition-colors duration-150"
+      style={{
+        background: 'var(--bg-primary)',
+        border: '1px solid var(--bg-secondary)',
+        borderRadius: 'var(--radius-2xl)',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = 'var(--bg-tertiary)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = 'var(--bg-secondary)';
+      }}
+    >
       <div className="flex items-center justify-between">
-        <span className="text-xs text-[#555a65] uppercase tracking-wider">{title}</span>
-        {icon && <span className="text-[#555a65]">{icon}</span>}
+        <span
+          className="text-[11px] uppercase tracking-wider"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          {title}
+        </span>
+        {icon && (
+          <span style={{ color: 'var(--text-tertiary)' }}>{icon}</span>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-lg font-mono font-semibold text-[#eaedf3]">
+        <span
+          className="font-mono-num font-semibold"
+          style={{ fontSize: 18, color: 'var(--text-primary)' }}
+        >
           {value}
         </span>
-        {trendInfo && (
-          <trendInfo.icon className={cn('h-4 w-4', trendInfo.color)} />
+        {TrendIcon && (
+          <TrendIcon className="h-4 w-4" style={{ color }} />
         )}
       </div>
 
       {subtitle && (
-        <span
-          className={cn(
-            'text-xs font-mono',
-            trend === 'up'
-              ? 'text-[#22c55e]'
-              : trend === 'down'
-                ? 'text-[#ef4444]'
-                : 'text-[#8b8f99]',
-          )}
-        >
+        <span className="font-mono-num text-xs" style={{ color }}>
           {subtitle}
         </span>
       )}

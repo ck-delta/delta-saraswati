@@ -3,7 +3,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { Send, Square, Brain } from 'lucide-react';
 import { useChatStore } from '@/stores/chat-store';
-import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
   onSend: (content: string) => void;
@@ -57,25 +56,50 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   );
 
   return (
-    <div className="relative bg-[#111214] border-t border-[#1e2024] px-4 py-3">
+    <div
+      className="relative px-4 py-3"
+      style={{
+        background: 'var(--bg-sub-surface)',
+        borderTop: '1px solid var(--divider-primary)',
+      }}
+    >
       <div className="mx-auto flex max-w-3xl items-end gap-2">
         {/* Deep Think toggle */}
         <button
           type="button"
           onClick={toggleDeepThink}
           title={deepThink ? 'Deep Think enabled' : 'Enable Deep Think'}
-          className={cn(
-            'flex size-9 shrink-0 items-center justify-center rounded-lg border transition-colors duration-150',
-            deepThink
-              ? 'border-[#f7931a]/50 bg-[#f7931a]/15 text-[#f7931a]'
-              : 'border-[#1e2024] bg-[#181a1d] text-[#555a65] hover:text-[#8b8f99] hover:border-[#2a2d33]',
-          )}
+          className="flex size-9 shrink-0 items-center justify-center transition-colors duration-150"
+          style={{
+            borderRadius: 'var(--radius-md)',
+            background: deepThink
+              ? 'var(--brand-bg-muted)'
+              : 'var(--bg-input)',
+            border: '1px solid',
+            borderColor: deepThink
+              ? 'var(--brand-border-muted)'
+              : 'var(--divider-primary)',
+            color: deepThink ? 'var(--brand-text)' : 'var(--text-tertiary)',
+          }}
         >
           <Brain className="size-4" />
         </button>
 
-        {/* Input area */}
-        <div className="relative flex flex-1 items-end rounded-xl border border-[#1e2024] bg-[#181a1d] px-3 py-2 focus-within:border-[#f7931a]/50 transition-colors duration-150">
+        {/* Input */}
+        <div
+          className="relative flex flex-1 items-end px-3 py-2 transition-colors duration-150"
+          style={{
+            background: 'var(--bg-input)',
+            border: '1px solid var(--divider-primary)',
+            borderRadius: 'var(--radius-md)',
+          }}
+          onFocusCapture={(e) => {
+            e.currentTarget.style.borderColor = 'var(--brand-border)';
+          }}
+          onBlurCapture={(e) => {
+            e.currentTarget.style.borderColor = 'var(--divider-primary)';
+          }}
+        >
           <textarea
             ref={textareaRef}
             value={value}
@@ -84,17 +108,23 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
             placeholder="Ask Saraswati anything about crypto..."
             disabled={isDisabled}
             rows={1}
-            className="max-h-[160px] min-h-[24px] flex-1 resize-none bg-transparent text-sm text-[#eaedf3] placeholder-[#555a65] outline-none disabled:opacity-50"
+            className="max-h-[160px] min-h-[24px] flex-1 resize-none bg-transparent text-sm outline-none disabled:opacity-50"
+            style={{ color: 'var(--text-primary)' }}
           />
         </div>
 
-        {/* Send / Stop button */}
+        {/* Send / Stop */}
         {isStreaming ? (
           <button
             type="button"
             onClick={abortStream}
             title="Stop generating"
-            className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#ef4444]/15 text-[#ef4444] transition-colors duration-150 hover:bg-[#ef4444]/25"
+            className="flex size-9 shrink-0 items-center justify-center transition-colors duration-150"
+            style={{
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--negative-bg-muted)',
+              color: 'var(--negative-text)',
+            }}
           >
             <Square className="size-4 fill-current" />
           </button>
@@ -104,12 +134,27 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
             onClick={handleSend}
             disabled={!value.trim() || isDisabled}
             title="Send message"
-            className={cn(
-              'flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-150',
-              value.trim()
-                ? 'bg-[#f7931a] text-black hover:bg-[#ffaa3b]'
-                : 'bg-[#181a1d] text-[#555a65] cursor-not-allowed',
-            )}
+            className="flex shrink-0 items-center justify-center transition-colors duration-150"
+            style={{
+              padding: '8px 16px',
+              height: 36,
+              borderRadius: 'var(--radius-md)',
+              background: value.trim()
+                ? 'var(--brand-bg)'
+                : 'var(--bg-input)',
+              color: value.trim()
+                ? 'var(--text-on-bg)'
+                : 'var(--text-tertiary)',
+              cursor: value.trim() ? 'pointer' : 'not-allowed',
+            }}
+            onMouseEnter={(e) => {
+              if (value.trim())
+                e.currentTarget.style.background = 'var(--brand-bg-hover)';
+            }}
+            onMouseLeave={(e) => {
+              if (value.trim())
+                e.currentTarget.style.background = 'var(--brand-bg)';
+            }}
           >
             <Send className="size-4" />
           </button>
