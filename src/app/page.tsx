@@ -7,6 +7,7 @@ import { CACHE_TTL } from '@/lib/constants';
 import TokenCardGrid from '@/components/home/TokenCardGrid';
 import DailyPulseSummary from '@/components/home/DailyPulseSummary';
 import NewsSection from '@/components/home/NewsSection';
+import MarketMoodBar from '@/components/home/MarketMoodBar';
 
 /**
  * Home / Daily Pulse page.
@@ -40,9 +41,14 @@ export default function Home() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 md:px-6 animate-fade-in">
       {/* ================================================================
+          Market Mood Bar — sticky ribbon at top
+          ================================================================ */}
+      <MarketMoodBar />
+
+      {/* ================================================================
           Markets Section
           ================================================================ */}
-      <section className="mb-8">
+      <section className="mb-8 mt-6">
         <div className="mb-4 flex items-center gap-3">
           <h2 className="text-sm font-semibold text-[#eaedf3]">Markets</h2>
           <div className="h-px flex-1 bg-[#1e2024]" />

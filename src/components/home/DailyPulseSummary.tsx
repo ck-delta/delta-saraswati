@@ -6,7 +6,6 @@
 // above (Fear & Greed, BTC dominance, next macro events, conditional alerts).
 
 import { useEffect, useState } from 'react';
-import PulseCallouts from '@/components/home/PulseCallouts';
 import type { PulseItem, PulseResponse, SentimentBadge } from '@/types/pulse';
 
 const SENTIMENT_STYLE: Record<SentimentBadge, { bg: string; fg: string; border: string }> = {
@@ -100,9 +99,6 @@ export default function DailyPulseSummary() {
         </div>
       ) : data ? (
         <>
-          {/* ---- Callout strip ---- */}
-          <PulseCallouts callouts={data.callouts} />
-
           {/* ---- 4-section grid ---- */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <Section kind="marketPulse" items={data.summary.marketPulse} />
