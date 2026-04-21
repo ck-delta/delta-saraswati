@@ -45,16 +45,36 @@ function normTitle(title: string): string {
     .trim();
 }
 
-function deduplicateByTitle(items: NewsItem[]): NewsItem[] {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    const norm = normTitle(item.title);
-    // Treat titles sharing the first 60 chars as duplicates
-    const key = norm.slice(0, 60);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+/**
+ * Collapse near-duplicate titles into a single item, but preserve the count
+ * of corroborating sources. Keeps the earliest-appearing (usually most
+ * authoritative) version and annotates it with `corroborations` + source list.
+ */
+function collapseDuplicatesWithCorroboration(items: NewsItem[]): NewsItem[] {
+  const groups = new Map<string, NewsItem[]>();
+  for (const item of items) {
+    const key = normTitle(item.title).slice(0, 60);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(item);
+  }
+  const out: NewsItem[] = [];
+  for (const group of groups.values()) {
+    // The canonical item = the first one (already sorted newest-first upstream).
+    const canonical = group[0];
+    if (group.length === 1) {
+      out.push(canonical);
+    } else {
+      const others = group.slice(1);
+      out.push({
+        ...canonical,
+        corroborations: others.length,
+        corroboratingSources: Array.from(
+          new Set(others.map((o) => o.source).filter((s) => s !== canonical.source)),
+        ).slice(0, 5),
+      });
+    }
+  }
+  return out;
 }
 
 /**
@@ -98,21 +118,23 @@ export async function fetchAllNews(): Promise<NewsItem[]> {
   const feedResults = await Promise.allSettled(
     RSS_FEEDS.map(async (feed) => {
       const parsed = await parser.parseURL(feed.url);
-      return (parsed.items ?? []).map(
-        (item): NewsItem => ({
+      return (parsed.items ?? []).map((item): NewsItem => {
+        const cleanContent = item.content?.replace(/<[^>]*>/g, '') ?? '';
+        const description =
+          item.contentSnippet?.slice(0, 280) ?? cleanContent.slice(0, 280) ?? '';
+        const body = (item.contentSnippet ?? cleanContent ?? '').slice(0, 500);
+        return {
           id: makeId(feed.name, item.title ?? ''),
           title: item.title ?? 'Untitled',
-          description:
-            item.contentSnippet?.slice(0, 280) ??
-            item.content?.replace(/<[^>]*>/g, '').slice(0, 280) ??
-            '',
+          description,
+          body,
           url: item.link ?? '',
           source: feed.name,
           sourceDomain: feed.domain,
           publishedAt: item.isoDate ?? item.pubDate ?? new Date().toISOString(),
           imageUrl: extractImage(item as unknown as Record<string, unknown>),
-        }),
-      );
+        };
+      });
     }),
   );
 
@@ -130,8 +152,8 @@ export async function fetchAllNews(): Promise<NewsItem[]> {
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
   );
 
-  // Deduplicate and cap
-  const unique = deduplicateByTitle(allItems).slice(0, 50);
+  // Collapse duplicates but remember how many sources carried each story
+  const unique = collapseDuplicatesWithCorroboration(allItems).slice(0, 50);
 
   cache.set(CACHE_KEY, unique, CACHE_TTL.NEWS);
   return unique;

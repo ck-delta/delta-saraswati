@@ -4,6 +4,8 @@ export interface NewsItem {
   id: string;
   title: string;
   description: string;
+  /** First ~400 chars of article body/snippet, used for Groq classification. */
+  body?: string;
   url: string;
   source: string;
   /** Domain of the source, used for favicon fetch. */
@@ -17,6 +19,12 @@ export interface NewsItem {
   priceImpactTier?: 'severe' | 'major' | 'moderate' | 'minor' | 'negligible';
   breadthTier?: 'systemic' | 'cross-asset' | 'sector-wide' | 'token-specific';
   forwardTier?: 'regime-change' | 'trend-confirmation' | 'isolated' | 'contrary';
+  /** How many *other* sources corroborated this story. 0 = unique. */
+  corroborations?: number;
+  /** Names of corroborating sources (for tooltip). */
+  corroboratingSources?: string[];
+  /** True when this headline is part of a news storm (velocity boost). */
+  inStorm?: boolean;
 }
 
 export interface DailyPulseResponse {

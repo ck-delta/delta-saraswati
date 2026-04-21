@@ -226,6 +226,36 @@ function NewsItemRow({ item }: { item: NewsItem }) {
             </span>
           )}
 
+          {/* Corroboration chip: N other outlets carried the same story */}
+          {item.corroborations != null && item.corroborations > 0 && (
+            <span
+              className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded flex items-center gap-1"
+              style={{
+                background: 'rgba(59, 130, 246, 0.10)',
+                color: '#60A5FA',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+              }}
+              title={`Also reported by: ${(item.corroboratingSources ?? []).join(', ')}`}
+            >
+              +{item.corroborations} sources
+            </span>
+          )}
+
+          {/* Storm chip: part of a news-storm regime */}
+          {item.inStorm && (
+            <span
+              className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded flex items-center gap-1"
+              style={{
+                background: 'rgba(252, 211, 77, 0.10)',
+                color: '#FCD34D',
+                border: '1px solid rgba(252, 211, 77, 0.3)',
+              }}
+              title="Part of a news-storm regime — velocity boost applied"
+            >
+              ⚡ STORM
+            </span>
+          )}
+
           {/* Affected token chips */}
           {item.affectedTokens && item.affectedTokens.length > 0 && (
             <span className="flex items-center gap-1">

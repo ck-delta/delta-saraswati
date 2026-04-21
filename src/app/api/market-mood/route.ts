@@ -11,6 +11,8 @@ import { NextResponse } from 'next/server';
 import { getFearGreedIndex, getFearGreedHistory } from '@/lib/api/feargreed';
 import { getGlobalMarketData } from '@/lib/api/coingecko';
 import { getCandles } from '@/lib/api/delta';
+import { fetchAllNews } from '@/lib/api/news';
+import { classifyNewsBatch, detectStorms } from '@/lib/ai/news-classifier';
 import { cache } from '@/lib/cache';
 import { nextEvents, upcomingEvents, countdownLabel } from '@/lib/macro/calendar';
 
@@ -54,6 +56,8 @@ export interface MarketMood {
     countdown: string;
     datetime: string;
   }[];
+  /** Tokens currently experiencing a news storm (≥5 headlines in 60min). */
+  newsStormTokens: { symbol: string; count: number }[];
   timestamp: number;
   stale?: boolean;
 }
@@ -92,12 +96,31 @@ export async function GET() {
   }
 
   try {
-    const [fgNow, fgHist, global, ethBtc] = await Promise.allSettled([
+    const [fgNow, fgHist, global, ethBtc, news] = await Promise.allSettled([
       getFearGreedIndex(),
       getFearGreedHistory(7),
       getGlobalMarketData(),
       computeEthBtcSeries(),
+      fetchAllNews(),
     ]);
+
+    // Storm detection needs classifier tags (affectedTokens). Use the existing
+    // news cache to avoid a second Groq call — classifier cache key already
+    // stores the tagged output in /api/news, but for the mood bar we do a
+    // lightweight independent classification of the top 20 items only.
+    let stormEntries: { symbol: string; count: number }[] = [];
+    if (news.status === 'fulfilled' && news.value.length > 0) {
+      try {
+        const classified = await classifyNewsBatch(news.value.slice(0, 20));
+        const storms = detectStorms(classified);
+        stormEntries = Array.from(storms.stormTokens).map((sym) => ({
+          symbol: sym,
+          count: storms.perTokenCount[sym] ?? 0,
+        }));
+      } catch (err) {
+        console.error('storm detection failed:', err);
+      }
+    }
 
     const fearGreed =
       fgNow.status === 'fulfilled' && fgHist.status === 'fulfilled'
@@ -155,6 +178,7 @@ export async function GET() {
       ethBtc: ethBtcData,
       nextMacroEvents,
       upcomingMacroEvents: upcoming,
+      newsStormTokens: stormEntries,
       timestamp: Date.now(),
     };
 
@@ -170,6 +194,7 @@ export async function GET() {
         ethBtc: null,
         nextMacroEvents: [],
         upcomingMacroEvents: [],
+        newsStormTokens: [],
         timestamp: Date.now(),
         stale: true,
       } satisfies MarketMood,

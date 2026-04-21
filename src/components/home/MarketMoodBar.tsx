@@ -77,9 +77,11 @@ export default function MarketMoodBar() {
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
+  const storms = data?.newsStormTokens ?? [];
+
   return (
     <>
-      <div className="mb-6">
+      <div className="mb-6 space-y-2">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <FearGreedTile mood={data?.fearGreed ?? null} loading={!data && !error} />
           <BtcDominanceTile mood={data?.btcDominance ?? null} loading={!data && !error} />
@@ -90,6 +92,29 @@ export default function MarketMoodBar() {
             onOpen={() => setMacroOpen(true)}
           />
         </div>
+
+        {storms.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {storms.map((s) => (
+              <div
+                key={s.symbol}
+                className="flex items-center gap-2 rounded-full px-3 py-1 text-[11px]"
+                style={{
+                  background: 'rgba(252, 211, 77, 0.08)',
+                  border: '1px solid rgba(252, 211, 77, 0.3)',
+                  color: '#FCD34D',
+                }}
+                title={`${s.count} headlines mentioning ${s.symbol.replace(/USDT$/, '')} in the last 60 minutes — news-storm boost active`}
+              >
+                <span aria-hidden>⚡</span>
+                <span className="font-bold">NEWS STORM</span>
+                <span className="opacity-80">
+                  · {s.symbol.replace(/USDT$/, '')} · {s.count} headlines in 60m
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <MacroEventsModal
