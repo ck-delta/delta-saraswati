@@ -17,6 +17,7 @@ import { calculateNewsScore } from '@/lib/signals/news-score';
 import { aggregateAISignal } from '@/lib/signals/composite';
 import {
   buildCallouts,
+  buildSectorRotation,
   curateItems,
   buildGroqPrompt,
   mergeIntoSummary,
@@ -36,6 +37,10 @@ const FALLBACK_RESPONSE: PulseResponse = {
     bigMovers: [],
     macroWatch: [],
     derivativesInsight: [],
+    sectorRotation: [],
+    fundingExtremes: [],
+    volumeAnomalies: [],
+    oiChanges: [],
   },
   callouts: {
     fearGreed: null,
@@ -46,6 +51,32 @@ const FALLBACK_RESPONSE: PulseResponse = {
   timestamp: Date.now(),
   stale: true,
 };
+
+// Fetch 24h OI snapshot (now vs 24h ago) for up to N symbols. Used by the OI
+// Change Leaders section. Failures are swallowed per-symbol.
+async function fetchOiSnapshots(symbols: string[]): Promise<Record<string, { oiNow: number; oiPrior: number }>> {
+  const out: Record<string, { oiNow: number; oiPrior: number }> = {};
+  const now = Math.floor(Date.now() / 1000);
+  const start = now - 48 * 3600;
+  await Promise.all(
+    symbols.map(async (sym) => {
+      try {
+        const candles = await getCandles(`OI:${sym}`, '1h', start, now);
+        if (candles.length < 2) return;
+        const oiNow = Number(candles[candles.length - 1].close);
+        // 24h ago ≈ index length-25
+        const priorIdx = Math.max(0, candles.length - 25);
+        const oiPrior = Number(candles[priorIdx].close);
+        if (!isNaN(oiNow) && !isNaN(oiPrior) && oiPrior > 0) {
+          out[sym] = { oiNow, oiPrior };
+        }
+      } catch {
+        // silent per-symbol
+      }
+    }),
+  );
+  return out;
+}
 
 // Compute AI Signal for a single top token. Uses lighter lookbacks than
 // /api/ai-signal/[symbol] to stay within a single route-handler budget.
@@ -108,9 +139,19 @@ export async function GET() {
 
     // Top 3 AI signals (used in Market Pulse, Derivatives Insight, divergence alerts)
     const topSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
-    const aiSignalsArr = await Promise.all(
-      topSymbols.map((s) => computeTopSignal(s, news)),
-    );
+
+    // Pick candidate symbols for OI snapshot: top 6 by volume → enough coverage
+    // for OI Change Leaders without blowing fetch budget on every perpetual.
+    const oiCandidates = [...perpetuals]
+      .sort((a, b) => b.turnoverUsd - a.turnoverUsd)
+      .slice(0, 6)
+      .map((p) => p.symbol);
+
+    const [aiSignalsArr, oiSnapshots] = await Promise.all([
+      Promise.all(topSymbols.map((s) => computeTopSignal(s, news))),
+      fetchOiSnapshots(oiCandidates),
+    ]);
+
     const aiSignals: Record<string, AISignalResult | null> = {};
     topSymbols.forEach((s, i) => { aiSignals[s] = aiSignalsArr[i]; });
 
@@ -122,9 +163,11 @@ export async function GET() {
       news,
       global,
       aiSignals,
+      oiSnapshots,
     };
 
     const callouts = buildCallouts(inputs);
+    const sectorRotation = buildSectorRotation(perpetuals);
     const items = curateItems(inputs);
     const prompt = buildGroqPrompt(items);
 
@@ -143,7 +186,7 @@ export async function GET() {
       };
     }
 
-    const summary = mergeIntoSummary(items, groqOutput);
+    const summary = mergeIntoSummary(items, groqOutput, { sectorRotation });
 
     const response: PulseResponse = {
       summary,

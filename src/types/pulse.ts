@@ -11,9 +11,29 @@ export interface PulseItem {
   changePct?: number;
   /** One-line reason written by Groq. */
   reason: string;
+  /** Longer reasoning context revealed on hover. */
+  detail?: string;
   sentiment: SentimentBadge;
   /** Optional extra chip shown after the reason, e.g. "AI: NEUTRAL 5.9". */
   tag?: string;
+  /** Token symbol to route to on click (e.g. "BTCUSDT"). If set, row → /research?token=X. */
+  symbol?: string;
+  /** External URL to open on click (news items). Takes precedence over `symbol`. */
+  url?: string;
+  /** Source name for news/macro items (used with publishedAt for attribution). */
+  source?: string;
+  /** ISO timestamp of when a news item was published. */
+  publishedAt?: string;
+  /** Domain for favicon fetch on news/macro items. */
+  sourceDomain?: string;
+}
+
+export interface SectorBucket {
+  name: string;                 // e.g. "Crypto majors"
+  tokens: string[];             // constituent symbols
+  avgChangePct24h: number;
+  totalVolumeUsd: number;
+  sentiment: SentimentBadge;
 }
 
 export interface MarketSummary {
@@ -21,6 +41,11 @@ export interface MarketSummary {
   bigMovers: PulseItem[];
   macroWatch: PulseItem[];
   derivativesInsight: PulseItem[];
+  // Added in v2:
+  sectorRotation: SectorBucket[];
+  fundingExtremes: PulseItem[];
+  volumeAnomalies: PulseItem[];
+  oiChanges: PulseItem[];
 }
 
 export interface PulseCallouts {
