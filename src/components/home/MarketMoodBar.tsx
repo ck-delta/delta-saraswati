@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from 'react';
 import { GaugeIcon, DominanceIcon, EthBtcIcon, CalendarIcon } from './MoodIcons';
+import MacroEventsModal from './MacroEventsModal';
 import type { MarketMood } from '@/app/api/market-mood/route';
 
 // Default staleness threshold: anything older than 30 min is dimmed.
@@ -54,6 +55,7 @@ function MiniSpark({ values, color, width = 80, height = 18 }: { values: number[
 export default function MarketMoodBar() {
   const [data, setData] = useState<MarketMood | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [macroOpen, setMacroOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,23 +77,27 @@ export default function MarketMoodBar() {
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
-  // Always render the shell to reserve space — hydrate values as data arrives.
   return (
-    <div
-      className="sticky top-[56px] z-40 -mx-4 md:-mx-6 px-4 md:px-6 py-3 backdrop-blur-md"
-      style={{
-        background: 'linear-gradient(180deg, rgba(14,15,18,0.94) 0%, rgba(14,15,18,0.82) 100%)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        boxShadow: '0 10px 20px -16px rgba(0,0,0,0.5)',
-      }}
-    >
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <FearGreedTile mood={data?.fearGreed ?? null} loading={!data && !error} />
-        <BtcDominanceTile mood={data?.btcDominance ?? null} loading={!data && !error} />
-        <EthBtcTile mood={data?.ethBtc ?? null} loading={!data && !error} />
-        <MacroTile events={data?.nextMacroEvents ?? []} loading={!data && !error} />
+    <>
+      <div className="mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <FearGreedTile mood={data?.fearGreed ?? null} loading={!data && !error} />
+          <BtcDominanceTile mood={data?.btcDominance ?? null} loading={!data && !error} />
+          <EthBtcTile mood={data?.ethBtc ?? null} loading={!data && !error} />
+          <MacroTile
+            events={data?.nextMacroEvents ?? []}
+            loading={!data && !error}
+            onOpen={() => setMacroOpen(true)}
+          />
+        </div>
       </div>
-    </div>
+
+      <MacroEventsModal
+        open={macroOpen}
+        onOpenChange={setMacroOpen}
+        events={data?.upcomingMacroEvents ?? []}
+      />
+    </>
   );
 }
 
@@ -253,22 +259,40 @@ function EthBtcTile({ mood, loading }: { mood: MarketMood['ethBtc']; loading: bo
 // Macro Calendar tile
 // ---------------------------------------------------------------------------
 
-function MacroTile({ events, loading }: { events: MarketMood['nextMacroEvents']; loading: boolean }) {
+function MacroTile({
+  events,
+  loading,
+  onOpen,
+}: {
+  events: MarketMood['nextMacroEvents'];
+  loading: boolean;
+  onOpen: () => void;
+}) {
   if (loading) return <LoadingTile label="Macro" />;
   if (!events || events.length === 0) return null;
   const color = '#22C55E';
-  const tooltip = 'High-impact macro events. FOMC sets interest rates. CPI/PCE are inflation prints. All move crypto risk appetite.';
+  const tooltip = 'Click to see all 10 upcoming FOMC, CPI, PCE and NFP events.';
 
   return (
-    <TileShell tooltip={tooltip}>
+    <button
+      type="button"
+      onClick={onOpen}
+      title={tooltip}
+      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all hover:bg-white/[0.03] hover:border-white/[0.10] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/40"
+      style={{
+        background: 'rgba(255,255,255,0.015)',
+        border: '1px solid rgba(255,255,255,0.05)',
+      }}
+    >
       <div className="flex-shrink-0">
         <CalendarIcon size={40} color={color} />
       </div>
       <div className="min-w-0 flex-1 flex flex-col gap-0.5">
         <div className="flex items-center justify-between">
           <span className="text-[9px] uppercase tracking-wider text-[#8b8f99]">Macro Calendar</span>
-          <span className="font-mono-num text-[10px] text-[#8b8f99]">
-            {events.length} upcoming
+          <span className="font-mono-num text-[10px] text-[#8b8f99] flex items-center gap-0.5">
+            view all
+            <span aria-hidden className="opacity-60">→</span>
           </span>
         </div>
         {events.slice(0, 2).map((e, i) => (
@@ -281,6 +305,6 @@ function MacroTile({ events, loading }: { events: MarketMood['nextMacroEvents'];
           </div>
         ))}
       </div>
-    </TileShell>
+    </button>
   );
 }

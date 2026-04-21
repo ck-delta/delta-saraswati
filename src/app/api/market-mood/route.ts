@@ -12,7 +12,7 @@ import { getFearGreedIndex, getFearGreedHistory } from '@/lib/api/feargreed';
 import { getGlobalMarketData } from '@/lib/api/coingecko';
 import { getCandles } from '@/lib/api/delta';
 import { cache } from '@/lib/cache';
-import { nextEvents, countdownLabel } from '@/lib/macro/calendar';
+import { nextEvents, upcomingEvents, countdownLabel } from '@/lib/macro/calendar';
 
 export const runtime = 'nodejs';
 export const revalidate = 300;
@@ -42,6 +42,13 @@ export interface MarketMood {
     lastUpdatedMs: number;
   } | null;
   nextMacroEvents: {
+    kind: string;
+    label: string;
+    countdown: string;
+    datetime: string;
+  }[];
+  /** Top 10 upcoming macro events (chronological) for the expandable modal. */
+  upcomingMacroEvents: {
     kind: string;
     label: string;
     countdown: string;
@@ -135,12 +142,19 @@ export async function GET() {
       countdown: countdownLabel(e.datetime, now),
       datetime: e.datetime,
     }));
+    const upcoming = upcomingEvents(10, now).map((e) => ({
+      kind: e.kind,
+      label: e.label,
+      countdown: countdownLabel(e.datetime, now),
+      datetime: e.datetime,
+    }));
 
     const payload: MarketMood = {
       fearGreed,
       btcDominance,
       ethBtc: ethBtcData,
       nextMacroEvents,
+      upcomingMacroEvents: upcoming,
       timestamp: Date.now(),
     };
 
@@ -155,6 +169,7 @@ export async function GET() {
         btcDominance: null,
         ethBtc: null,
         nextMacroEvents: [],
+        upcomingMacroEvents: [],
         timestamp: Date.now(),
         stale: true,
       } satisfies MarketMood,
