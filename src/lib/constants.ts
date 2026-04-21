@@ -43,11 +43,31 @@ export const CACHE_TTL = {
 } as const;
 
 // === RSS News Feeds ===
+// `domain` is used for favicon fetching (Google Favicon Service).
+// `tier` is informational: 'crypto-core' | 'generalist' | 'defi' | 'tradfi'.
 export const RSS_FEEDS = [
-  { name: 'CoinTelegraph', url: 'https://cointelegraph.com/rss' },
-  { name: 'Decrypt', url: 'https://decrypt.co/feed' },
-  { name: 'Bitcoin Magazine', url: 'https://bitcoinmagazine.com/feed' },
-  { name: 'CoinDesk', url: 'https://www.coindesk.com/arc/outboundfeeds/rss/' },
+  // Core crypto press
+  { name: 'CoinTelegraph',     url: 'https://cointelegraph.com/rss',                        domain: 'cointelegraph.com',    tier: 'crypto-core' },
+  { name: 'Decrypt',           url: 'https://decrypt.co/feed',                              domain: 'decrypt.co',           tier: 'crypto-core' },
+  { name: 'Bitcoin Magazine',  url: 'https://bitcoinmagazine.com/feed',                     domain: 'bitcoinmagazine.com',  tier: 'crypto-core' },
+  { name: 'CoinDesk',          url: 'https://www.coindesk.com/arc/outboundfeeds/rss/',      domain: 'coindesk.com',         tier: 'crypto-core' },
+
+  // Generalist crypto
+  { name: 'The Block',         url: 'https://www.theblock.co/rss.xml',                      domain: 'theblock.co',          tier: 'generalist' },
+  { name: 'Crypto Briefing',   url: 'https://cryptobriefing.com/feed/',                     domain: 'cryptobriefing.com',   tier: 'generalist' },
+  { name: 'Blockworks',        url: 'https://blockworks.co/feed',                           domain: 'blockworks.co',        tier: 'generalist' },
+  { name: 'U.Today',           url: 'https://u.today/rss',                                  domain: 'u.today',              tier: 'generalist' },
+
+  // DeFi + analytical
+  { name: 'The Defiant',       url: 'https://thedefiant.io/feed',                           domain: 'thedefiant.io',        tier: 'defi' },
+  { name: 'DL News',           url: 'https://www.dlnews.com/arc/outboundfeeds/rss/',        domain: 'dlnews.com',           tier: 'defi' },
+  { name: 'Bankless',          url: 'https://www.bankless.com/rss.xml',                     domain: 'bankless.com',         tier: 'defi' },
+  { name: 'Milk Road',         url: 'https://milkroad.com/feed/',                           domain: 'milkroad.com',         tier: 'defi' },
+
+  // Macro / TradFi crypto coverage
+  { name: 'Reuters Crypto',    url: 'https://www.reuters.com/technology/rss',               domain: 'reuters.com',          tier: 'tradfi' },
+  { name: 'Bloomberg Crypto',  url: 'https://feeds.bloomberg.com/crypto/news.rss',          domain: 'bloomberg.com',        tier: 'tradfi' },
+  { name: 'FT Crypto',         url: 'https://www.ft.com/cryptocurrencies?format=rss',       domain: 'ft.com',               tier: 'tradfi' },
 ] as const;
 
 // === Fear & Greed color mapping ===

@@ -108,6 +108,7 @@ export async function fetchAllNews(): Promise<NewsItem[]> {
             '',
           url: item.link ?? '',
           source: feed.name,
+          sourceDomain: feed.domain,
           publishedAt: item.isoDate ?? item.pubDate ?? new Date().toISOString(),
           imageUrl: extractImage(item as unknown as Record<string, unknown>),
         }),

@@ -6,10 +6,17 @@ export interface NewsItem {
   description: string;
   url: string;
   source: string;
+  /** Domain of the source, used for favicon fetch. */
+  sourceDomain?: string;
   publishedAt: string;  // ISO date string
   imageUrl?: string;
   sentiment?: 'positive' | 'negative' | 'neutral';
-  sentimentScore?: number; // -1 to 1
+  sentimentScore?: number; // 0-100 (AI-assigned impact-weighted score)
+  // Filled by the Groq batch classifier:
+  affectedTokens?: string[];            // e.g. ["BTCUSDT", "ETHUSDT"]
+  priceImpactTier?: 'severe' | 'major' | 'moderate' | 'minor' | 'negligible';
+  breadthTier?: 'systemic' | 'cross-asset' | 'sector-wide' | 'token-specific';
+  forwardTier?: 'regime-change' | 'trend-confirmation' | 'isolated' | 'contrary';
 }
 
 export interface DailyPulseResponse {
