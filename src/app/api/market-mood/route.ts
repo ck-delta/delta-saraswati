@@ -12,7 +12,7 @@ import { getFearGreedIndex, getFearGreedHistory } from '@/lib/api/feargreed';
 import { getGlobalMarketData } from '@/lib/api/coingecko';
 import { getCandles } from '@/lib/api/delta';
 import { fetchAllNews } from '@/lib/api/news';
-import { classifyNewsBatch, detectStorms } from '@/lib/ai/news-classifier';
+import { detectStorms } from '@/lib/ai/news-classifier';
 import { cache } from '@/lib/cache';
 import { nextEvents, upcomingEvents, countdownLabel } from '@/lib/macro/calendar';
 
@@ -104,15 +104,13 @@ export async function GET() {
       fetchAllNews(),
     ]);
 
-    // Storm detection needs classifier tags (affectedTokens). Use the existing
-    // news cache to avoid a second Groq call — classifier cache key already
-    // stores the tagged output in /api/news, but for the mood bar we do a
-    // lightweight independent classification of the top 20 items only.
+    // Storm detection uses keyword fallback inside detectStorms — no Groq call
+    // required. Ensures /api/market-mood and /api/news stay in sync and
+    // independently cheap to compute.
     let stormEntries: { symbol: string; count: number }[] = [];
     if (news.status === 'fulfilled' && news.value.length > 0) {
       try {
-        const classified = await classifyNewsBatch(news.value.slice(0, 20));
-        const storms = detectStorms(classified);
+        const storms = detectStorms(news.value);
         stormEntries = Array.from(storms.stormTokens).map((sym) => ({
           symbol: sym,
           count: storms.perTokenCount[sym] ?? 0,

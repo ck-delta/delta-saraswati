@@ -67,13 +67,37 @@ const STORM_WINDOW_MS = 60 * 60_000;
 const STORM_THRESHOLD = 5;
 const STORM_BOOST = 1.3;
 
+// Keyword fallback used when Groq hasn't run yet (or when we want to detect
+// storms independently of classifier output, e.g. inside /api/market-mood
+// before /api/news has been hit).
+const KEYWORD_TO_TOKEN: { keywords: string[]; token: string }[] = [
+  { keywords: ['bitcoin', 'btc'],             token: 'BTCUSDT' },
+  { keywords: ['ethereum', 'eth', 'ether ', 'vitalik'], token: 'ETHUSDT' },
+  { keywords: ['solana', ' sol '],            token: 'SOLUSDT' },
+  { keywords: ['xrp', 'ripple'],              token: 'XRPUSDT' },
+  { keywords: ['dogecoin', 'doge'],           token: 'DOGEUSDT' },
+  { keywords: ['pax gold', 'paxg'],           token: 'PAXGUSDT' },
+];
+
+function tokensFromText(text: string): string[] {
+  const lc = (' ' + text.toLowerCase() + ' ');
+  const hits: string[] = [];
+  for (const { keywords, token } of KEYWORD_TO_TOKEN) {
+    if (keywords.some((kw) => lc.includes(kw))) hits.push(token);
+  }
+  return hits;
+}
+
 export function detectStorms(items: NewsItem[]): StormInfo {
   const now = Date.now();
   const counts: Record<string, number> = {};
   for (const item of items) {
     const ts = Date.parse(item.publishedAt);
     if (isNaN(ts) || now - ts > STORM_WINDOW_MS) continue;
-    const tokens = item.affectedTokens ?? [];
+    // Prefer Groq-tagged affectedTokens when available; fall back to keyword.
+    const tokens = (item.affectedTokens && item.affectedTokens.length > 0)
+      ? item.affectedTokens
+      : tokensFromText(`${item.title} ${item.body ?? item.description ?? ''}`);
     for (const tok of tokens) {
       counts[tok] = (counts[tok] || 0) + 1;
     }
