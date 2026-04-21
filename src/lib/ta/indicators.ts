@@ -218,7 +218,6 @@ export function calculateBollingerBands(
   const sma = calculateSMA(closes, period);
 
   for (let i = period - 1; i < len; i++) {
-    // Standard deviation of the last `period` values
     const slice = closes.slice(i - period + 1, i + 1);
     const mean = sma[i];
     let sumSq = 0;
@@ -234,4 +233,350 @@ export function calculateBollingerBands(
   }
 
   return { upper, middle, lower };
+}
+
+// ---------------------------------------------------------------------------
+// ADX (Average Directional Index) — Wilder's smoothing
+// ---------------------------------------------------------------------------
+
+export interface ADXResult {
+  adx: number[];
+  plusDI: number[];
+  minusDI: number[];
+}
+
+export function calculateADX(
+  highs: number[],
+  lows: number[],
+  closes: number[],
+  period = 14,
+): ADXResult {
+  const len = closes.length;
+  const adx: number[] = new Array(len).fill(NaN);
+  const plusDI: number[] = new Array(len).fill(NaN);
+  const minusDI: number[] = new Array(len).fill(NaN);
+
+  if (len < period * 2 + 1) return { adx, plusDI, minusDI };
+
+  const tr: number[] = new Array(len).fill(0);
+  const plusDM: number[] = new Array(len).fill(0);
+  const minusDM: number[] = new Array(len).fill(0);
+
+  for (let i = 1; i < len; i++) {
+    const up = highs[i] - highs[i - 1];
+    const dn = lows[i - 1] - lows[i];
+    plusDM[i] = up > dn && up > 0 ? up : 0;
+    minusDM[i] = dn > up && dn > 0 ? dn : 0;
+    tr[i] = Math.max(
+      highs[i] - lows[i],
+      Math.abs(highs[i] - closes[i - 1]),
+      Math.abs(lows[i] - closes[i - 1]),
+    );
+  }
+
+  // Wilder's smoothing: first = sum of first `period`, then prev - prev/period + curr
+  let smoothTR = 0;
+  let smoothPlus = 0;
+  let smoothMinus = 0;
+  for (let i = 1; i <= period; i++) {
+    smoothTR += tr[i];
+    smoothPlus += plusDM[i];
+    smoothMinus += minusDM[i];
+  }
+
+  const dx: number[] = [];
+  const firstIdx = period;
+  plusDI[firstIdx] = smoothTR === 0 ? 0 : (100 * smoothPlus) / smoothTR;
+  minusDI[firstIdx] = smoothTR === 0 ? 0 : (100 * smoothMinus) / smoothTR;
+  const diSum0 = plusDI[firstIdx] + minusDI[firstIdx];
+  dx.push(diSum0 === 0 ? 0 : (100 * Math.abs(plusDI[firstIdx] - minusDI[firstIdx])) / diSum0);
+
+  for (let i = period + 1; i < len; i++) {
+    smoothTR = smoothTR - smoothTR / period + tr[i];
+    smoothPlus = smoothPlus - smoothPlus / period + plusDM[i];
+    smoothMinus = smoothMinus - smoothMinus / period + minusDM[i];
+
+    plusDI[i] = smoothTR === 0 ? 0 : (100 * smoothPlus) / smoothTR;
+    minusDI[i] = smoothTR === 0 ? 0 : (100 * smoothMinus) / smoothTR;
+    const diSum = plusDI[i] + minusDI[i];
+    dx.push(diSum === 0 ? 0 : (100 * Math.abs(plusDI[i] - minusDI[i])) / diSum);
+  }
+
+  // ADX = Wilder's smoothed DX
+  if (dx.length < period) return { adx, plusDI, minusDI };
+  let adxVal = 0;
+  for (let i = 0; i < period; i++) adxVal += dx[i];
+  adxVal /= period;
+  adx[firstIdx + period - 1] = adxVal;
+  for (let i = period; i < dx.length; i++) {
+    adxVal = (adxVal * (period - 1) + dx[i]) / period;
+    adx[firstIdx + i] = adxVal;
+  }
+
+  return { adx, plusDI, minusDI };
+}
+
+// ---------------------------------------------------------------------------
+// Stochastic Oscillator — %K and %D
+// ---------------------------------------------------------------------------
+
+export interface StochasticResult {
+  k: number[];
+  d: number[];
+}
+
+export function calculateStochastic(
+  highs: number[],
+  lows: number[],
+  closes: number[],
+  kPeriod = 14,
+  kSmooth = 3,
+  dPeriod = 3,
+): StochasticResult {
+  const len = closes.length;
+  const rawK: number[] = new Array(len).fill(NaN);
+  const k: number[] = new Array(len).fill(NaN);
+  const d: number[] = new Array(len).fill(NaN);
+
+  for (let i = kPeriod - 1; i < len; i++) {
+    let hi = -Infinity;
+    let lo = Infinity;
+    for (let j = i - kPeriod + 1; j <= i; j++) {
+      if (highs[j] > hi) hi = highs[j];
+      if (lows[j] < lo) lo = lows[j];
+    }
+    const range = hi - lo;
+    rawK[i] = range === 0 ? 50 : ((closes[i] - lo) / range) * 100;
+  }
+
+  // %K = SMA of rawK over kSmooth
+  for (let i = kPeriod - 1 + kSmooth - 1; i < len; i++) {
+    let sum = 0;
+    for (let j = i - kSmooth + 1; j <= i; j++) sum += rawK[j];
+    k[i] = sum / kSmooth;
+  }
+
+  // %D = SMA of %K over dPeriod
+  for (let i = kPeriod - 1 + kSmooth - 1 + dPeriod - 1; i < len; i++) {
+    let sum = 0;
+    for (let j = i - dPeriod + 1; j <= i; j++) sum += k[j];
+    d[i] = sum / dPeriod;
+  }
+
+  return { k, d };
+}
+
+// ---------------------------------------------------------------------------
+// Williams %R
+// ---------------------------------------------------------------------------
+
+export function calculateWilliamsR(
+  highs: number[],
+  lows: number[],
+  closes: number[],
+  period = 14,
+): number[] {
+  const len = closes.length;
+  const out: number[] = new Array(len).fill(NaN);
+  for (let i = period - 1; i < len; i++) {
+    let hi = -Infinity;
+    let lo = Infinity;
+    for (let j = i - period + 1; j <= i; j++) {
+      if (highs[j] > hi) hi = highs[j];
+      if (lows[j] < lo) lo = lows[j];
+    }
+    const range = hi - lo;
+    out[i] = range === 0 ? -50 : ((hi - closes[i]) / range) * -100;
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// CCI (Commodity Channel Index)
+// ---------------------------------------------------------------------------
+
+export function calculateCCI(
+  highs: number[],
+  lows: number[],
+  closes: number[],
+  period = 20,
+): number[] {
+  const len = closes.length;
+  const out: number[] = new Array(len).fill(NaN);
+  const tp: number[] = new Array(len);
+  for (let i = 0; i < len; i++) tp[i] = (highs[i] + lows[i] + closes[i]) / 3;
+
+  for (let i = period - 1; i < len; i++) {
+    let sum = 0;
+    for (let j = i - period + 1; j <= i; j++) sum += tp[j];
+    const sma = sum / period;
+
+    let meanDev = 0;
+    for (let j = i - period + 1; j <= i; j++) meanDev += Math.abs(tp[j] - sma);
+    meanDev /= period;
+
+    out[i] = meanDev === 0 ? 0 : (tp[i] - sma) / (0.015 * meanDev);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// MFI (Money Flow Index) — volume-weighted RSI
+// ---------------------------------------------------------------------------
+
+export function calculateMFI(
+  highs: number[],
+  lows: number[],
+  closes: number[],
+  volumes: number[],
+  period = 14,
+): number[] {
+  const len = closes.length;
+  const out: number[] = new Array(len).fill(NaN);
+  if (len < period + 1) return out;
+
+  const tp: number[] = new Array(len);
+  const mf: number[] = new Array(len);
+  for (let i = 0; i < len; i++) {
+    tp[i] = (highs[i] + lows[i] + closes[i]) / 3;
+    mf[i] = tp[i] * volumes[i];
+  }
+
+  for (let i = period; i < len; i++) {
+    let posMF = 0;
+    let negMF = 0;
+    for (let j = i - period + 1; j <= i; j++) {
+      if (tp[j] > tp[j - 1]) posMF += mf[j];
+      else if (tp[j] < tp[j - 1]) negMF += mf[j];
+    }
+    if (negMF === 0) out[i] = 100;
+    else {
+      const ratio = posMF / negMF;
+      out[i] = 100 - 100 / (1 + ratio);
+    }
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Parabolic SAR (J. Welles Wilder)
+// ---------------------------------------------------------------------------
+
+export interface PSARResult {
+  psar: number[];
+  /** True = uptrend (dots below price), False = downtrend (dots above). */
+  trendUp: boolean[];
+}
+
+export function calculatePSAR(
+  highs: number[],
+  lows: number[],
+  accelStart = 0.02,
+  accelIncrement = 0.02,
+  accelMax = 0.2,
+): PSARResult {
+  const len = highs.length;
+  const psar: number[] = new Array(len).fill(NaN);
+  const trendUp: boolean[] = new Array(len).fill(false);
+  if (len < 2) return { psar, trendUp };
+
+  let up = highs[1] > highs[0];
+  let ep = up ? highs[0] : lows[0];
+  let sar = up ? lows[0] : highs[0];
+  let af = accelStart;
+
+  psar[0] = sar;
+  trendUp[0] = up;
+
+  for (let i = 1; i < len; i++) {
+    sar = sar + af * (ep - sar);
+
+    if (up) {
+      sar = Math.min(sar, lows[i - 1], i >= 2 ? lows[i - 2] : lows[i - 1]);
+      if (lows[i] < sar) {
+        up = false;
+        sar = ep;
+        ep = lows[i];
+        af = accelStart;
+      } else if (highs[i] > ep) {
+        ep = highs[i];
+        af = Math.min(af + accelIncrement, accelMax);
+      }
+    } else {
+      sar = Math.max(sar, highs[i - 1], i >= 2 ? highs[i - 2] : highs[i - 1]);
+      if (highs[i] > sar) {
+        up = true;
+        sar = ep;
+        ep = highs[i];
+        af = accelStart;
+      } else if (lows[i] < ep) {
+        ep = lows[i];
+        af = Math.min(af + accelIncrement, accelMax);
+      }
+    }
+
+    psar[i] = sar;
+    trendUp[i] = up;
+  }
+
+  return { psar, trendUp };
+}
+
+// ---------------------------------------------------------------------------
+// OBV (On-Balance Volume) — used internally for divergence detection
+// ---------------------------------------------------------------------------
+
+export function calculateOBV(closes: number[], volumes: number[]): number[] {
+  const len = closes.length;
+  const out: number[] = new Array(len).fill(0);
+  for (let i = 1; i < len; i++) {
+    if (closes[i] > closes[i - 1]) out[i] = out[i - 1] + volumes[i];
+    else if (closes[i] < closes[i - 1]) out[i] = out[i - 1] - volumes[i];
+    else out[i] = out[i - 1];
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Regime classifier — trending vs ranging via ADX
+// ---------------------------------------------------------------------------
+
+export type Regime = 'trending' | 'ranging';
+
+export function detectRegime(adx: number, trendingThreshold = 25): Regime {
+  return adx >= trendingThreshold ? 'trending' : 'ranging';
+}
+
+// ---------------------------------------------------------------------------
+// Volume confirmation matrix multiplier (tradermonty framework)
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns a multiplier 0.8–1.2 applied to the final tech score based on
+ * whether volume is confirming the price move.
+ *
+ *   price↑ vol↑  → 1.2 (healthy uptrend)
+ *   price↑ vol↓  → 0.8 (weak uptrend, dampen bullishness)
+ *   price↓ vol↑  → 1.2 (healthy downtrend, dampen weak sell signal strength)
+ *   price↓ vol↓  → 0.8 (selling exhaustion — less reliable)
+ *
+ * Uses 3-period SMA of volume vs 10-period SMA to decide "volume rising".
+ */
+export function volumeConfirmationMultiplier(
+  closes: number[],
+  volumes: number[],
+  lookback = 3,
+): number {
+  const len = closes.length;
+  if (len < 11) return 1;
+
+  const priceUp = closes[len - 1] > closes[len - 1 - lookback];
+  const recentVol = volumes.slice(-lookback).reduce((a, b) => a + b, 0) / lookback;
+  const baselineVol = volumes.slice(-10).reduce((a, b) => a + b, 0) / 10;
+  const volUp = recentVol > baselineVol;
+
+  if (priceUp && volUp) return 1.2;
+  if (priceUp && !volUp) return 0.8;
+  if (!priceUp && volUp) return 1.2;
+  return 0.8;
 }

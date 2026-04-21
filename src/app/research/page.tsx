@@ -9,6 +9,8 @@ import { ResearchPanel } from '@/components/research/ResearchPanel';
 import { PriceChart } from '@/components/research/PriceChart';
 import { OrderBookPanel } from '@/components/research/OrderBookPanel';
 import { ResearchChatBox } from '@/components/research/ResearchChatBox';
+import AISignalFullPanel from '@/components/research/AISignalFullPanel';
+import ScenariosPanel from '@/components/research/ScenariosPanel';
 
 function ResearchContent() {
   const searchParams = useSearchParams();
@@ -67,6 +69,12 @@ function ResearchContent() {
       {/* Main content area */}
       <div className="flex-1 min-w-0 overflow-y-auto bg-[#08090a]">
         <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-5">
+          {/* AI Signal — prominent at top */}
+          {selectedToken && <AISignalFullPanel symbol={selectedToken} />}
+
+          {/* Scenarios — Bull/Base/Bear probabilities */}
+          {selectedToken && <ScenariosPanel symbol={selectedToken} />}
+
           <ResearchPanel />
 
           <PriceChart

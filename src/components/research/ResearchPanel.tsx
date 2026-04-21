@@ -230,7 +230,7 @@ export function ResearchPanel() {
   const tokenInfo = TOKEN_INFO[selectedToken];
   // ticker can be either DeltaTicker (string fields) or TokenCardData (number fields)
   // Handle both formats gracefully
-  const t = ticker as Record<string, unknown>;
+  const t = ticker as unknown as Record<string, unknown>;
   const price = Number(t.price ?? t.close ?? 0);
   const change24h = Number(t.priceChange24h ?? 0) || (price - Number(t.open ?? price));
   const changePct24h = Number(t.priceChangePct24h ?? 0) || (Number(t.open) ? ((price - Number(t.open)) / Number(t.open)) * 100 : 0);
