@@ -10,7 +10,10 @@ import { useEffect, useState } from 'react';
 import { GaugeIcon, DominanceIcon, EthBtcIcon, CalendarIcon } from './MoodIcons';
 import type { MarketMood } from '@/app/api/market-mood/route';
 
-const STALENESS_MS = 30 * 60_000;
+// Default staleness threshold: anything older than 30 min is dimmed.
+// Override per tile where source cadence is naturally slower (F&G = daily).
+const STALENESS_DEFAULT_MS = 30 * 60_000;
+const STALENESS_DAILY_MS = 30 * 3_600_000; // ~30h — long enough for once-a-day sources
 
 function fgColor(value: number): string {
   if (value <= 24) return '#EF4444';
@@ -100,12 +103,14 @@ function TileShell({
   children,
   lastUpdatedMs,
   tooltip,
+  stalenessMs = STALENESS_DEFAULT_MS,
 }: {
   children: React.ReactNode;
   lastUpdatedMs?: number | null;
   tooltip?: string;
+  stalenessMs?: number;
 }) {
-  const stale = lastUpdatedMs != null && Date.now() - lastUpdatedMs > STALENESS_MS;
+  const stale = lastUpdatedMs != null && Date.now() - lastUpdatedMs > stalenessMs;
   return (
     <div
       title={tooltip}
@@ -145,7 +150,7 @@ function FearGreedTile({ mood, loading }: { mood: MarketMood['fearGreed']; loadi
   const tooltip = 'Fear & Greed Index combines volatility, momentum, social media, surveys, and BTC dominance — 0 = extreme fear, 100 = extreme greed.';
 
   return (
-    <TileShell lastUpdatedMs={mood.lastUpdatedMs} tooltip={tooltip}>
+    <TileShell lastUpdatedMs={mood.lastUpdatedMs} tooltip={tooltip} stalenessMs={STALENESS_DAILY_MS}>
       <div className="flex-shrink-0">
         <GaugeIcon size={40} color={color} value={mood.value} />
       </div>
