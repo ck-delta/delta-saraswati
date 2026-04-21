@@ -16,19 +16,17 @@ import NewsSection from '@/components/home/NewsSection';
 export default function Home() {
   const fetchMarketData = useMarketStore((s) => s.fetchMarketData);
   const fetchNews = useMarketStore((s) => s.fetchNews);
-  const fetchDailyPulse = useMarketStore((s) => s.fetchDailyPulse);
 
   const didFetch = useRef(false);
 
-  // Initial fetch
+  // Initial fetch. DailyPulseSummary manages its own data via /api/ai/daily-pulse.
   useEffect(() => {
     if (didFetch.current) return;
     didFetch.current = true;
 
     fetchMarketData();
     fetchNews();
-    fetchDailyPulse();
-  }, [fetchMarketData, fetchNews, fetchDailyPulse]);
+  }, [fetchMarketData, fetchNews]);
 
   // 30s market data refresh
   useEffect(() => {

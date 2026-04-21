@@ -3,111 +3,160 @@ import {
   getTickers,
   filterPerpetuals,
   parseTickerToTokenCard,
+  getCandles,
+  getTicker,
 } from '@/lib/api/delta';
-import { getFearGreedIndex } from '@/lib/api/feargreed';
+import { getFearGreedIndex, getFearGreedHistory } from '@/lib/api/feargreed';
 import { fetchAllNews } from '@/lib/api/news';
+import { getGlobalMarketData } from '@/lib/api/coingecko';
 import { generateJSON } from '@/lib/ai/groq';
-import { getDailyPulsePrompt } from '@/lib/ai/prompts';
 import { cache } from '@/lib/cache';
-import { TOP_TOKENS, CACHE_TTL } from '@/lib/constants';
-import type { TokenCardData } from '@/types/market';
-import type { DailyPulseResponse } from '@/types/news';
+import { calculateTechScore } from '@/lib/signals/tech-score';
+import { calculateDerivScore } from '@/lib/signals/deriv-score';
+import { calculateNewsScore } from '@/lib/signals/news-score';
+import { aggregateAISignal } from '@/lib/signals/composite';
+import {
+  buildCallouts,
+  curateItems,
+  buildGroqPrompt,
+  mergeIntoSummary,
+  type PulseInputs,
+} from '@/lib/ai/pulse-builder';
+import type { PulseResponse } from '@/types/pulse';
+import type { AISignalResult } from '@/lib/signals/composite';
 
 export const runtime = 'nodejs';
 
-const CACHE_KEY = 'api:daily-pulse';
+const CACHE_KEY = 'api:daily-pulse-v2';
+const CACHE_TTL_MS = 10 * 60 * 1000;
 
-const FALLBACK_RESPONSE: DailyPulseResponse = {
-  summary:
-    'Market data is temporarily unavailable. The AI daily pulse could not be generated at this time. ' +
-    'Please check back shortly for the latest market overview.',
-  highlights: [
-    'Market analysis will resume once data feeds are restored.',
-    'Check individual token pages for the latest prices.',
-    'Visit Delta Exchange for real-time derivatives data.',
-  ],
+const FALLBACK_RESPONSE: PulseResponse = {
+  summary: {
+    marketPulse: [],
+    bigMovers: [],
+    macroWatch: [],
+    derivativesInsight: [],
+  },
+  callouts: {
+    fearGreed: null,
+    btcDominance: null,
+    nextMacroEvents: [],
+    alerts: [],
+  },
   timestamp: Date.now(),
   stale: true,
 };
 
+// Compute AI Signal for a single top token. Uses lighter lookbacks than
+// /api/ai-signal/[symbol] to stay within a single route-handler budget.
+async function computeTopSignal(symbol: string, news: Awaited<ReturnType<typeof fetchAllNews>>) {
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const [ticker, candles, oiCandles] = await Promise.all([
+      getTicker(symbol),
+      getCandles(symbol, '4h', now - 34 * 86400, now),
+      getCandles(`OI:${symbol}`, '1h', now - 48 * 3600, now).catch(() => []),
+    ]);
+    const tech = calculateTechScore(candles);
+    if (!tech) return null;
+    const oiNow = oiCandles.length > 0 ? Number(oiCandles[oiCandles.length - 1].close) : 0;
+    const oiPrior = oiCandles.length > 6 ? Number(oiCandles[oiCandles.length - 7].close) : oiNow;
+    const priceNow = parseFloat(ticker.close);
+    const pricePrior = candles.length > 2 ? Number(candles[candles.length - 2].close) : priceNow;
+    const deriv = calculateDerivScore({
+      priceNow,
+      pricePrior,
+      oiNow,
+      oiPrior,
+      fundingRate: parseFloat(ticker.funding_rate) || 0,
+      spotPrice: parseFloat(ticker.spot_price) || 0,
+      markPrice: parseFloat(ticker.mark_price) || 0,
+    });
+    const newsRes = calculateNewsScore(symbol, news);
+    return aggregateAISignal(newsRes, tech, deriv);
+  } catch (err) {
+    console.error(`computeTopSignal error for ${symbol}:`, err);
+    return null;
+  }
+}
+
 export async function GET() {
   try {
-    // Check cache first (15-minute TTL)
-    const cached = cache.get<DailyPulseResponse>(CACHE_KEY);
+    const cached = cache.get<PulseResponse>(CACHE_KEY);
     if (cached?.fresh) {
       return NextResponse.json(cached.data);
     }
 
-    // Fetch market data + news in parallel
-    const [tickersResult, fearGreedResult, newsResult] =
+    // Parallel fetches
+    const [tickersResult, fgResult, fgHistResult, newsResult, globalResult] =
       await Promise.allSettled([
         getTickers(),
         getFearGreedIndex(),
+        getFearGreedHistory(2),
         fetchAllNews(),
+        getGlobalMarketData(),
       ]);
 
-    // Build token data for the prompt
-    let topTokenCards: TokenCardData[] = [];
-    let totalVolume24h = 0;
+    const tickers = tickersResult.status === 'fulfilled' ? tickersResult.value : [];
+    const fearGreed = fgResult.status === 'fulfilled' ? fgResult.value : null;
+    const fgHist = fgHistResult.status === 'fulfilled' ? fgHistResult.value : [];
+    const prevFG = fgHist.length >= 2 ? fgHist[1].value : null;
+    const news = newsResult.status === 'fulfilled' ? newsResult.value : [];
+    const global = globalResult.status === 'fulfilled' ? globalResult.value : null;
 
-    if (tickersResult.status === 'fulfilled') {
-      const perpetuals = filterPerpetuals(tickersResult.value);
-      const allCards = perpetuals.map(parseTickerToTokenCard);
+    const perpetuals = filterPerpetuals(tickers).map(parseTickerToTokenCard);
 
-      const topSet = new Set<string>(TOP_TOKENS);
-      topTokenCards = allCards.filter((t) => topSet.has(t.symbol));
-
-      totalVolume24h = allCards.reduce((sum, t) => sum + t.turnoverUsd, 0);
-    }
-
-    const fearGreed =
-      fearGreedResult.status === 'fulfilled' ? fearGreedResult.value : null;
-
-    const newsHeadlines: string[] = [];
-    if (newsResult.status === 'fulfilled') {
-      newsResult.value.slice(0, 10).forEach((item) => {
-        newsHeadlines.push(item.title);
-      });
-    }
-
-    // Build prompt and call Groq
-    const prompt = getDailyPulsePrompt(
-      {
-        topTokens: topTokenCards,
-        fearGreedValue: fearGreed?.value,
-        fearGreedLabel: fearGreed?.classification,
-        totalVolume24h,
-      },
-      newsHeadlines,
+    // Top 3 AI signals (used in Market Pulse, Derivatives Insight, divergence alerts)
+    const topSymbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'];
+    const aiSignalsArr = await Promise.all(
+      topSymbols.map((s) => computeTopSignal(s, news)),
     );
+    const aiSignals: Record<string, AISignalResult | null> = {};
+    topSymbols.forEach((s, i) => { aiSignals[s] = aiSignalsArr[i]; });
 
-    let aiResult: { summary?: string; highlights?: string[] };
+    const inputs: PulseInputs = {
+      perpetuals,
+      rawTickers: tickers,
+      fearGreed,
+      prevFearGreed: prevFG,
+      news,
+      global,
+      aiSignals,
+    };
 
+    const callouts = buildCallouts(inputs);
+    const items = curateItems(inputs);
+    const prompt = buildGroqPrompt(items);
+
+    let groqOutput: { items: { index: number; reason: string; sentiment: string }[] } = { items: [] };
     try {
-      aiResult = await generateJSON<{ summary?: string; highlights?: string[] }>(prompt);
-    } catch (aiErr) {
-      console.error('AI generation failed for daily pulse:', aiErr);
-      // Return fallback if AI fails
-      return NextResponse.json({ ...FALLBACK_RESPONSE, timestamp: Date.now() });
+      groqOutput = await generateJSON(prompt);
+    } catch (err) {
+      console.error('Daily Pulse Groq failed:', err);
+      // Fall back: use hint sentiment + a minimal reason per item
+      groqOutput = {
+        items: items.map((it, idx) => ({
+          index: idx + 1,
+          reason: it.context.split('.')[0] + '.',
+          sentiment: (it.hintSentiment ?? 'NEUTRAL'),
+        })),
+      };
     }
 
-    const response: DailyPulseResponse = {
-      summary: aiResult.summary || FALLBACK_RESPONSE.summary,
-      highlights: Array.isArray(aiResult.highlights) && aiResult.highlights.length > 0
-        ? aiResult.highlights
-        : FALLBACK_RESPONSE.highlights,
+    const summary = mergeIntoSummary(items, groqOutput);
+
+    const response: PulseResponse = {
+      summary,
+      callouts,
       timestamp: Date.now(),
     };
 
-    // Cache the successful result
-    cache.set(CACHE_KEY, response, CACHE_TTL.DAILY_PULSE);
-
+    cache.set(CACHE_KEY, response, CACHE_TTL_MS);
     return NextResponse.json(response);
   } catch (err) {
     console.error('Daily pulse route error:', err);
-    return NextResponse.json(
-      { ...FALLBACK_RESPONSE, timestamp: Date.now() },
-      { status: 500 },
-    );
+    const stale = cache.get<PulseResponse>(CACHE_KEY);
+    if (stale) return NextResponse.json({ ...stale.data, stale: true });
+    return NextResponse.json({ ...FALLBACK_RESPONSE, timestamp: Date.now() }, { status: 500 });
   }
 }

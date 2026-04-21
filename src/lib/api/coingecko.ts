@@ -128,6 +128,43 @@ export async function getMarketData(
  * @param id   - CoinGecko coin ID, e.g. 'bitcoin'
  * @param days - Number of days of history (1, 7, 30, 90, 365, max)
  */
+/**
+ * Fetch global crypto market data (BTC dominance, ETH dominance, total mcap).
+ * Used by the Daily Pulse callout strip.
+ */
+export interface GlobalMarketData {
+  btcDominance: number;       // percentage 0-100
+  ethDominance: number;
+  totalMarketCapUsd: number;
+  totalVolume24hUsd: number;
+  marketCapPctChange24h: number;
+}
+
+export async function getGlobalMarketData(): Promise<GlobalMarketData | null> {
+  const cacheKey = 'coingecko:global';
+  try {
+    const raw = await geckoFetch<{
+      data: {
+        market_cap_percentage: Record<string, number>;
+        total_market_cap: Record<string, number>;
+        total_volume: Record<string, number>;
+        market_cap_change_percentage_24h_usd: number;
+      };
+    }>('/global', cacheKey, 5 * 60 * 1000);
+
+    const d = raw.data;
+    return {
+      btcDominance: d.market_cap_percentage?.btc ?? 0,
+      ethDominance: d.market_cap_percentage?.eth ?? 0,
+      totalMarketCapUsd: d.total_market_cap?.usd ?? 0,
+      totalVolume24hUsd: d.total_volume?.usd ?? 0,
+      marketCapPctChange24h: d.market_cap_change_percentage_24h_usd ?? 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function getMarketChart(
   id: string,
   days: number,

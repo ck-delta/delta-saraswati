@@ -64,3 +64,33 @@ export async function getFearGreedIndex(): Promise<FearGreedData> {
     throw err;
   }
 }
+
+/**
+ * Fetch the last N days of Fear & Greed for trend display.
+ * Returned oldest-to-newest actually is newest-to-oldest (alternative.me quirk):
+ * the API returns [0]=today, [1]=yesterday, [2]=2 days ago...
+ */
+export async function getFearGreedHistory(limit = 2): Promise<FearGreedData[]> {
+  const cacheKey = `feargreed:history:${limit}`;
+  const cached = cache.get<FearGreedData[]>(cacheKey);
+  if (cached?.fresh) return cached.data;
+
+  try {
+    const res = await fetch(`${FEAR_GREED_API}/?limit=${limit}`, {
+      headers: { Accept: 'application/json' },
+      next: { revalidate: Math.floor(CACHE_TTL.FEAR_GREED / 1000) },
+    });
+    if (!res.ok) throw new Error(`FNG history ${res.status}`);
+    const json: FngApiResponse = await res.json();
+    const out: FearGreedData[] = (json.data ?? []).map((e) => ({
+      value: parseInt(e.value, 10),
+      classification: e.value_classification,
+      timestamp: parseInt(e.timestamp, 10) * 1000,
+    }));
+    cache.set(cacheKey, out, CACHE_TTL.FEAR_GREED);
+    return out;
+  } catch (err) {
+    if (cached) return cached.data;
+    throw err;
+  }
+}
