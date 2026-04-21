@@ -5,6 +5,7 @@
 import Parser from 'rss-parser';
 import { cache } from '@/lib/cache';
 import { RSS_FEEDS, CACHE_TTL } from '@/lib/constants';
+import { classifyNewsBatch } from '@/lib/ai/news-classifier';
 import type { NewsItem } from '@/types/news';
 
 // ---------------------------------------------------------------------------
@@ -157,4 +158,44 @@ export async function fetchAllNews(): Promise<NewsItem[]> {
 
   cache.set(CACHE_KEY, unique, CACHE_TTL.NEWS);
   return unique;
+}
+
+// ---------------------------------------------------------------------------
+// Classified news — shared across all endpoints
+// ---------------------------------------------------------------------------
+
+const CLASSIFIED_CACHE_KEY = 'news:classified';
+const CLASSIFIED_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * Returns news items with Groq classifier tags applied (sentiment, affected
+ * tokens, priceImpactTier, breadthTier, forwardTier, impactScore) plus
+ * corroboration counts and storm flags.
+ *
+ * This is the single source of truth for classified news across the app:
+ * - /api/news (the feed displayed on the home page)
+ * - /api/ai-signal/[symbol] (per-token composite)
+ * - /api/ai/daily-pulse (AI Market Summary)
+ * - /api/market-mood (storm detector)
+ *
+ * Cached for 5 minutes so at most one Groq classification call runs per
+ * window regardless of how many endpoints consume it.
+ */
+export async function getClassifiedNews(): Promise<NewsItem[]> {
+  const cached = cache.get<NewsItem[]>(CLASSIFIED_CACHE_KEY);
+  if (cached?.fresh) return cached.data;
+
+  const raw = await fetchAllNews();
+  const top = raw.slice(0, 30);
+  let classified: NewsItem[];
+  try {
+    classified = await classifyNewsBatch(top);
+  } catch (err) {
+    console.error('classifyNewsBatch failed in getClassifiedNews:', err);
+    classified = top;
+  }
+  // Append the untagged tail so downstream has 50 items regardless.
+  const full = [...classified, ...raw.slice(30)];
+  cache.set(CLASSIFIED_CACHE_KEY, full, CLASSIFIED_TTL_MS);
+  return full;
 }

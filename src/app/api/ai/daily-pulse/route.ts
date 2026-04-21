@@ -7,7 +7,7 @@ import {
   getTicker,
 } from '@/lib/api/delta';
 import { getFearGreedIndex, getFearGreedHistory } from '@/lib/api/feargreed';
-import { fetchAllNews } from '@/lib/api/news';
+import { getClassifiedNews } from '@/lib/api/news';
 import { getGlobalMarketData } from '@/lib/api/coingecko';
 import { generateJSON } from '@/lib/ai/groq';
 import { cache } from '@/lib/cache';
@@ -49,7 +49,7 @@ const FALLBACK_RESPONSE: PulseResponse = {
 
 // Compute AI Signal for a single top token. Uses lighter lookbacks than
 // /api/ai-signal/[symbol] to stay within a single route-handler budget.
-async function computeTopSignal(symbol: string, news: Awaited<ReturnType<typeof fetchAllNews>>) {
+async function computeTopSignal(symbol: string, news: Awaited<ReturnType<typeof getClassifiedNews>>) {
   try {
     const now = Math.floor(Date.now() / 1000);
     const [ticker, candles, oiCandles] = await Promise.all([
@@ -93,7 +93,7 @@ export async function GET() {
         getTickers(),
         getFearGreedIndex(),
         getFearGreedHistory(2),
-        fetchAllNews(),
+        getClassifiedNews(),
         getGlobalMarketData(),
       ]);
 

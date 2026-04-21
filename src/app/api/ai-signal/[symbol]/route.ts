@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getTicker, getCandles } from '@/lib/api/delta';
-import { fetchAllNews } from '@/lib/api/news';
+import { getClassifiedNews } from '@/lib/api/news';
 import { calculateTechScore } from '@/lib/signals/tech-score';
 import { calculateDerivScore } from '@/lib/signals/deriv-score';
 import { calculateNewsScore } from '@/lib/signals/news-score';
@@ -35,7 +35,8 @@ export async function GET(
       getCandles(symbol, '4h', start, now),
       // OI candles (hourly, 24h window for 6h lookback)
       getCandles(`OI:${symbol}`, '1h', now - 48 * 3600, now).catch(() => []),
-      fetchAllNews().catch(() => []),
+      // Classified news (Groq-tagged, shared cache)
+      getClassifiedNews().catch(() => []),
     ]);
 
     // --- Technical ---

@@ -11,7 +11,7 @@ import { NextResponse } from 'next/server';
 import { getFearGreedIndex, getFearGreedHistory } from '@/lib/api/feargreed';
 import { getGlobalMarketData } from '@/lib/api/coingecko';
 import { getCandles } from '@/lib/api/delta';
-import { fetchAllNews } from '@/lib/api/news';
+import { getClassifiedNews } from '@/lib/api/news';
 import { detectStorms } from '@/lib/ai/news-classifier';
 import { cache } from '@/lib/cache';
 import { nextEvents, upcomingEvents, countdownLabel } from '@/lib/macro/calendar';
@@ -101,7 +101,7 @@ export async function GET() {
       getFearGreedHistory(7),
       getGlobalMarketData(),
       computeEthBtcSeries(),
-      fetchAllNews(),
+      getClassifiedNews(),
     ]);
 
     // Storm detection uses keyword fallback inside detectStorms — no Groq call
