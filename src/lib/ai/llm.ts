@@ -38,8 +38,10 @@ export type LLMTask =
   | 'sentiment'          // Per-token sentiment score batch
   | 'daily-pulse-legacy';
 
-const SONNET = 'anthropic/claude-3.5-sonnet';
-const HAIKU = 'anthropic/claude-3-haiku';
+// Current-gen Anthropic models on OpenRouter (Apr 2026). Verified available
+// against the provisioned key. Older "claude-3-*" IDs are not routed.
+const SONNET = 'anthropic/claude-sonnet-4.6';
+const HAIKU  = 'anthropic/claude-haiku-4.5';
 
 const TASK_MODEL: Record<LLMTask, string> = {
   'chat':              SONNET,
@@ -52,10 +54,10 @@ const TASK_MODEL: Record<LLMTask, string> = {
   'daily-pulse-legacy': HAIKU,
 };
 
-// Pricing per 1M tokens as of Apr 2026 — rough, for cost logs only.
+// Pricing per 1M tokens as of Apr 2026.
 const MODEL_PRICING: Record<string, { in: number; out: number }> = {
   [SONNET]: { in: 3.00, out: 15.00 },
-  [HAIKU]:  { in: 0.25, out: 1.25 },
+  [HAIKU]:  { in: 1.00, out: 5.00 },
 };
 
 export function modelForTask(task: LLMTask): string {
