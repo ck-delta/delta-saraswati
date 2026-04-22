@@ -187,15 +187,21 @@ export async function getClassifiedNews(): Promise<NewsItem[]> {
 
   const raw = await fetchAllNews();
   const top = raw.slice(0, 30);
-  let classified: NewsItem[];
+  let classified: NewsItem[] = top;
+  let didClassify = false;
   try {
     classified = await classifyNewsBatch(top);
+    didClassify = classified.some((x) => x.priceImpactTier);
   } catch (err) {
     console.error('classifyNewsBatch failed in getClassifiedNews:', err);
-    classified = top;
   }
-  // Append the untagged tail so downstream has 50 items regardless.
   const full = [...classified, ...raw.slice(30)];
-  cache.set(CLASSIFIED_CACHE_KEY, full, CLASSIFIED_TTL_MS);
+  // Only cache a SUCCESSFUL classification — never the raw-fallback. If the
+  // LLM call failed (temporary provider issue, schema drift, rate limit), we
+  // want the next request to retry immediately rather than serve untagged
+  // items from cache for 5 minutes.
+  if (didClassify) {
+    cache.set(CLASSIFIED_CACHE_KEY, full, CLASSIFIED_TTL_MS);
+  }
   return full;
 }
