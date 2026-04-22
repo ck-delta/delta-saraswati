@@ -323,15 +323,22 @@ export async function generateJSON<T = unknown>(
         record({ ts: Date.now(), task, model, tokensIn, tokensOut, latencyMs: Date.now() - t0, costUsd: estimateCost(model, tokensIn, tokensOut), ok: true });
         return result.data;
       }
+      // Log full context so we can see what the LLM actually returned
+      console.error(
+        `[llm:${task}] schema validation failed (attempt 1). Errors:`,
+        JSON.stringify(result.error.issues.slice(0, 10), null, 2),
+        '\nRaw response (first 600 chars):',
+        first.raw.slice(0, 600),
+      );
       // One corrective retry: feed back the error
       const fixPrompt = `Your previous response failed schema validation with these errors:
-${result.error.issues.slice(0, 5).map((e) => `- ${e.path.join('.')}: ${e.message}`).join('\n')}
+${result.error.issues.slice(0, 8).map((e) => `- ${e.path.join('.')}: ${e.message}`).join('\n')}
 
-Previous response:
-${first.raw.slice(0, 2000)}
+Previous response (first 1000 chars):
+${first.raw.slice(0, 1000)}
 
-Now emit valid JSON matching the original request exactly.`;
-      const retry = await callJSON(`${prompt}\n\n${fixPrompt}`, model, temperature, maxTokens);
+Emit valid JSON matching the original request exactly. Pay close attention to enum values — they must match the exact allowed strings.`;
+      const retry = await callJSON(`${prompt}\n\n---\nCORRECTION REQUIRED:\n${fixPrompt}`, model, temperature, maxTokens);
       tokensIn += retry.tokensIn;
       tokensOut += retry.tokensOut;
       let retryParsed: unknown;
@@ -341,8 +348,14 @@ Now emit valid JSON matching the original request exactly.`;
         record({ ts: Date.now(), task, model, tokensIn, tokensOut, latencyMs: Date.now() - t0, costUsd: estimateCost(model, tokensIn, tokensOut), ok: true });
         return retryResult.data;
       }
+      console.error(
+        `[llm:${task}] schema validation FAILED TWICE. Final errors:`,
+        JSON.stringify(retryResult.error.issues.slice(0, 10), null, 2),
+        '\nRetry raw (first 600 chars):',
+        retry.raw.slice(0, 600),
+      );
       record({ ts: Date.now(), task, model, tokensIn, tokensOut, latencyMs: Date.now() - t0, costUsd: estimateCost(model, tokensIn, tokensOut), ok: false });
-      throw new Error(`LLM schema validation failed after retry: ${retryResult.error.message}`);
+      throw new Error(`LLM schema validation failed after retry: ${retryResult.error.message.slice(0, 200)}`);
     }
 
     record({ ts: Date.now(), task, model, tokensIn, tokensOut, latencyMs: Date.now() - t0, costUsd: estimateCost(model, tokensIn, tokensOut), ok: true });
@@ -394,13 +407,16 @@ export async function generateText(
 export const SCHEMAS = {
   newsClassification: z.object({
     items: z.array(z.object({
-      index: z.number().int(),
+      // Haiku sometimes emits floats here — coerce to int rather than reject.
+      index: z.number().transform((n) => Math.round(n)),
       direction: z.enum(['bull', 'bear', 'neutral']),
       priceImpactTier: z.enum(['severe', 'major', 'moderate', 'minor', 'negligible']),
       breadthTier: z.enum(['systemic', 'cross-asset', 'sector-wide', 'token-specific']),
       forwardTier: z.enum(['regime-change', 'trend-confirmation', 'isolated', 'contrary']),
-      affectedTokens: z.array(z.string()),
-      impactScore: z.number(),
+      // Accept missing / non-array affectedTokens gracefully.
+      affectedTokens: z.array(z.string()).optional().default([]),
+      // Clamp impactScore to 0-100 on parse.
+      impactScore: z.number().transform((n) => Math.max(0, Math.min(100, n))),
     })),
   }),
 
