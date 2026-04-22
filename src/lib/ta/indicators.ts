@@ -538,6 +538,61 @@ export function calculateOBV(closes: number[], volumes: number[]): number[] {
 }
 
 // ---------------------------------------------------------------------------
+// Classic floor-trader Pivot Points from previous period's OHLC
+// ---------------------------------------------------------------------------
+
+export interface PivotPoints {
+  pivot: number;
+  r1: number;
+  r2: number;
+  r3: number;
+  s1: number;
+  s2: number;
+  s3: number;
+}
+
+/** Standard floor-trader pivot points from prior period H/L/C. */
+export function calculatePivotPoints(
+  prevHigh: number,
+  prevLow: number,
+  prevClose: number,
+): PivotPoints {
+  const p = (prevHigh + prevLow + prevClose) / 3;
+  const r1 = 2 * p - prevLow;
+  const s1 = 2 * p - prevHigh;
+  const r2 = p + (prevHigh - prevLow);
+  const s2 = p - (prevHigh - prevLow);
+  const r3 = prevHigh + 2 * (p - prevLow);
+  const s3 = prevLow - 2 * (prevHigh - p);
+  return { pivot: p, r1, r2, r3, s1, s2, s3 };
+}
+
+/**
+ * Snap a price level to a nearby "round" number if the round number is within
+ * `tolerance` of the level (default 0.5%). Returns the original level unchanged
+ * if no nearby round number fits. Human-readable levels for UI.
+ */
+export function snapToRound(level: number, tolerance = 0.005): number {
+  if (level <= 0) return level;
+  // Candidate magnitudes to try snapping to (e.g. 100, 500, 1000 for BTC).
+  // We pick the magnitude that's roughly 1-2% of the level so candidates are
+  // spaced sensibly for price action.
+  const mag = Math.pow(10, Math.floor(Math.log10(level)) - 1);
+  const candidates = [mag * 0.5, mag, mag * 2, mag * 5, mag * 10, mag * 50, mag * 100];
+  let best = level;
+  let bestDiff = Infinity;
+  for (const step of candidates) {
+    const nearest = Math.round(level / step) * step;
+    const diff = Math.abs(nearest - level) / level;
+    if (diff < tolerance && diff < bestDiff) {
+      best = nearest;
+      bestDiff = diff;
+    }
+  }
+  return best;
+}
+
+// ---------------------------------------------------------------------------
 // Regime classifier — trending vs ranging via ADX
 // ---------------------------------------------------------------------------
 

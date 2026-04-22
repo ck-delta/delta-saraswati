@@ -11,6 +11,8 @@ import { OrderBookPanel } from '@/components/research/OrderBookPanel';
 import { ResearchChatBox } from '@/components/research/ResearchChatBox';
 import AISignalFullPanel from '@/components/research/AISignalFullPanel';
 import ScenariosPanel from '@/components/research/ScenariosPanel';
+import AssetHero from '@/components/research/AssetHero';
+import DeepDiveCards from '@/components/research/DeepDiveCards';
 
 function ResearchContent() {
   const searchParams = useSearchParams();
@@ -24,6 +26,7 @@ function ResearchContent() {
   } = useResearchStore();
 
   const { allTickers, fetchMarketData } = useMarketStore();
+  const activeTicker = selectedToken ? allTickers.find((t) => t.symbol === selectedToken) ?? null : null;
 
   useEffect(() => {
     if (allTickers.length === 0) {
@@ -68,12 +71,18 @@ function ResearchContent() {
 
       {/* Main content area */}
       <div className="flex-1 min-w-0 overflow-y-auto bg-[#08090a]">
-        <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-5">
-          {/* AI Signal — prominent at top */}
+        <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+          {/* Asset hero: logo + name + price + tagline */}
+          {selectedToken && <AssetHero symbol={selectedToken} token={activeTicker} />}
+
+          {/* AI Signal + Things to Note + Full breakdown */}
           {selectedToken && <AISignalFullPanel symbol={selectedToken} />}
 
-          {/* Scenarios — Bull/Base/Bear probabilities */}
+          {/* Scenarios — probability-weighted Bull / Base / Bear plans */}
           {selectedToken && <ScenariosPanel symbol={selectedToken} />}
+
+          {/* Deep-dive cards: Technical · Derivatives · News */}
+          {selectedToken && <DeepDiveCards symbol={selectedToken} />}
 
           <ResearchPanel />
 

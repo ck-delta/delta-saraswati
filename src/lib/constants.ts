@@ -18,16 +18,19 @@ export const TOP_TOKENS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'] as const;
 
 // === Symbol mapping: Delta symbol → display info ===
 // Delta Exchange uses USDT-suffixed symbols for perpetual futures
-export const TOKEN_INFO: Record<string, { name: string; coingeckoId: string; icon: string }> = {
-  BTCUSDT: { name: 'Bitcoin', coingeckoId: 'bitcoin', icon: '/icons/btc.svg' },
-  ETHUSDT: { name: 'Ethereum', coingeckoId: 'ethereum', icon: '/icons/eth.svg' },
-  SOLUSDT: { name: 'Solana', coingeckoId: 'solana', icon: '/icons/sol.svg' },
-  DOGEUSDT: { name: 'Dogecoin', coingeckoId: 'dogecoin', icon: '/icons/doge.svg' },
-  XRPUSDT: { name: 'XRP', coingeckoId: 'ripple', icon: '/icons/xrp.svg' },
-  METAXUSDT: { name: 'Meta', coingeckoId: 'meta-platforms', icon: '/icons/meta.svg' },
-  TSLAXUSDT: { name: 'Tesla', coingeckoId: 'tesla-stock-token', icon: '/icons/tsla.svg' },
-  NVDAXUSDT: { name: 'Nvidia', coingeckoId: 'nvidia-stock-token', icon: '/icons/nvda.svg' },
-  PAXGUSDT: { name: 'Pax Gold', coingeckoId: 'pax-gold', icon: '/icons/paxg.svg' },
+export const TOKEN_INFO: Record<string, { name: string; coingeckoId: string; icon: string; tagline?: string }> = {
+  BTCUSDT:   { name: 'Bitcoin',  coingeckoId: 'bitcoin',           icon: '/icons/btc.svg',  tagline: 'First cryptocurrency · digital gold · largest crypto by market cap' },
+  ETHUSDT:   { name: 'Ethereum', coingeckoId: 'ethereum',          icon: '/icons/eth.svg',  tagline: 'Leading smart contract platform · ETH 2.0 proof-of-stake · DeFi + NFT backbone' },
+  SOLUSDT:   { name: 'Solana',   coingeckoId: 'solana',            icon: '/icons/sol.svg',  tagline: 'High-throughput L1 · fast, cheap transactions · memecoin hub' },
+  DOGEUSDT:  { name: 'Dogecoin', coingeckoId: 'dogecoin',          icon: '/icons/doge.svg', tagline: 'Original memecoin · PoW · retail-driven narrative' },
+  XRPUSDT:   { name: 'XRP',      coingeckoId: 'ripple',            icon: '/icons/xrp.svg',  tagline: 'Cross-border payments network · Ripple-led ecosystem' },
+  METAXUSDT: { name: 'Meta',     coingeckoId: 'meta-platforms',    icon: '/icons/meta.svg', tagline: 'Tokenised stock — Meta Platforms (Facebook, Instagram, WhatsApp)' },
+  TSLAXUSDT: { name: 'Tesla',    coingeckoId: 'tesla-stock-token', icon: '/icons/tsla.svg', tagline: 'Tokenised stock — Tesla, electric vehicles and energy' },
+  NVDAXUSDT: { name: 'Nvidia',   coingeckoId: 'nvidia-stock-token',icon: '/icons/nvda.svg', tagline: 'Tokenised stock — Nvidia, AI chip maker' },
+  AMZNXUSDT: { name: 'Amazon',   coingeckoId: 'amazon',            icon: '/icons/amzn.svg', tagline: 'Tokenised stock — Amazon, e-commerce and AWS cloud' },
+  AAPLXUSDT: { name: 'Apple',    coingeckoId: 'apple',             icon: '/icons/aapl.svg', tagline: 'Tokenised stock — Apple, largest consumer electronics company' },
+  GOOGLXUSDT:{ name: 'Google',   coingeckoId: 'google',            icon: '/icons/googl.svg',tagline: 'Tokenised stock — Alphabet / Google' },
+  PAXGUSDT:  { name: 'Pax Gold', coingeckoId: 'pax-gold',          icon: '/icons/paxg.svg', tagline: 'Gold-backed token · each PAXG = 1 troy oz of LBMA-certified gold' },
 };
 
 // === Cache TTLs (milliseconds) ===

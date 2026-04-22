@@ -5,11 +5,26 @@ import { cache } from '@/lib/cache';
 export const runtime = 'nodejs';
 export const revalidate = 900;
 
+interface Scenario {
+  probability: number;
+  thesis: string;
+  entry: string;        // e.g. "$75,900" or "Current market"
+  tp: string;           // e.g. "$78,400 (R1)"
+  sl: string;           // e.g. "$74,500 (below pivot)"
+  invalidation: string; // specific condition
+  catalyst: string;     // event or level that triggers it
+}
+
 interface ScenarioResponse {
-  bull: { probability: number; thesis: string; invalidation: string };
-  base: { probability: number; thesis: string; invalidation: string };
-  bear: { probability: number; thesis: string; invalidation: string };
+  bull: Scenario;
+  base: Scenario;
+  bear: Scenario;
   generatedAt: number;
+  levels?: {
+    price: number;
+    pivots: { pivot: number; r1: number; r2: number; s1: number; s2: number } | null;
+  };
+  stale?: boolean;
 }
 
 const CACHE_TTL = 15 * 60 * 1000;
@@ -26,50 +41,75 @@ export async function GET(
   if (cached?.fresh) return NextResponse.json({ ...cached.data, cached: true });
 
   try {
-    // Fetch AI Signal to condition the prompt
     const origin = new URL(req.url).origin;
     const sigRes = await fetch(`${origin}/api/ai-signal/${symbol}`);
     if (!sigRes.ok) {
-      return NextResponse.json(
-        { error: 'AI Signal unavailable' },
-        { status: 503 },
-      );
+      return NextResponse.json({ error: 'AI Signal unavailable' }, { status: 503 });
     }
     const sig = await sigRes.json();
 
-    const prompt = `You are Saraswati's scenario engine for ${symbol}.
-Given the AI Signal breakdown below, produce three probability-weighted scenarios
-(Bull / Base / Bear) that must sum to 100%. Each scenario includes:
-- probability (integer 0-100)
-- thesis: 1-2 sentences, specific and data-driven (mention key levels or catalysts)
-- invalidation: a concrete price level or event that would disprove the thesis
+    const pivots = (sig.pivotsRounded ?? sig.pivots) as
+      | { pivot: number; r1: number; r2: number; r3: number; s1: number; s2: number; s3: number }
+      | null;
+    const price = sig.price as number;
 
-Tie probabilities to the signal breakdown:
+    const pivotBlock = pivots
+      ? `Pivot levels (rounded, from prior daily candle):
+- P (daily pivot):    $${pivots.pivot.toLocaleString()}
+- R1 (1st resistance): $${pivots.r1.toLocaleString()}
+- R2 (2nd resistance): $${pivots.r2.toLocaleString()}
+- R3 (3rd resistance): $${pivots.r3.toLocaleString()}
+- S1 (1st support):    $${pivots.s1.toLocaleString()}
+- S2 (2nd support):    $${pivots.s2.toLocaleString()}
+- S3 (3rd support):    $${pivots.s3.toLocaleString()}`
+      : `No pivot levels available — infer reasonable round numbers from price $${price?.toLocaleString()}.`;
+
+    const prompt = `You are Saraswati's scenario engine for ${symbol}.
+Produce three probability-weighted scenarios (Bull / Base / Bear) that sum to 100%. Each scenario must include concrete, tradeable levels.
+
+Current price: $${price?.toLocaleString()}
+
+${pivotBlock}
+
+Signal context:
 - Composite: ${sig.composite.score}/10 (${sig.composite.label}), confidence ${sig.composite.confidence}%, divergent=${sig.composite.divergent}
 - News: ${sig.composite.news.score}/10 (${sig.composite.news.label})
 - Technical: ${sig.composite.technical.score}/10 (${sig.composite.technical.label}, ${sig.composite.technical.regime})
 - Derivatives: ${sig.composite.derivatives.score}/10 (${sig.composite.derivatives.label}, ${sig.composite.derivatives.positioning})
 
-Current price context from the Technical breakdown:
-${sig.composite.reasoning.join('\n')}
+Top reasoning:
+${(sig.composite.reasoning || []).join('\n')}
 
-Respond ONLY as valid JSON with this exact shape (no prose, no markdown):
-{
-  "bull": {"probability": <int>, "thesis": "...", "invalidation": "..."},
-  "base": {"probability": <int>, "thesis": "...", "invalidation": "..."},
-  "bear": {"probability": <int>, "thesis": "...", "invalidation": "..."}
-}
+For each scenario produce:
+- probability: integer 0-100 (must sum to 100)
+- thesis: 1-2 sentences, specific, trader voice, mention the key catalyst
+- entry: either "Current market" or a specific price (snap to nearest round number, e.g. "$76,000")
+- tp: take-profit level — prefer a named pivot ("$78,400 (R1)") or a round number
+- sl: stop-loss level — prefer a named pivot ("$74,700 (below S1)") or round number
+- invalidation: the specific condition that kills this scenario (e.g. "Daily close below $74,000")
+- catalyst: the most likely event or level that activates the scenario ("Break of R1 on rising volume", "FOMC dovish surprise", "Bearish engulfing on 4h")
 
 Rules:
-- probabilities sum to 100
-- higher Bull probability when composite ≥ 6, higher Bear when ≤ 4
-- when divergent=true, balance Bull/Bear closer (reduce conviction)
-- invalidation must be specific (price level or named event), not vague`;
+- Probabilities MUST sum to exactly 100.
+- Bull probability should be higher when composite >= 6, Bear higher when <= 4.
+- If divergent=true, keep probabilities closer to 33/34/33.
+- Bull TP should be above price, Bear TP should be below.
+- Entry/TP/SL for Base scenario describe a range-trading plan.
+- Use the pivot levels above where they make sense — they are real market-tested levels from the prior day.
+- Every field must be concrete, never "depending on …".
 
+Respond ONLY as JSON, no markdown:
+{
+  "bull": {"probability": <int>, "thesis": "...", "entry": "...", "tp": "...", "sl": "...", "invalidation": "...", "catalyst": "..."},
+  "base": {"probability": <int>, "thesis": "...", "entry": "...", "tp": "...", "sl": "...", "invalidation": "...", "catalyst": "..."},
+  "bear": {"probability": <int>, "thesis": "...", "entry": "...", "tp": "...", "sl": "...", "invalidation": "...", "catalyst": "..."}
+}`;
+
+    type RawScenario = Omit<Scenario, 'probability'> & { probability: number };
     const raw = await generateJSON<{
-      bull: { probability: number; thesis: string; invalidation: string };
-      base: { probability: number; thesis: string; invalidation: string };
-      bear: { probability: number; thesis: string; invalidation: string };
+      bull: RawScenario;
+      base: RawScenario;
+      bear: RawScenario;
     }>(prompt);
 
     // Normalise probabilities to sum to 100
@@ -84,6 +124,18 @@ Rules:
       base,
       bear,
       generatedAt: Date.now(),
+      levels: pivots
+        ? {
+            price,
+            pivots: {
+              pivot: pivots.pivot,
+              r1: pivots.r1,
+              r2: pivots.r2,
+              s1: pivots.s1,
+              s2: pivots.s2,
+            },
+          }
+        : undefined,
     };
 
     cache.set(cacheKey, result, CACHE_TTL);

@@ -164,6 +164,143 @@ export function getTopLosers(tickers: DeltaTicker[], n: number): DeltaTicker[] {
     .slice(0, n);
 }
 
+// ---------------------------------------------------------------------------
+// Options-derived market sentiment — PCR (Put-Call Ratio) and L/S
+// ---------------------------------------------------------------------------
+
+export interface PCRResult {
+  pcrVolume: number;              // volume-based put/call ratio (0+)
+  totalCallVolumeUsd: number;
+  totalPutVolumeUsd: number;
+  contractsCounted: number;
+  /** Human-readable interpretation. */
+  label: 'Bullish crowd' | 'Neutral' | 'Bearish crowd';
+  description: string;
+}
+
+export interface OptionsLSResult {
+  /** 0-100: % of open interest that's long-biased (calls held + puts written). */
+  longBiasPct: number;
+  totalCallOiUsd: number;
+  totalPutOiUsd: number;
+  contractsCounted: number;
+  label: 'Long-biased' | 'Balanced' | 'Short-biased';
+  description: string;
+}
+
+/**
+ * Volume-based 24h Put-Call Ratio for the given underlying, computed from
+ * Delta's options tickers. Returns null if coverage is too thin.
+ *
+ * Interpretation (traditional):
+ *   PCR > 1.10  → bearish crowd (heavy put buying)
+ *   0.70-1.10   → neutral
+ *   < 0.70      → bullish crowd (heavy call buying)
+ * Contrarian reading reverses extremes, but we report raw.
+ */
+export async function computePCR(underlying: string): Promise<PCRResult | null> {
+  try {
+    const all = await getTickers();
+    const callsPuts = all.filter(
+      (t) =>
+        (t.contract_type === 'call_options' || t.contract_type === 'put_options') &&
+        t.underlying_asset_symbol === underlying,
+    );
+    if (callsPuts.length < 4) return null;
+
+    let callVol = 0;
+    let putVol = 0;
+    for (const t of callsPuts) {
+      const turnover = parseFloat(t.turnover_usd) || 0;
+      if (t.contract_type === 'call_options') callVol += turnover;
+      else putVol += turnover;
+    }
+    if (callVol + putVol === 0) return null;
+    const pcr = callVol > 0 ? putVol / callVol : Infinity;
+
+    let label: PCRResult['label'];
+    let description: string;
+    if (pcr > 1.1) {
+      label = 'Bearish crowd';
+      description = `Put volume dominates (${pcr.toFixed(2)}) — options traders hedging downside.`;
+    } else if (pcr < 0.7) {
+      label = 'Bullish crowd';
+      description = `Call volume dominates (${pcr.toFixed(2)}) — options traders paying up for upside.`;
+    } else {
+      label = 'Neutral';
+      description = `Balanced call/put flow (${pcr.toFixed(2)}).`;
+    }
+
+    return {
+      pcrVolume: pcr,
+      totalCallVolumeUsd: callVol,
+      totalPutVolumeUsd: putVol,
+      contractsCounted: callsPuts.length,
+      label,
+      description,
+    };
+  } catch (err) {
+    console.error(`computePCR(${underlying}) failed:`, err);
+    return null;
+  }
+}
+
+/**
+ * Long/Short bias approximation from Delta options Open Interest for an
+ * underlying. The idea: call OI represents trader commitment to upside,
+ * put OI represents hedged/bearish commitment. We expose the split as a
+ * 0-100 longBiasPct where 50 = balanced, 70 = long-heavy, 30 = short-heavy.
+ *
+ * Only meaningful for underlyings with liquid options (BTC, ETH on Delta).
+ */
+export async function computeOptionsLS(underlying: string): Promise<OptionsLSResult | null> {
+  try {
+    const all = await getTickers();
+    const callsPuts = all.filter(
+      (t) =>
+        (t.contract_type === 'call_options' || t.contract_type === 'put_options') &&
+        t.underlying_asset_symbol === underlying,
+    );
+    if (callsPuts.length < 4) return null;
+
+    let callOi = 0;
+    let putOi = 0;
+    for (const t of callsPuts) {
+      const oi = parseFloat(t.oi_value_usd) || 0;
+      if (t.contract_type === 'call_options') callOi += oi;
+      else putOi += oi;
+    }
+    const total = callOi + putOi;
+    if (total === 0) return null;
+    const longBiasPct = (callOi / total) * 100;
+
+    let label: OptionsLSResult['label'];
+    let description: string;
+    if (longBiasPct >= 60) {
+      label = 'Long-biased';
+      description = `${longBiasPct.toFixed(0)}% of options OI is in calls — crowd is positioned long.`;
+    } else if (longBiasPct <= 40) {
+      label = 'Short-biased';
+      description = `${(100 - longBiasPct).toFixed(0)}% of options OI is in puts — crowd is positioned short.`;
+    } else {
+      label = 'Balanced';
+      description = `${longBiasPct.toFixed(0)}% call / ${(100 - longBiasPct).toFixed(0)}% put OI split — no strong lean.`;
+    }
+
+    return {
+      longBiasPct,
+      totalCallOiUsd: callOi,
+      totalPutOiUsd: putOi,
+      contractsCounted: callsPuts.length,
+      label,
+      description,
+    };
+  } catch (err) {
+    console.error(`computeOptionsLS(${underlying}) failed:`, err);
+    return null;
+  }
+}
+
 /** Convert a raw DeltaTicker into the TokenCardData shape the frontend needs. */
 export function parseTickerToTokenCard(ticker: DeltaTicker): TokenCardData {
   const info = TOKEN_INFO[ticker.symbol];
