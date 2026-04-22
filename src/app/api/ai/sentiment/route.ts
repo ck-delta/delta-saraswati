@@ -6,7 +6,7 @@ import {
   parseTickerToTokenCard,
 } from '@/lib/api/delta';
 import { fetchAllNews } from '@/lib/api/news';
-import { generateJSON } from '@/lib/ai/groq';
+import { generateJSON, SCHEMAS } from '@/lib/ai/llm';
 import { getSentimentPrompt } from '@/lib/ai/prompts';
 import { cache } from '@/lib/cache';
 import { CACHE_TTL } from '@/lib/constants';
@@ -77,7 +77,11 @@ export async function POST(request: NextRequest) {
 
     let aiResult: { scores?: SentimentScore[] };
     try {
-      aiResult = await generateJSON<{ scores?: SentimentScore[] }>(prompt);
+      aiResult = await generateJSON(prompt, {
+        task: 'sentiment',
+        schema: SCHEMAS.tokenSentiment,
+        temperature: 0.3,
+      });
     } catch (aiErr) {
       console.error('AI generation failed for sentiment:', aiErr);
       return NextResponse.json(

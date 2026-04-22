@@ -10,7 +10,7 @@ import {
 } from '@/lib/api/delta';
 import { getFearGreedIndex } from '@/lib/api/feargreed';
 import { fetchAllNews } from '@/lib/api/news';
-import { streamChat } from '@/lib/ai/groq';
+import { streamChat } from '@/lib/ai/llm';
 import {
   getChatSystemPrompt,
   getTokenResearchPrompt,

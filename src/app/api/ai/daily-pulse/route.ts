@@ -9,7 +9,7 @@ import {
 import { getFearGreedIndex, getFearGreedHistory } from '@/lib/api/feargreed';
 import { getClassifiedNews } from '@/lib/api/news';
 import { getGlobalMarketData } from '@/lib/api/coingecko';
-import { generateJSON } from '@/lib/ai/groq';
+import { generateJSON, SCHEMAS } from '@/lib/ai/llm';
 import { cache } from '@/lib/cache';
 import { calculateTechScore } from '@/lib/signals/tech-score';
 import { calculateDerivScore } from '@/lib/signals/deriv-score';
@@ -170,9 +170,14 @@ export async function GET() {
 
     let groqOutput: { items: { index: number; reason: string; sentiment: string }[] } = { items: [] };
     try {
-      groqOutput = await generateJSON(prompt);
+      groqOutput = await generateJSON(prompt, {
+        task: 'market-summary',
+        schema: SCHEMAS.marketSummaryReasons,
+        temperature: 0.5,
+        maxTokens: 2000,
+      });
     } catch (err) {
-      console.error('Daily Pulse Groq failed:', err);
+      console.error('Daily Pulse LLM failed:', err);
       // Fall back: use hint sentiment + a minimal reason per item
       groqOutput = {
         items: items.map((it, idx) => ({

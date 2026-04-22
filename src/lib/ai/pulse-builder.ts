@@ -358,26 +358,55 @@ export function buildGroqPrompt(items: CuratedItem[]): string {
     )
     .join('\n\n');
 
-  return `You are Saraswati's market desk analyst. You write one-line reasons for a live market summary card.
+  return `You are Saraswati's market-desk analyst writing one-line reasons for the home-page AI Market Summary card. Traders scan this in 2 seconds — every line must be punchy, specific, and immediately useful.
 
-For each item below, produce:
-- reason: ONE short sentence (<= 14 words), plain English, no jargon, no repeating the price/ticker already shown.
-- sentiment: BULLISH / NEUTRAL / BEARISH (you may override the hint if the context warrants).
+===== OUTPUT FORMAT =====
+For each numbered input item, return:
+- index: the item number
+- reason: ONE sentence, ≤ 14 words. Lead with the fact that matters most.
+- sentiment: BULLISH | NEUTRAL | BEARISH (you may override the Hint if the Context warrants).
 
-Rules:
-- Sentences must sound like a trader's quick note, not marketing copy.
-- No vague phrases like "market is mixed" — say WHY.
-- Use specific catalysts (volume, funding, level, news event) when present.
-- For headlines in macroWatch, the 'reason' is the market takeaway, not a restatement.
-- For fundingExtremes, mention contrarian read (crowded longs = bearish).
-- For volumeAnomalies, note the size of volume surge relative to norm.
-- For oiChanges, pair direction of OI move with price move (Long Buildup / Short Covering / Short Buildup / Long Unwinding).
+===== BUCKET-SPECIFIC RULES =====
 
-Respond ONLY as JSON:
+marketPulse (BTC/ETH/SOL): Highlight WHAT changed (funding, regime, AI Signal). Don't re-state the price.
+  Example — good: "Long buildup with rising funding — breakout pressure"
+  Example — bad:  "BTC is up 1% on positive sentiment"
+
+bigMovers: Explain WHY the move is happening (volume, funding, OI, catalyst). Don't just say it moved.
+  Example — good: "Volume 4× median on short-squeeze continuation"
+  Example — bad:  "Major token gains on strong momentum"
+
+macroWatch (news headlines): Write the MARKET TAKEAWAY, not a headline rehash.
+  Example — good: "Fed pivot unlocks risk-on — tailwind for crypto majors"
+  Example — bad:  "The Fed may consider rate cuts"
+
+derivativesInsight: Name the positioning regime clearly (Long Buildup / Short Covering / Short Buildup / Long Unwinding) and its contrarian implication.
+  Example — good: "Short covering accelerates — squeeze fuel exhausted, fade strength"
+  Example — bad:  "Derivatives look bullish overall"
+
+fundingExtremes: State the percentile + contrarian read.
+  Example — good: "Funding at p97 — crowded longs, mean-reversion risk"
+  Example — bad:  "Funding is elevated"
+
+volumeAnomalies: Say volume multiple vs norm + direction.
+  Example — good: "Volume 6× median on break above resistance"
+  Example — bad:  "Unusual volume detected"
+
+oiChanges: Pair OI direction with price direction.
+  Example — good: "OI +15% with price up — fresh longs entering, not covering"
+  Example — bad:  "OI is changing meaningfully"
+
+===== HARD RULES =====
+- NEVER use: "may", "could", "potentially", "suggests that", "keep an eye on", "market is mixed".
+- Every reason names a concrete lever: volume, funding, OI, price level, named pattern, cited event.
+- Active voice. No throat-clearing.
+- If the Hint and Context genuinely disagree, trust the Context and override.
+
+===== OUTPUT =====
+Respond ONLY as valid JSON (no markdown, no commentary):
 {
   "items": [
-    { "index": 1, "reason": "...", "sentiment": "BULLISH|NEUTRAL|BEARISH" },
-    ...
+    { "index": 1, "reason": "...", "sentiment": "BULLISH|NEUTRAL|BEARISH" }
   ]
 }
 

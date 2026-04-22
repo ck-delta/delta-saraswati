@@ -3,7 +3,8 @@
 // (strongest indicator, biggest news, positioning, fired pattern, funding
 // extreme, PCR extreme, L/S skew). Groq writes one short sentence per item.
 
-import { generateJSON } from '@/lib/ai/groq';
+import { generateJSON } from '@/lib/ai/llm';
+import { z } from 'zod';
 import type { AISignalResult } from '@/lib/signals/composite';
 import type { TechScoreResult } from '@/lib/signals/tech-score';
 import type { DerivScoreResult } from '@/lib/signals/deriv-score';
@@ -122,18 +123,40 @@ export async function buildThingsToNote(input: ThingsToNoteInput): Promise<Thing
     .map((c, i) => `${i + 1}. [${c.kind}] tone=${c.tone}\n   ${c.context}`)
     .join('\n\n');
 
-  const prompt = `You are Saraswati's trading desk analyst. You see ${candidates.length} raw data points about a crypto asset. Rewrite the ${TARGET_MIN}-${TARGET_MAX} most NOTABLE ones into short, punchy trader-desk bullet points.
+  const prompt = `You are Saraswati's trading desk analyst writing the "Things to Note" panel for a crypto asset's research page. A portfolio manager will read this in 5 seconds before making a position decision — every bullet must earn its place.
 
-Rules:
-- Write each as ONE sentence, <= 20 words.
-- Lead with the fact, not generic phrasing. "MACD flipped bullish on 4h" beats "Indicators suggest…".
-- Preserve the 'kind' and 'tone' of the candidate — don't invent new ones.
-- Skip candidates that are redundant with another more impactful item.
-- Keep the ordering: most market-moving first.
+===== THINK STEP BY STEP (do not emit these steps) =====
 
-Return ONLY valid JSON:
+STEP 1 — RANK
+Rank the ${candidates.length} candidates by market-moving power:
+- Active news catalyst (regime-change or severe impact) ranks highest
+- Confirmed technical pattern ranks above oscillator readings
+- Extreme derivatives positioning (Long Buildup, Short Covering, crowded p95+ funding) ranks highly
+- Options crowding (PCR extreme, L/S skew) is a sharp contrarian signal when present
+- Divergence across sub-scores is a caution flag — include only if flagged
+
+STEP 2 — DEDUPE
+Drop candidates that say the same thing in different words. Keep the strongest phrasing.
+
+STEP 3 — TRIM
+Keep ${TARGET_MIN} to ${TARGET_MAX} items. More than 5 = noise.
+
+STEP 4 — REWRITE
+Turn each candidate into ONE trader-desk sentence:
+- Lead with the hard fact ("MACD flipped bullish on 4h" not "Indicators suggest bullish momentum")
+- Include the number or level where relevant ("funding at p96 — crowded longs")
+- Name the pattern/indicator/source concretely
+- ≤ 20 words per bullet
+- No hedging ("may", "could", "potentially", "might")
+- Active voice
+
+STEP 5 — PRESERVE METADATA
+For each output item, keep the source candidate's 'kind' and 'tone' unchanged. Do not invent new kinds or flip tones.
+
+===== OUTPUT =====
+Return ONLY valid JSON matching this exact schema. No markdown, no explanations:
 {
-  "notes": [
+  "items": [
     { "text": "...", "kind": "technical|news|derivatives|pattern|options|divergence", "tone": "bullish|bearish|neutral" }
   ]
 }
@@ -141,14 +164,24 @@ Return ONLY valid JSON:
 CANDIDATES:
 ${list}`;
 
+  const outputSchema = z.object({
+    items: z.array(z.object({
+      text: z.string().min(1),
+      kind: z.enum(['technical', 'news', 'derivatives', 'pattern', 'options', 'divergence']),
+      tone: z.enum(['bullish', 'bearish', 'neutral']),
+    })),
+  });
+
   try {
-    const out = await generateJSON<{ notes: ThingToNote[] }>(prompt);
-    const valid = (out.notes ?? []).filter(
-      (n) => typeof n?.text === 'string' && n.text.length > 0,
-    );
-    return valid.slice(0, TARGET_MAX);
+    const out = await generateJSON(prompt, {
+      task: 'things-to-note',
+      schema: outputSchema,
+      temperature: 0.4,
+      maxTokens: 800,
+    });
+    return out.items.slice(0, TARGET_MAX);
   } catch (err) {
-    console.error('buildThingsToNote Groq failed, falling back to raw candidates:', err);
+    console.error('buildThingsToNote failed, falling back to raw candidates:', err);
     return candidates.slice(0, TARGET_MAX).map((c) => ({
       text: c.context,
       kind: c.kind,

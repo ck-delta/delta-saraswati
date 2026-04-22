@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateJSON } from '@/lib/ai/groq';
+import { generateJSON, SCHEMAS } from '@/lib/ai/llm';
 import { cache } from '@/lib/cache';
 
 export const runtime = 'nodejs';
@@ -64,53 +64,71 @@ export async function GET(
 - S3 (3rd support):    $${pivots.s3.toLocaleString()}`
       : `No pivot levels available — infer reasonable round numbers from price $${price?.toLocaleString()}.`;
 
-    const prompt = `You are Saraswati's scenario engine for ${symbol}.
-Produce three probability-weighted scenarios (Bull / Base / Bear) that sum to 100%. Each scenario must include concrete, tradeable levels.
+    const prompt = `You are Saraswati's senior scenario strategist for ${symbol}. Your output lands on a trading desk — every level must be executable, every catalyst must be concrete.
 
 Current price: $${price?.toLocaleString()}
 
 ${pivotBlock}
 
-Signal context:
+SIGNAL CONTEXT:
 - Composite: ${sig.composite.score}/10 (${sig.composite.label}), confidence ${sig.composite.confidence}%, divergent=${sig.composite.divergent}
 - News: ${sig.composite.news.score}/10 (${sig.composite.news.label})
 - Technical: ${sig.composite.technical.score}/10 (${sig.composite.technical.label}, ${sig.composite.technical.regime})
 - Derivatives: ${sig.composite.derivatives.score}/10 (${sig.composite.derivatives.label}, ${sig.composite.derivatives.positioning})
 
-Top reasoning:
+TOP REASONING:
 ${(sig.composite.reasoning || []).join('\n')}
 
-For each scenario produce:
-- probability: integer 0-100 (must sum to 100)
-- thesis: 1-2 sentences, specific, trader voice, mention the key catalyst
-- entry: either "Current market" or a specific price (snap to nearest round number, e.g. "$76,000")
-- tp: take-profit level — prefer a named pivot ("$78,400 (R1)") or a round number
-- sl: stop-loss level — prefer a named pivot ("$74,700 (below S1)") or round number
-- invalidation: the specific condition that kills this scenario (e.g. "Daily close below $74,000")
-- catalyst: the most likely event or level that activates the scenario ("Break of R1 on rising volume", "FOMC dovish surprise", "Bearish engulfing on 4h")
+===== THINK STEP BY STEP (do not emit these steps, use them to plan) =====
 
-Rules:
-- Probabilities MUST sum to exactly 100.
-- Bull probability should be higher when composite >= 6, Bear higher when <= 4.
-- If divergent=true, keep probabilities closer to 33/34/33.
-- Bull TP should be above price, Bear TP should be below.
-- Entry/TP/SL for Base scenario describe a range-trading plan.
-- Use the pivot levels above where they make sense — they are real market-tested levels from the prior day.
-- Every field must be concrete, never "depending on …".
+STEP 1 — IDENTIFY KEY LEVELS
+Look at the pivot table above. Which levels are the nearest above and below current price?
+- Nearest resistance: pick from R1 / R2 / R3 or a round number above price.
+- Nearest support: pick from S1 / S2 / S3 or a round number below price.
 
-Respond ONLY as JSON, no markdown:
+STEP 2 — SCENARIO MAPPING
+- Bull: break of nearest resistance with confirming catalyst → target the next level up.
+- Base: price holds between S1 and R1 → range-trading plan (enter near S1, TP at R1, SL below S1).
+- Bear: break of nearest support with confirming catalyst → target the next level down.
+
+STEP 3 — WEIGHT PROBABILITIES
+Use composite + derivatives positioning to bias probabilities:
+- composite ≥ 6 AND positioning = Long Buildup → Bull 55-70, Base 20-30, Bear 10-20
+- composite ≤ 4 AND positioning = Short Buildup → Bear 55-70, Base 20-30, Bull 10-20
+- composite 4-6 OR divergent=true → keep closer to 33/34/33
+- If News strongly disagrees with Technical (divergence), narrow the spread.
+
+STEP 4 — WRITE EACH SCENARIO
+For each: probability, thesis, entry, tp, sl, invalidation, catalyst.
+
+===== FIELD RULES =====
+- probability: integer; all three sum to exactly 100.
+- thesis: 1-2 sentences, trader voice. Name the level or catalyst that drives it.
+- entry: "Current market" or a specific $price. For Base, describe a range entry.
+- tp: concrete level with a label when possible — "$78,400 (R1)" or "$80,000 (round)". Bull TP must be above price; Bear TP must be below.
+- sl: concrete level with a label. Bull SL below entry; Bear SL above entry.
+- invalidation: the price or event that kills this scenario. Format: "Daily close above/below $X" or "ETF approval headline".
+- catalyst: what must happen to trigger/activate. Format: "Break of R1 on rising volume" / "FOMC dovish surprise" / "Bearish engulfing on 4h + OI drop".
+
+===== STRICT CONSTRAINTS =====
+- Probabilities sum to EXACTLY 100.
+- Prefer round numbers within 0.5% of a pivot ("R1 $78,416" → "$78,400 (R1)").
+- Never write "depending on …", "could go either way", "keep an eye on".
+- Every field must be concrete and executable.
+
+Respond ONLY as valid JSON matching this exact shape (no markdown, no comments):
 {
   "bull": {"probability": <int>, "thesis": "...", "entry": "...", "tp": "...", "sl": "...", "invalidation": "...", "catalyst": "..."},
   "base": {"probability": <int>, "thesis": "...", "entry": "...", "tp": "...", "sl": "...", "invalidation": "...", "catalyst": "..."},
   "bear": {"probability": <int>, "thesis": "...", "entry": "...", "tp": "...", "sl": "...", "invalidation": "...", "catalyst": "..."}
 }`;
 
-    type RawScenario = Omit<Scenario, 'probability'> & { probability: number };
-    const raw = await generateJSON<{
-      bull: RawScenario;
-      base: RawScenario;
-      bear: RawScenario;
-    }>(prompt);
+    const raw = await generateJSON(prompt, {
+      task: 'scenarios',
+      schema: SCHEMAS.scenarios,
+      temperature: 0.4,
+      maxTokens: 1500,
+    });
 
     // Normalise probabilities to sum to 100
     const total = raw.bull.probability + raw.base.probability + raw.bear.probability;
