@@ -193,14 +193,52 @@ function CardShell({
 // Technical deep-dive
 // ---------------------------------------------------------------------------
 
+// Which bucket an indicator belongs to. Used to section the full list.
+const INDICATOR_BUCKETS: Record<string, 'momentum' | 'trend' | 'volatility' | 'volume'> = {
+  RSI:            'momentum',
+  Stochastic:     'momentum',
+  'Williams %R':  'momentum',
+  CCI:            'momentum',
+  MFI:            'volume',
+  MACD:           'trend',
+  ADX:            'trend',
+  SMA:            'trend',
+  'Parabolic SAR':'trend',
+  Bollinger:      'volatility',
+};
+
+const BUCKET_LABEL: Record<string, string> = {
+  momentum:   'Momentum oscillators',
+  trend:      'Trend',
+  volatility: 'Volatility',
+  volume:     'Volume-weighted',
+};
+
+const BUCKET_ACCENT: Record<string, string> = {
+  momentum:   '#58A7F0',
+  trend:      '#4ADE80',
+  volatility: '#FCD34D',
+  volume:     '#F472B6',
+};
+
 function TechnicalCard({ tech, strongest, symbol: _symbol }: { tech: TechScoreResult; strongest: boolean; symbol: string }) {
-  // Tally bullish vs bearish vs neutral votes
+  // Tally bullish vs bearish vs neutral votes (across all 10 indicators)
   let bull = 0, bear = 0, neutral = 0;
   for (const c of tech.contributions) {
     if (c.vote > 0) bull++;
     else if (c.vote < 0) bear++;
     else neutral++;
   }
+
+  // Group by bucket while preserving a stable order
+  const buckets: Record<string, typeof tech.contributions> = {
+    momentum: [], trend: [], volatility: [], volume: [], other: [],
+  };
+  for (const c of tech.contributions) {
+    const b = INDICATOR_BUCKETS[c.name] ?? 'other';
+    buckets[b].push(c);
+  }
+  const bucketOrder = ['momentum', 'trend', 'volatility', 'volume', 'other'] as const;
 
   return (
     <CardShell
@@ -231,37 +269,69 @@ function TechnicalCard({ tech, strongest, symbol: _symbol }: { tech: TechScoreRe
           <VoteTile label="Bearish" count={bear} color="#F87171" />
         </div>
 
-        {/* Top contributions (max 4) */}
-        <div className="space-y-1.5 pt-1">
-          <div className="text-[9px] uppercase tracking-[0.14em] font-bold text-[#94A3B8]">
-            Top contributors
-          </div>
-          {tech.contributions
-            .slice()
-            .sort((a, b) => Math.abs(b.weighted) - Math.abs(a.weighted))
-            .slice(0, 4)
-            .map((c) => {
-              const v = c.vote > 0 ? 'bullish' : c.vote < 0 ? 'bearish' : 'neutral';
-              const color = v === 'bullish' ? '#4ADE80' : v === 'bearish' ? '#F87171' : '#94A3B8';
-              return (
-                <div key={c.name} className="grid grid-cols-[90px_1fr] gap-2 text-[11px]">
-                  <span className="font-semibold text-[#cbcfd7]">{c.name}</span>
-                  <span className="text-[#8b8f99]">
-                    <span className="font-semibold" style={{ color }}>
-                      {v === 'neutral' ? 'Neutral' : v === 'bullish' ? 'Bullish' : 'Bearish'}
-                    </span>{' '}— {c.reason}
+        {/* All indicators grouped by bucket */}
+        <div className="space-y-3 pt-1">
+          {bucketOrder.map((key) => {
+            const items = buckets[key];
+            if (!items || items.length === 0) return null;
+            const accent = BUCKET_ACCENT[key] ?? '#94A3B8';
+            const label = BUCKET_LABEL[key] ?? 'Other';
+            return (
+              <div key={key} className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-1 w-1 rounded-full" style={{ background: accent }} />
+                  <span className="text-[9px] uppercase tracking-[0.14em] font-bold" style={{ color: accent }}>
+                    {label}
                   </span>
                 </div>
-              );
-            })}
+                {items.map((c) => {
+                  const v = c.vote > 0 ? 'bullish' : c.vote < 0 ? 'bearish' : 'neutral';
+                  const color = v === 'bullish' ? '#4ADE80' : v === 'bearish' ? '#F87171' : '#94A3B8';
+                  const arrow = v === 'bullish' ? '↑' : v === 'bearish' ? '↓' : '→';
+                  const dim = v === 'neutral' ? 0.65 : 1;
+                  return (
+                    <div
+                      key={c.name}
+                      className="grid grid-cols-[14px_90px_1fr] gap-2 text-[11px] leading-snug"
+                      style={{ opacity: dim }}
+                    >
+                      <span className="font-mono font-bold text-[13px] leading-none" style={{ color }}>
+                        {arrow}
+                      </span>
+                      <span className="font-semibold text-[#cbcfd7] truncate">{c.name}</span>
+                      <span className="text-[#8b8f99]">
+                        {v === 'neutral' ? (
+                          <span>— Neutral</span>
+                        ) : (
+                          <>
+                            <span className="font-semibold" style={{ color }}>
+                              {v === 'bullish' ? 'Bullish' : 'Bearish'}
+                            </span>
+                            <span> — {c.reason}</span>
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
 
         {/* Patterns */}
-        {tech.patterns.length > 0 && (
-          <div className="pt-1">
-            <div className="text-[9px] uppercase tracking-[0.14em] font-bold text-[#94A3B8] mb-1.5">
-              Patterns
+        <div className="pt-1">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span className="h-1 w-1 rounded-full" style={{ background: '#F472B6' }} />
+            <span className="text-[9px] uppercase tracking-[0.14em] font-bold" style={{ color: '#F472B6' }}>
+              Chart patterns
+            </span>
+          </div>
+          {tech.patterns.length === 0 ? (
+            <div className="text-[11px] text-[#555a65] italic">
+              No candlestick / chart patterns firing.
             </div>
+          ) : (
             <div className="flex flex-wrap gap-1.5">
               {tech.patterns.map((p, i) => (
                 <span
@@ -276,8 +346,8 @@ function TechnicalCard({ tech, strongest, symbol: _symbol }: { tech: TechScoreRe
                 </span>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </CardShell>
   );
@@ -319,6 +389,25 @@ function DerivativesCard({
     : deriv.positioning === 'Short Buildup' || deriv.positioning === 'Long Unwinding' ? '#F87171'
     : '#94A3B8';
 
+  // Count verdict tallies across all derivative signals for the header row.
+  const signals: { score: number }[] = [
+    { score: deriv.positioningScore },
+    { score: deriv.fundingScore },
+    { score: deriv.basisScore },
+  ];
+  if (options?.pcr) {
+    signals.push({ score: options.pcr.label === 'Bullish crowd' ? 1 : options.pcr.label === 'Bearish crowd' ? -1 : 0 });
+  }
+  if (options?.ls) {
+    signals.push({ score: options.ls.label === 'Long-biased' ? 1 : options.ls.label === 'Short-biased' ? -1 : 0 });
+  }
+  let bull = 0, bear = 0, neutral = 0;
+  for (const s of signals) {
+    if (s.score > 0) bull++;
+    else if (s.score < 0) bear++;
+    else neutral++;
+  }
+
   return (
     <CardShell
       title="Derivatives deep-dive"
@@ -353,46 +442,125 @@ function DerivativesCard({
           </div>
         </div>
 
-        {/* Funding + Basis row */}
-        <div className="grid grid-cols-2 gap-2">
-          <StatTile
-            label="Funding rate"
-            value={`${deriv.fundingRate >= 0 ? '+' : ''}${(deriv.fundingRate * 100).toFixed(4)}%`}
-            caption={`p${deriv.fundingPercentile.toFixed(0)}`}
-            color={deriv.fundingScore > 0 ? '#4ADE80' : deriv.fundingScore < 0 ? '#F87171' : '#94A3B8'}
-          />
-          <StatTile
-            label="Basis"
-            value={deriv.basis != null ? `${deriv.basis >= 0 ? '+' : ''}${(deriv.basis * 100).toFixed(3)}%` : '—'}
-            caption={deriv.basis != null && Math.abs(deriv.basis) >= 0.0005 ? (deriv.basis > 0 ? 'Premium' : 'Discount') : 'Flat'}
-            color={deriv.basisScore > 0 ? '#4ADE80' : deriv.basisScore < 0 ? '#F87171' : '#94A3B8'}
-          />
+        {/* Verdict tally across all signals (perp + options) */}
+        <div className="grid grid-cols-3 gap-2">
+          <VoteTile label="Bullish" count={bull} color="#4ADE80" />
+          <VoteTile label="Neutral" count={neutral} color="#94A3B8" />
+          <VoteTile label="Bearish" count={bear} color="#F87171" />
         </div>
 
-        {/* PCR + L/S (options, BTC/ETH only) */}
-        {options?.supported ? (
-          <div className="space-y-2 pt-1 border-t border-white/[0.04]">
-            <div className="text-[9px] uppercase tracking-[0.14em] font-bold text-[#94A3B8]">
-              Options sentiment
+        {/* All derivative signals grouped */}
+        <div className="space-y-3 pt-1">
+          {/* Perp / spot signals */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <span className="h-1 w-1 rounded-full" style={{ background: '#A78BFA' }} />
+              <span className="text-[9px] uppercase tracking-[0.14em] font-bold" style={{ color: '#A78BFA' }}>
+                Perpetual signals
+              </span>
             </div>
-            {options.pcr ? (
-              <PcrBar pcr={options.pcr} />
+            <DerivSignalRow
+              name="Positioning"
+              value={deriv.positioning}
+              verdict={
+                deriv.positioningScore > 0 ? 'bullish'
+                : deriv.positioningScore < 0 ? 'bearish'
+                : 'neutral'
+              }
+              reason={deriv.reasoning[0] ?? ''}
+            />
+            <DerivSignalRow
+              name="Funding rate"
+              value={`${deriv.fundingRate >= 0 ? '+' : ''}${(deriv.fundingRate * 100).toFixed(4)}% · p${deriv.fundingPercentile.toFixed(0)}`}
+              verdict={
+                deriv.fundingScore > 0 ? 'bullish'
+                : deriv.fundingScore < 0 ? 'bearish'
+                : 'neutral'
+              }
+              reason={deriv.reasoning[1] ?? ''}
+            />
+            <DerivSignalRow
+              name="Basis (spot-perp)"
+              value={
+                deriv.basis != null
+                  ? `${deriv.basis >= 0 ? '+' : ''}${(deriv.basis * 100).toFixed(3)}%`
+                  : '—'
+              }
+              verdict={
+                deriv.basisScore > 0 ? 'bullish'
+                : deriv.basisScore < 0 ? 'bearish'
+                : 'neutral'
+              }
+              reason={deriv.reasoning[2] ?? ''}
+            />
+          </div>
+
+          {/* Options sentiment (BTC / ETH only) */}
+          <div className="space-y-2 pt-1 border-t border-white/[0.04]">
+            <div className="flex items-center gap-1.5">
+              <span className="h-1 w-1 rounded-full" style={{ background: '#FCD34D' }} />
+              <span className="text-[9px] uppercase tracking-[0.14em] font-bold" style={{ color: '#FCD34D' }}>
+                Options sentiment
+              </span>
+            </div>
+            {options?.supported ? (
+              <>
+                {options.pcr ? (
+                  <PcrBar pcr={options.pcr} />
+                ) : (
+                  <div className="text-[11px] text-[#555a65] italic">PCR: options data thin right now.</div>
+                )}
+                {options.ls ? (
+                  <LsBar ls={options.ls} />
+                ) : (
+                  <div className="text-[11px] text-[#555a65] italic">L/S: options data thin right now.</div>
+                )}
+              </>
             ) : (
-              <div className="text-[11px] text-[#555a65] italic">PCR: options data thin</div>
-            )}
-            {options.ls ? (
-              <LsBar ls={options.ls} />
-            ) : (
-              <div className="text-[11px] text-[#555a65] italic">L/S: options data thin</div>
+              <div className="text-[10px] text-[#555a65] italic">
+                PCR · L/S — only computed for tokens with liquid Delta options (BTC, ETH).
+              </div>
             )}
           </div>
-        ) : (
-          <div className="text-[10px] text-[#555a65] italic pt-1 border-t border-white/[0.04]">
-            PCR · L/S — available only for BTC and ETH on Delta
-          </div>
-        )}
+        </div>
       </div>
     </CardShell>
+  );
+}
+
+function DerivSignalRow({
+  name,
+  value,
+  verdict,
+  reason,
+}: {
+  name: string;
+  value: string;
+  verdict: 'bullish' | 'bearish' | 'neutral';
+  reason?: string;
+}) {
+  const color = verdict === 'bullish' ? '#4ADE80' : verdict === 'bearish' ? '#F87171' : '#94A3B8';
+  const arrow = verdict === 'bullish' ? '↑' : verdict === 'bearish' ? '↓' : '→';
+  const dim = verdict === 'neutral' ? 0.70 : 1;
+  return (
+    <div style={{ opacity: dim }}>
+      <div className="grid grid-cols-[14px_1fr_auto] gap-2 text-[11px] items-baseline">
+        <span className="font-mono font-bold text-[13px] leading-none" style={{ color }}>
+          {arrow}
+        </span>
+        <span className="font-semibold text-[#cbcfd7]">{name}</span>
+        <span className="font-mono-num text-[11px] font-semibold" style={{ color }}>
+          {value}
+        </span>
+      </div>
+      {reason && (
+        <div className="text-[10px] text-[#8b8f99] ml-[22px] leading-snug">
+          <span className="font-semibold" style={{ color }}>
+            {verdict === 'bullish' ? 'Bullish' : verdict === 'bearish' ? 'Bearish' : 'Neutral'}
+          </span>{' '}— {reason}
+        </div>
+      )}
+    </div>
   );
 }
 

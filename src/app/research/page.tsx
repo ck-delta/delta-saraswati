@@ -79,7 +79,9 @@ function ResearchContent() {
           {selectedToken && <AISignalFullPanel symbol={selectedToken} />}
 
           {/* Scenarios — probability-weighted Bull / Base / Bear plans */}
-          {selectedToken && <ScenariosPanel symbol={selectedToken} />}
+          {selectedToken && (
+            <ScenariosPanel symbol={selectedToken} price={activeTicker?.price ?? null} />
+          )}
 
           {/* Deep-dive cards: Technical · Derivatives · News */}
           {selectedToken && <DeepDiveCards symbol={selectedToken} />}

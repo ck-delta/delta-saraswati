@@ -29,6 +29,9 @@ interface ScenariosPayload {
 
 interface Props {
   symbol: string;
+  /** Current spot/mark price. If provided, used to detect which scenarios
+   *  are actionable at current market (entry within 0.5%). */
+  price?: number | null;
 }
 
 type Kind = 'bull' | 'base' | 'bear';
@@ -67,7 +70,44 @@ const SCENARIO_STYLE: Record<Kind, {
   },
 };
 
-export default function ScenariosPanel({ symbol }: Props) {
+/**
+ * Parse "$78,400 (R1)" / "Current market" / "$76,000" → number | null.
+ * Strips $, commas, and trailing parentheses labels.
+ */
+function parseEntryPrice(entry: string): number | null {
+  if (!entry) return null;
+  const lower = entry.toLowerCase();
+  if (lower.includes('current market') || lower.includes('market')) return null; // actionable via "current"
+  const match = entry.replace(/[$,]/g, '').match(/(-?\d+(?:\.\d+)?)/);
+  if (!match) return null;
+  const n = parseFloat(match[1]);
+  return isNaN(n) ? null : n;
+}
+
+/**
+ * Return true if a scenario's entry is actionable *now*:
+ *  - "Current market" explicitly, OR
+ *  - a specific price within ±0.6% of current price.
+ * Returns false when we can't determine (missing price).
+ */
+function isActionableNow(entry: string, currentPrice?: number | null): boolean {
+  if (!entry) return false;
+  if (/current\s*market|market\s*order|spot/i.test(entry)) return true;
+  if (currentPrice == null) return false;
+  const parsed = parseEntryPrice(entry);
+  if (parsed === null) {
+    // "Current market" case already handled above. If unparseable, not actionable.
+    return false;
+  }
+  const deviation = Math.abs(parsed - currentPrice) / currentPrice;
+  return deviation <= 0.006;
+}
+
+function tradeUrl(symbol: string): string {
+  return `https://www.delta.exchange/app/futures/trade/${symbol}`;
+}
+
+export default function ScenariosPanel({ symbol, price }: Props) {
   const [data, setData] = useState<ScenariosPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -120,7 +160,13 @@ export default function ScenariosPanel({ symbol }: Props) {
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {(['bull', 'base', 'bear'] as const).map((kind) => (
-              <ScenarioCard key={kind} kind={kind} scenario={data[kind]} />
+              <ScenarioCard
+                key={kind}
+                kind={kind}
+                scenario={data[kind]}
+                symbol={symbol}
+                currentPrice={price ?? data.levels?.price ?? null}
+              />
             ))}
           </div>
 
@@ -140,8 +186,19 @@ export default function ScenariosPanel({ symbol }: Props) {
   );
 }
 
-function ScenarioCard({ kind, scenario }: { kind: Kind; scenario: Scenario }) {
+function ScenarioCard({
+  kind,
+  scenario,
+  symbol,
+  currentPrice,
+}: {
+  kind: Kind;
+  scenario: Scenario;
+  symbol: string;
+  currentPrice: number | null;
+}) {
   const style = SCENARIO_STYLE[kind];
+  const actionable = isActionableNow(scenario.entry, currentPrice);
   return (
     <div
       className="relative rounded-xl p-4 space-y-4"
@@ -205,6 +262,38 @@ function ScenarioCard({ kind, scenario }: { kind: Kind; scenario: Scenario }) {
           {scenario.invalidation}
         </div>
       </div>
+
+      {/* Trade Now — only shown when the scenario is actionable at current market */}
+      {actionable ? (
+        <a
+          href={tradeUrl(symbol)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative z-10 flex h-10 items-center justify-center gap-1.5 rounded-lg text-sm font-bold transition-all"
+          style={{
+            background: `linear-gradient(135deg, ${style.color} 0%, ${style.color}CC 100%)`,
+            color: '#000',
+            boxShadow: `0 6px 18px -6px ${style.color}99, inset 0 1px 0 rgba(255,255,255,0.25)`,
+          }}
+          title={`Execute this ${style.label} scenario on Delta Exchange`}
+        >
+          <span>Trade Now · {style.label}</span>
+          <span aria-hidden className="text-xs">↗</span>
+        </a>
+      ) : (
+        <div
+          className="flex items-center justify-center gap-1.5 rounded-lg text-[11px] font-semibold h-10 opacity-70"
+          style={{
+            background: 'rgba(255,255,255,0.02)',
+            color: style.color,
+            border: `1px dashed ${style.border}`,
+          }}
+          title="Entry level not hit yet — wait for the catalyst"
+        >
+          <span aria-hidden>⏳</span>
+          <span>Waits for entry: {scenario.entry}</span>
+        </div>
+      )}
     </div>
   );
 }
