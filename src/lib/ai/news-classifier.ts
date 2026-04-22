@@ -221,6 +221,8 @@ export async function classifyNewsBatch(items: NewsItem[]): Promise<NewsItem[]> 
       task: 'news-classifier',
       schema: SCHEMAS.newsClassification,
       temperature: 0.2,
+      // 30 items × ~80 tokens each ≈ 2400, plus slack for reasoning. Bump to 4k.
+      maxTokens: 4000,
     });
     for (const c of result.items ?? []) classifiedByIdx.set(c.index, c as ClassifiedItem);
   } catch (err) {

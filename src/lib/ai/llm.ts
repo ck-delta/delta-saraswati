@@ -282,8 +282,43 @@ async function callJSON(prompt: string, model: string, temperature: number, maxT
 }
 
 function stripFences(raw: string): string {
-  const match = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  return match?.[1]?.trim() ?? raw.trim();
+  let s = raw.trim();
+  // Try matched fences first
+  const matched = s.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (matched?.[1]) return matched[1].trim();
+  // Tolerate opening-only fence (common when output is truncated mid-stream)
+  s = s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '');
+  // If the parse still fails because of truncation, try slicing up to the last
+  // balanced '}' in the visible body — good enough for recovering a partial
+  // object that includes the first valid items.
+  return s;
+}
+
+/**
+ * Best-effort repair of a truncated JSON string. Walks the string tracking
+ * depth + string state, and slices at the last point where bracket depth was 0
+ * and the cursor wasn't inside a string. If we cropped mid-array, appends
+ * closing brackets for whatever container it was in.
+ */
+function bestEffortJson(raw: string): string | null {
+  let depth = 0;
+  let inStr = false;
+  let escape = false;
+  let lastValidIdx = -1;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (escape) { escape = false; continue; }
+    if (ch === '\\' && inStr) { escape = true; continue; }
+    if (ch === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (ch === '{' || ch === '[') depth++;
+    else if (ch === '}' || ch === ']') {
+      depth--;
+      if (depth === 0) lastValidIdx = i;
+    }
+  }
+  if (lastValidIdx > 0) return raw.slice(0, lastValidIdx + 1);
+  return null;
 }
 
 export async function generateJSON<T = unknown>(
@@ -310,11 +345,23 @@ export async function generateJSON<T = unknown>(
     tokensIn += first.tokensIn;
     tokensOut += first.tokensOut;
 
+    // Parse strategy: raw → strip fences → best-effort truncation recovery
+    const parseForgiving = (raw: string): unknown => {
+      try { return JSON.parse(raw); } catch {}
+      try { return JSON.parse(stripFences(raw)); } catch {}
+      const salvaged = bestEffortJson(stripFences(raw));
+      if (salvaged) {
+        try { return JSON.parse(salvaged); } catch {}
+      }
+      throw new Error(`JSON parse failed; raw starts with: ${raw.slice(0, 200)}`);
+    };
+
     let parsed: unknown;
     try {
-      parsed = JSON.parse(first.raw);
-    } catch {
-      parsed = JSON.parse(stripFences(first.raw));
+      parsed = parseForgiving(first.raw);
+    } catch (parseErr) {
+      console.error(`[llm:${task}] JSON parse failed even with salvage:`, parseErr, '\nRaw (first 400):', first.raw.slice(0, 400));
+      throw parseErr;
     }
 
     if (opts.schema) {
@@ -342,7 +389,11 @@ Emit valid JSON matching the original request exactly. Pay close attention to en
       tokensIn += retry.tokensIn;
       tokensOut += retry.tokensOut;
       let retryParsed: unknown;
-      try { retryParsed = JSON.parse(retry.raw); } catch { retryParsed = JSON.parse(stripFences(retry.raw)); }
+      try { retryParsed = parseForgiving(retry.raw); } catch (e2) {
+        console.error(`[llm:${task}] retry parse failed:`, e2, '\nRetry raw (first 400):', retry.raw.slice(0, 400));
+        record({ ts: Date.now(), task, model, tokensIn, tokensOut, latencyMs: Date.now() - t0, costUsd: estimateCost(model, tokensIn, tokensOut), ok: false });
+        throw e2;
+      }
       const retryResult = opts.schema.safeParse(retryParsed);
       if (retryResult.success) {
         record({ ts: Date.now(), task, model, tokensIn, tokensOut, latencyMs: Date.now() - t0, costUsd: estimateCost(model, tokensIn, tokensOut), ok: true });
