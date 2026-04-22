@@ -28,21 +28,11 @@ export interface PulseItem {
   sourceDomain?: string;
 }
 
-export interface SectorBucket {
-  name: string;                 // e.g. "Crypto majors"
-  tokens: string[];             // constituent symbols
-  avgChangePct24h: number;
-  totalVolumeUsd: number;
-  sentiment: SentimentBadge;
-}
-
 export interface MarketSummary {
   marketPulse: PulseItem[];
   bigMovers: PulseItem[];
   macroWatch: PulseItem[];
   derivativesInsight: PulseItem[];
-  // Added in v2:
-  sectorRotation: SectorBucket[];
   fundingExtremes: PulseItem[];
   volumeAnomalies: PulseItem[];
   oiChanges: PulseItem[];

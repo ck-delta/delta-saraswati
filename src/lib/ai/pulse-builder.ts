@@ -6,7 +6,7 @@
 import type { DeltaTicker } from '@/types/delta';
 import type { NewsItem } from '@/types/news';
 import type { TokenCardData } from '@/types/market';
-import type { PulseCallouts, MarketSummary, SectorBucket, SentimentBadge } from '@/types/pulse';
+import type { PulseCallouts, MarketSummary, SentimentBadge } from '@/types/pulse';
 import type { FearGreedData } from '@/types/market';
 import type { GlobalMarketData } from '@/lib/api/coingecko';
 import type { AISignalResult } from '@/lib/signals/composite';
@@ -15,6 +15,11 @@ import { scoreFunding } from '@/lib/signals/deriv-score';
 import { scoreHeadline } from '@/lib/signals/news-score';
 import { nextEvents, countdownLabel } from '@/lib/macro/calendar';
 import { RSS_FEEDS } from '@/lib/constants';
+
+// Any asset with under this much 24h turnover is excluded from every section.
+// Keeps the card focused on tokens with real liquidity. Tokenised-stock perps
+// with effectively zero weekend/night volume get filtered out here.
+const MIN_TURNOVER_USD = 1_000_000;
 
 // ---------------------------------------------------------------------------
 // Inputs collected by the route (server-side)
@@ -68,38 +73,6 @@ function underlyingOf(t: TokenCardData): string {
 
 function domainFor(sourceName: string): string | undefined {
   return RSS_FEEDS.find((f) => f.name === sourceName)?.domain;
-}
-
-// ---------------------------------------------------------------------------
-// Sector bucketing
-// ---------------------------------------------------------------------------
-
-const SECTOR_BUCKETS: { name: string; members: string[] }[] = [
-  { name: 'Crypto majors',   members: ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'DOGEUSDT'] },
-  { name: 'Tokenised stocks', members: ['TSLAXUSDT', 'NVDAXUSDT', 'METAXUSDT', 'GOOGLXUSDT', 'AMZNXUSDT', 'AAPLXUSDT'] },
-  { name: 'Commodities',     members: ['PAXGUSDT'] },
-];
-
-export function buildSectorRotation(perps: TokenCardData[]): SectorBucket[] {
-  const bySym = new Map(perps.map((p) => [p.symbol, p]));
-  const buckets: SectorBucket[] = [];
-  for (const { name, members } of SECTOR_BUCKETS) {
-    const active = members.map((m) => bySym.get(m)).filter(Boolean) as TokenCardData[];
-    if (active.length === 0) continue;
-    const avgChange = active.reduce((s, t) => s + t.priceChangePct24h, 0) / active.length;
-    const totalVol = active.reduce((s, t) => s + t.turnoverUsd, 0);
-    let sentiment: SentimentBadge = 'NEUTRAL';
-    if (avgChange > 0.5) sentiment = 'BULLISH';
-    else if (avgChange < -0.5) sentiment = 'BEARISH';
-    buckets.push({
-      name,
-      tokens: active.map(underlyingOf),
-      avgChangePct24h: avgChange,
-      totalVolumeUsd: totalVol,
-      sentiment,
-    });
-  }
-  return buckets;
 }
 
 // ---------------------------------------------------------------------------
@@ -203,6 +176,14 @@ export function curateItems(input: PulseInputs): CuratedItem[] {
   const items: CuratedItem[] = [];
   const TOP_THREE = new Set(['BTCUSDT', 'ETHUSDT', 'SOLUSDT']);
 
+  // Global liquidity filter: any asset with <$1M 24h turnover is excluded.
+  // Majors (BTC/ETH/SOL) always stay, even if volume momentarily dips below
+  // the floor (e.g. exchange outage). Everything else must clear the bar.
+  const liquidPerps = input.perpetuals.filter(
+    (t) => TOP_THREE.has(t.symbol) || t.turnoverUsd >= MIN_TURNOVER_USD,
+  );
+  const liquidNonMajors = liquidPerps.filter((t) => !TOP_THREE.has(t.symbol));
+
   // ---- Market Pulse: BTC, ETH, SOL with AI Signal tags ----
   for (const sym of ['BTCUSDT', 'ETHUSDT', 'SOLUSDT']) {
     const t = input.perpetuals.find((p) => p.symbol === sym);
@@ -223,8 +204,8 @@ export function curateItems(input: PulseInputs): CuratedItem[] {
     });
   }
 
-  // ---- Big Movers: top 2 gainers + top 2 losers across ALL perpetuals ----
-  const sortedByChange = [...input.perpetuals].sort(
+  // ---- Big Movers: top 2 gainers + top 2 losers across LIQUID perpetuals ----
+  const sortedByChange = [...liquidPerps].sort(
     (a, b) => b.priceChangePct24h - a.priceChangePct24h,
   );
   const topGainers = sortedByChange.slice(0, 2).filter((t) => t.priceChangePct24h > 0);
@@ -293,7 +274,7 @@ export function curateItems(input: PulseInputs): CuratedItem[] {
   }
 
   // ---- Funding Extremes: top 4 by absolute percentile deviation from p50 ----
-  const fundingRanked = [...input.perpetuals]
+  const fundingRanked = [...liquidPerps]
     .map((t) => ({ t, s: scoreFunding(t.fundingRate) }))
     .filter(({ s }) => s.score !== 0)
     .sort((a, b) => Math.abs(b.s.score) * 100 - Math.abs(a.s.score) * 100 || Math.abs(b.s.percentile - 50) - Math.abs(a.s.percentile - 50))
@@ -309,11 +290,11 @@ export function curateItems(input: PulseInputs): CuratedItem[] {
     });
   }
 
-  // ---- Volume Anomalies: tokens with turnover >2× the median across perps ----
-  const volumes = input.perpetuals.map((t) => t.turnoverUsd).sort((a, b) => a - b);
+  // ---- Volume Anomalies: liquid tokens with turnover >2× the median ----
+  const volumes = liquidPerps.map((t) => t.turnoverUsd).sort((a, b) => a - b);
   const median = volumes[Math.floor(volumes.length / 2)] || 1;
-  const anomalies = input.perpetuals
-    .filter((t) => t.turnoverUsd > median * 2 && !TOP_THREE.has(t.symbol)) // skip majors already shown
+  const anomalies = liquidNonMajors
+    .filter((t) => t.turnoverUsd > median * 2)
     .sort((a, b) => b.turnoverUsd - a.turnoverUsd)
     .slice(0, 3);
   for (const t of anomalies) {
@@ -330,10 +311,12 @@ export function curateItems(input: PulseInputs): CuratedItem[] {
     });
   }
 
-  // ---- OI Change Leaders: biggest 24h OI swings (needs snapshots from caller) ----
+  // ---- OI Change Leaders: biggest 24h OI swings on liquid perps ----
   const oi = input.oiSnapshots ?? {};
+  const liquidSymbols = new Set(liquidPerps.map((p) => p.symbol));
   const oiEntries = Object.entries(oi)
     .map(([sym, { oiNow, oiPrior }]) => {
+      if (!liquidSymbols.has(sym)) return null;
       const ticker = input.perpetuals.find((p) => p.symbol === sym);
       if (!ticker || !oiPrior) return null;
       const pctChange = ((oiNow - oiPrior) / oiPrior) * 100;
@@ -409,7 +392,6 @@ ${list}`;
 export function mergeIntoSummary(
   items: CuratedItem[],
   groqOutput: { items: { index: number; reason: string; sentiment: string }[] },
-  extras: { sectorRotation: SectorBucket[] },
 ): MarketSummary {
   const byIdx: Record<number, { reason: string; sentiment: SentimentBadge }> = {};
   for (const r of groqOutput.items ?? []) {
@@ -423,7 +405,6 @@ export function mergeIntoSummary(
     bigMovers: [],
     macroWatch: [],
     derivativesInsight: [],
-    sectorRotation: extras.sectorRotation,
     fundingExtremes: [],
     volumeAnomalies: [],
     oiChanges: [],

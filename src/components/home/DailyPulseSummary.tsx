@@ -1,17 +1,18 @@
 'use client';
 
-// AI Market Summary — 8-section grid with callouts strip removed (now in
-// MarketMoodBar). This card focuses on curated text snapshots.
+// AI Market Summary — dynamically laid out. Sections with zero items are
+// hidden entirely (no title, no placeholder). The visible sections are
+// two-column-packed in natural reading order.
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Activity, Rocket, Globe, Box, TrendingUp, Flame, Zap, Target } from 'lucide-react';
-import type { PulseItem, PulseResponse, SentimentBadge, SectorBucket } from '@/types/pulse';
+import { Activity, Rocket, Globe, Box, Flame, Zap, Target } from 'lucide-react';
+import type { PulseItem, PulseResponse, SentimentBadge } from '@/types/pulse';
 
-const SENTIMENT_STYLE: Record<SentimentBadge, { bg: string; fg: string; border: string; bar: string }> = {
-  BULLISH: { bg: 'rgba(34, 197, 94, 0.10)',  fg: '#4ADE80', border: 'rgba(34, 197, 94, 0.3)',  bar: '#22C55E' },
-  NEUTRAL: { bg: 'rgba(148, 163, 184, 0.08)', fg: '#94A3B8', border: 'rgba(148, 163, 184, 0.3)', bar: '#94A3B8' },
-  BEARISH: { bg: 'rgba(248, 113, 113, 0.10)', fg: '#F87171', border: 'rgba(248, 113, 113, 0.3)', bar: '#F87171' },
+const SENTIMENT_STYLE: Record<SentimentBadge, { bg: string; fg: string; border: string }> = {
+  BULLISH: { bg: 'rgba(34, 197, 94, 0.10)',  fg: '#4ADE80', border: 'rgba(34, 197, 94, 0.35)' },
+  NEUTRAL: { bg: 'rgba(148, 163, 184, 0.08)', fg: '#94A3B8', border: 'rgba(148, 163, 184, 0.28)' },
+  BEARISH: { bg: 'rgba(248, 113, 113, 0.10)', fg: '#F87171', border: 'rgba(248, 113, 113, 0.35)' },
 };
 
 const SECTION_STYLE = {
@@ -19,7 +20,6 @@ const SECTION_STYLE = {
   bigMovers:          { accent: '#F59E0B', label: 'BIG MOVERS',          icon: Rocket },
   macroWatch:         { accent: '#22C55E', label: 'MACRO WATCH',         icon: Globe },
   derivativesInsight: { accent: '#A78BFA', label: 'DERIVATIVES INSIGHT', icon: Box },
-  sectorRotation:     { accent: '#38BDF8', label: 'SECTOR ROTATION',     icon: TrendingUp },
   fundingExtremes:    { accent: '#FCD34D', label: 'FUNDING EXTREMES',    icon: Flame },
   volumeAnomalies:    { accent: '#F472B6', label: 'VOLUME ANOMALIES',    icon: Zap },
   oiChanges:          { accent: '#C084FC', label: 'OI CHANGE LEADERS',   icon: Target },
@@ -27,6 +27,17 @@ const SECTION_STYLE = {
 
 type SectionKind = keyof typeof SECTION_STYLE;
 type Filter = 'all' | 'bullish' | 'bearish';
+
+// Order in which sections render when they have items.
+const SECTION_ORDER: SectionKind[] = [
+  'marketPulse',
+  'macroWatch',
+  'bigMovers',
+  'derivativesInsight',
+  'fundingExtremes',
+  'volumeAnomalies',
+  'oiChanges',
+];
 
 function timeAgo(ts: number | string): string {
   const n = typeof ts === 'string' ? Date.parse(ts) : ts;
@@ -41,13 +52,6 @@ function timeAgo(ts: number | string): string {
 function fmtChangePct(n: number | undefined): string {
   if (n == null) return '';
   return `${n >= 0 ? '↑' : '↓'}${Math.abs(n).toFixed(2)}%`;
-}
-
-function fmtCompactUsd(n: number): string {
-  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
-  if (n >= 1e3) return `$${(n / 1e3).toFixed(1)}K`;
-  return `$${n.toFixed(0)}`;
 }
 
 function faviconUrl(domain: string | undefined, size = 32): string | null {
@@ -84,32 +88,35 @@ export default function DailyPulseSummary() {
     return () => { cancelled = true; clearInterval(id); };
   }, []);
 
-  const counts = useMemo(() => {
-    if (!data) return { all: 0, bullish: 0, bearish: 0 };
+  const { counts, visibleSections } = useMemo(() => {
+    if (!data) return { counts: { all: 0, bullish: 0, bearish: 0 }, visibleSections: [] as SectionKind[] };
+    const s = data.summary;
     const all: PulseItem[] = [
-      ...data.summary.marketPulse,
-      ...data.summary.bigMovers,
-      ...data.summary.macroWatch,
-      ...data.summary.derivativesInsight,
-      ...data.summary.fundingExtremes,
-      ...data.summary.volumeAnomalies,
-      ...data.summary.oiChanges,
+      ...s.marketPulse, ...s.bigMovers, ...s.macroWatch, ...s.derivativesInsight,
+      ...s.fundingExtremes, ...s.volumeAnomalies, ...s.oiChanges,
     ];
     let bullish = 0, bearish = 0;
     for (const it of all) {
       if (it.sentiment === 'BULLISH') bullish++;
       else if (it.sentiment === 'BEARISH') bearish++;
     }
-    return { all: all.length, bullish, bearish };
-  }, [data]);
+    // Only sections that (a) have items AND (b) have items matching the current filter
+    const vis = SECTION_ORDER.filter((kind) => {
+      const arr = s[kind] ?? [];
+      if (arr.length === 0) return false;
+      if (filter === 'all') return true;
+      return arr.some((it) => matchesFilter(it, filter));
+    });
+    return { counts: { all: all.length, bullish, bearish }, visibleSections: vis };
+  }, [data, filter]);
 
   return (
-    <div className="rounded-xl border border-[#1e2024] bg-[#111214] p-5 lg:p-6 space-y-5">
+    <div className="rounded-xl border border-white/[0.06] bg-gradient-to-b from-[#131418] to-[#101114] p-5 lg:p-6 space-y-5">
       {/* ---- Header ---- */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl"
-            style={{ background: 'rgba(120, 86, 255, 0.12)', border: '1px solid rgba(120, 86, 255, 0.3)' }}
+            style={{ background: 'rgba(120, 86, 255, 0.14)', border: '1px solid rgba(120, 86, 255, 0.35)' }}
           >
             <span className="text-lg" style={{ color: '#A78BFA' }}>✦</span>
           </div>
@@ -144,17 +151,21 @@ export default function DailyPulseSummary() {
         <div className="text-center py-8 text-sm text-[#8b8f99]">
           Could not load market summary — {error}
         </div>
+      ) : data && visibleSections.length === 0 ? (
+        <div className="text-center py-8 text-sm text-[#8b8f99]">
+          Nothing {filter === 'all' ? 'to report' : `${filter} right now`}. Market is quiet.
+        </div>
       ) : data ? (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5">
-            <Section kind="marketPulse"        items={data.summary.marketPulse}        filter={filter} />
-            <Section kind="macroWatch"         items={data.summary.macroWatch}         filter={filter} />
-            <Section kind="bigMovers"          items={data.summary.bigMovers}          filter={filter} />
-            <Section kind="derivativesInsight" items={data.summary.derivativesInsight} filter={filter} />
-            <SectorSection                    buckets={data.summary.sectorRotation}   filter={filter} />
-            <Section kind="fundingExtremes"    items={data.summary.fundingExtremes}    filter={filter} />
-            <Section kind="volumeAnomalies"    items={data.summary.volumeAnomalies}    filter={filter} />
-            <Section kind="oiChanges"          items={data.summary.oiChanges}          filter={filter} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-6">
+            {visibleSections.map((kind) => (
+              <Section
+                key={kind}
+                kind={kind}
+                items={data.summary[kind] ?? []}
+                filter={filter}
+              />
+            ))}
           </div>
 
           <div className="flex items-center justify-between pt-3 border-t border-white/[0.04]">
@@ -207,94 +218,27 @@ function Section({ kind, items, filter }: { kind: SectionKind; items: PulseItem[
   const style = SECTION_STYLE[kind];
   const Icon = style.icon;
   const filtered = items.filter((it) => matchesFilter(it, filter));
+  // Parent already filtered sections to ones that have matches — but guard anyway
+  if (filtered.length === 0) return null;
 
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <div className="flex h-6 w-6 items-center justify-center rounded" style={{ background: `${style.accent}15`, color: style.accent }}>
+        <div className="flex h-6 w-6 items-center justify-center rounded-md" style={{ background: `${style.accent}18`, color: style.accent, border: `1px solid ${style.accent}30` }}>
           <Icon className="h-3 w-3" />
         </div>
         <h3 className="text-[11px] font-bold uppercase tracking-wider" style={{ color: style.accent }}>
           {style.label}
         </h3>
-        <span className="inline-block h-1 w-1 rounded-full animate-pulse ml-0.5" style={{ background: style.accent, opacity: 0.6 }} />
+        <span className="inline-block h-1 w-1 rounded-full animate-pulse" style={{ background: style.accent, opacity: 0.7 }} />
+        <span className="ml-auto text-[9px] text-[#555a65] font-mono-num">{filtered.length}</span>
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="text-xs text-[#555a65] italic py-2 pl-3 border-l-2" style={{ borderColor: `${style.accent}30` }}>
-          {items.length === 0 ? `No ${style.label.toLowerCase()} in current window.` : `No ${filter} items in this section.`}
-        </div>
-      ) : (
-        <ul className="space-y-3">
-          {filtered.map((item, i) => (
-            <Item key={i} item={item} />
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Sector Rotation section (different shape from the PulseItem sections)
-// ---------------------------------------------------------------------------
-
-function SectorSection({ buckets, filter }: { buckets: SectorBucket[]; filter: Filter }) {
-  const style = SECTION_STYLE.sectorRotation;
-  const Icon = style.icon;
-  const filtered = buckets.filter((b) => {
-    if (filter === 'all') return true;
-    if (filter === 'bullish') return b.sentiment === 'BULLISH';
-    return b.sentiment === 'BEARISH';
-  });
-
-  return (
-    <div>
-      <div className="flex items-center gap-2 mb-3">
-        <div className="flex h-6 w-6 items-center justify-center rounded" style={{ background: `${style.accent}15`, color: style.accent }}>
-          <Icon className="h-3 w-3" />
-        </div>
-        <h3 className="text-[11px] font-bold uppercase tracking-wider" style={{ color: style.accent }}>
-          {style.label}
-        </h3>
-        <span className="inline-block h-1 w-1 rounded-full animate-pulse ml-0.5" style={{ background: style.accent, opacity: 0.6 }} />
-      </div>
-
-      {filtered.length === 0 ? (
-        <div className="text-xs text-[#555a65] italic py-2 pl-3 border-l-2" style={{ borderColor: `${style.accent}30` }}>
-          No sector data available.
-        </div>
-      ) : (
-        <ul className="space-y-3">
-          {filtered.map((b, i) => {
-            const sent = SENTIMENT_STYLE[b.sentiment];
-            const dirIcon = b.avgChangePct24h >= 0 ? '↑' : '↓';
-            return (
-              <li key={i} className="relative pl-3 border-l-2" style={{ borderColor: sent.border }}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="font-bold text-[#eaedf3] text-sm">{b.name}</span>
-                      <span className="font-mono-num text-xs font-semibold" style={{ color: sent.fg }}>
-                        {dirIcon}{Math.abs(b.avgChangePct24h).toFixed(2)}%
-                      </span>
-                    </div>
-                    <div className="text-[12px] text-[#8b8f99] mt-0.5">
-                      — {b.tokens.length} tokens · {fmtCompactUsd(b.totalVolumeUsd)} 24h vol
-                    </div>
-                  </div>
-                  <span
-                    className="flex-shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded"
-                    style={{ background: sent.bg, color: sent.fg, border: `1px solid ${sent.border}` }}
-                  >
-                    {b.sentiment}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      <ul className="space-y-2.5">
+        {filtered.map((item, i) => (
+          <Item key={i} item={item} />
+        ))}
+      </ul>
     </div>
   );
 }
@@ -311,7 +255,6 @@ function Item({ item }: { item: PulseItem }) {
   const body = (
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0 flex-1">
-        {/* Headline row (news items with url) */}
         {isHeadline ? (
           <div className="flex items-start gap-2">
             {item.sourceDomain && (
@@ -345,7 +288,6 @@ function Item({ item }: { item: PulseItem }) {
             )}
           </div>
         )}
-        {/* Reason line */}
         <div className="text-[12px] text-[#8b8f99] mt-0.5 flex items-baseline gap-2 flex-wrap">
           <span>— {item.reason}</span>
           {item.tag && (
@@ -355,7 +297,9 @@ function Item({ item }: { item: PulseItem }) {
           )}
         </div>
         {expanded && item.detail && (
-          <div className="mt-2 rounded-md px-2.5 py-1.5 text-[11px] leading-relaxed" style={{ background: 'rgba(255,255,255,0.02)', color: '#cbcfd7', border: '1px solid rgba(255,255,255,0.04)' }}>
+          <div className="mt-2 rounded-md px-2.5 py-1.5 text-[11px] leading-relaxed"
+            style={{ background: 'rgba(255,255,255,0.02)', color: '#cbcfd7', border: '1px solid rgba(255,255,255,0.04)' }}
+          >
             {item.detail}
           </div>
         )}
@@ -370,15 +314,10 @@ function Item({ item }: { item: PulseItem }) {
     </div>
   );
 
-  // Tier-colored left border thickness tracks sentiment
   const borderWidth = item.sentiment === 'BULLISH' || item.sentiment === 'BEARISH' ? '3px' : '2px';
   const commonClass = 'relative pl-3 border-l-[3px] transition-colors duration-150 rounded-r';
-  const commonStyle = {
-    borderColor: sent.border,
-    borderLeftWidth: borderWidth,
-  };
+  const commonStyle = { borderColor: sent.border, borderLeftWidth: borderWidth };
 
-  // Click behaviour: prefer url (news) > symbol (research page).
   if (item.url) {
     return (
       <li
@@ -427,7 +366,7 @@ function LoadingState() {
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+        {[0, 1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="space-y-2">
             <div className="h-3 w-24 rounded bg-white/[0.05] animate-pulse" />
             <div className="h-4 w-full rounded bg-white/[0.03] animate-pulse" />

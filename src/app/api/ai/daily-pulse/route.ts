@@ -17,7 +17,6 @@ import { calculateNewsScore } from '@/lib/signals/news-score';
 import { aggregateAISignal } from '@/lib/signals/composite';
 import {
   buildCallouts,
-  buildSectorRotation,
   curateItems,
   buildGroqPrompt,
   mergeIntoSummary,
@@ -37,7 +36,6 @@ const FALLBACK_RESPONSE: PulseResponse = {
     bigMovers: [],
     macroWatch: [],
     derivativesInsight: [],
-    sectorRotation: [],
     fundingExtremes: [],
     volumeAnomalies: [],
     oiChanges: [],
@@ -167,7 +165,6 @@ export async function GET() {
     };
 
     const callouts = buildCallouts(inputs);
-    const sectorRotation = buildSectorRotation(perpetuals);
     const items = curateItems(inputs);
     const prompt = buildGroqPrompt(items);
 
@@ -186,7 +183,7 @@ export async function GET() {
       };
     }
 
-    const summary = mergeIntoSummary(items, groqOutput, { sectorRotation });
+    const summary = mergeIntoSummary(items, groqOutput);
 
     const response: PulseResponse = {
       summary,
