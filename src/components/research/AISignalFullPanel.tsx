@@ -19,14 +19,21 @@ import type { TechScoreResult, IndicatorContribution } from '@/lib/signals/tech-
 import type { DerivScoreResult } from '@/lib/signals/deriv-score';
 import type { NewsScoreResult } from '@/lib/signals/news-score';
 import type { ThingToNote } from '@/lib/ai/things-to-note';
+import type { PCRResult, OptionsLSResult } from '@/lib/api/delta';
 
 interface AISignalPayload {
   symbol: string;
+  underlying?: string;
   composite: AISignalResult;
   breakdown: {
     news: NewsScoreResult;
     technical: TechScoreResult;
     derivatives: DerivScoreResult;
+  };
+  options?: {
+    pcr: PCRResult | null;
+    ls: OptionsLSResult | null;
+    supported: boolean;
   };
   thingsToNote?: ThingToNote[];
 }
@@ -108,7 +115,7 @@ export default function AISignalFullPanel({ symbol }: Props) {
     );
   }
 
-  const { composite, breakdown, thingsToNote = [] } = data;
+  const { composite, breakdown, thingsToNote = [], options } = data;
 
   return (
     <div
@@ -190,7 +197,7 @@ export default function AISignalFullPanel({ symbol }: Props) {
           {/* Technical — grouped */}
           <GroupedTechnical tech={breakdown.technical} />
 
-          {/* Derivatives */}
+          {/* Derivatives — positioning + funding + basis + PCR + L/S */}
           <BreakdownBucket title="Derivatives" accent="#A78BFA">
             {breakdown.derivatives.reasoning.map((r, i) => (
               <BreakdownRow
@@ -200,6 +207,33 @@ export default function AISignalFullPanel({ symbol }: Props) {
                 reason={r}
               />
             ))}
+            {/* PCR + L/S (options-derived) — only surface when computed */}
+            {options?.supported && options.pcr ? (
+              <BreakdownRow
+                verdict={pcrVerdict(options.pcr)}
+                name={`Options PCR · ${options.pcr.pcrVolume.toFixed(2)}`}
+                reason={options.pcr.description}
+              />
+            ) : options?.supported === false ? null : (
+              <BreakdownRow
+                verdict="neutral"
+                name="Options PCR"
+                reason="Coverage too thin to compute right now."
+              />
+            )}
+            {options?.supported && options.ls ? (
+              <BreakdownRow
+                verdict={lsVerdict(options.ls)}
+                name={`Options L/S · ${options.ls.longBiasPct.toFixed(0)}% long`}
+                reason={options.ls.description}
+              />
+            ) : options?.supported === false ? (
+              <BreakdownRow
+                verdict="neutral"
+                name="Options PCR · L/S"
+                reason="Delta does not list options for this underlying."
+              />
+            ) : null}
           </BreakdownBucket>
 
           {/* News */}
@@ -375,4 +409,18 @@ function derivBucketTone(deriv: DerivScoreResult, idx: number): 'bullish' | 'bea
 
 function derivRowName(idx: number): string {
   return ['Positioning', 'Funding rate', 'Spot-perp basis'][idx] ?? 'Derivative';
+}
+
+function pcrVerdict(pcr: PCRResult): 'bullish' | 'bearish' | 'neutral' {
+  // Raw reading — higher PCR = more puts = bearish crowd.
+  if (pcr.label === 'Bearish crowd') return 'bearish';
+  if (pcr.label === 'Bullish crowd') return 'bullish';
+  return 'neutral';
+}
+
+function lsVerdict(ls: OptionsLSResult): 'bullish' | 'bearish' | 'neutral' {
+  // Raw reading — higher long bias = bullish positioning.
+  if (ls.label === 'Long-biased') return 'bullish';
+  if (ls.label === 'Short-biased') return 'bearish';
+  return 'neutral';
 }

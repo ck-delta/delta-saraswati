@@ -9,6 +9,7 @@ import type { TokenCardData } from '@/types/market';
 import type { PulseCallouts, MarketSummary, SentimentBadge } from '@/types/pulse';
 import type { FearGreedData } from '@/types/market';
 import type { GlobalMarketData } from '@/lib/api/coingecko';
+import type { PCRResult, OptionsLSResult } from '@/lib/api/delta';
 import type { AISignalResult } from '@/lib/signals/composite';
 import type { AnnotatedNewsItem } from '@/lib/signals/news-score';
 import { scoreFunding } from '@/lib/signals/deriv-score';
@@ -36,6 +37,9 @@ export interface PulseInputs {
   aiSignals: Record<string, AISignalResult | null>;
   /** Map of symbol -> {oiNow, oi24hAgo} for OI-change leaders. May be empty. */
   oiSnapshots?: Record<string, { oiNow: number; oiPrior: number }>;
+  /** Map of underlying symbol (e.g. "BTC") -> options-derived PCR + L/S.
+   *  Only populated for underlyings with liquid Delta options (typically BTC, ETH). */
+  optionsMetrics?: Record<string, { pcr: PCRResult | null; ls: OptionsLSResult | null }>;
 }
 
 // ---------------------------------------------------------------------------
@@ -271,6 +275,43 @@ export function curateItems(input: PulseInputs): CuratedItem[] {
       tag: ethSig?.derivatives.positioning,
       symbol: 'ETHUSDT',
     });
+  }
+
+  // ---- Options-derived metrics: PCR + L/S for BTC and ETH ----
+  // Only populated for underlyings with liquid options coverage.
+  const optionsMetrics = input.optionsMetrics ?? {};
+  for (const underlying of ['BTC', 'ETH']) {
+    const om = optionsMetrics[underlying];
+    if (!om) continue;
+    const perpSymbol = `${underlying}USDT`;
+    if (om.pcr) {
+      const hint: SentimentBadge =
+        om.pcr.label === 'Bullish crowd' ? 'BULLISH'
+        : om.pcr.label === 'Bearish crowd' ? 'BEARISH'
+        : 'NEUTRAL';
+      items.push({
+        bucket: 'derivativesInsight',
+        label: `${underlying} options PCR`,
+        context: `${underlying} 24h put/call volume ratio = ${om.pcr.pcrVolume.toFixed(2)} across ${om.pcr.contractsCounted} contracts. ${om.pcr.description}`,
+        hintSentiment: hint,
+        tag: `PCR ${om.pcr.pcrVolume.toFixed(2)}`,
+        symbol: perpSymbol,
+      });
+    }
+    if (om.ls) {
+      const hint: SentimentBadge =
+        om.ls.label === 'Long-biased' ? 'BULLISH'
+        : om.ls.label === 'Short-biased' ? 'BEARISH'
+        : 'NEUTRAL';
+      items.push({
+        bucket: 'derivativesInsight',
+        label: `${underlying} options L/S`,
+        context: `${underlying} options OI split: ${om.ls.longBiasPct.toFixed(0)}% long-biased vs ${(100 - om.ls.longBiasPct).toFixed(0)}% short-biased across ${om.ls.contractsCounted} contracts. ${om.ls.description}`,
+        hintSentiment: hint,
+        tag: `${om.ls.longBiasPct.toFixed(0)}% long`,
+        symbol: perpSymbol,
+      });
+    }
   }
 
   // ---- Funding Extremes: top 4 by absolute percentile deviation from p50 ----

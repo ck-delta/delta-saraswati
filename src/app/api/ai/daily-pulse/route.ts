@@ -5,6 +5,10 @@ import {
   parseTickerToTokenCard,
   getCandles,
   getTicker,
+  computePCR,
+  computeOptionsLS,
+  type PCRResult,
+  type OptionsLSResult,
 } from '@/lib/api/delta';
 import { getFearGreedIndex, getFearGreedHistory } from '@/lib/api/feargreed';
 import { getClassifiedNews } from '@/lib/api/news';
@@ -145,13 +149,33 @@ export async function GET() {
       .slice(0, 6)
       .map((p) => p.symbol);
 
-    const [aiSignalsArr, oiSnapshots] = await Promise.all([
+    // Options-derived metrics (PCR + L/S) for BTC and ETH. Runs in parallel
+    // with other work; per-underlying failures are isolated.
+    const optionsUnderlyings = ['BTC', 'ETH'];
+    const optionsMetricsPromise = Promise.all(
+      optionsUnderlyings.map(async (u) => {
+        const [pcr, ls] = await Promise.all([
+          computePCR(u).catch(() => null),
+          computeOptionsLS(u).catch(() => null),
+        ]);
+        return [u, { pcr, ls }] as [string, { pcr: PCRResult | null; ls: OptionsLSResult | null }];
+      }),
+    );
+
+    const [aiSignalsArr, oiSnapshots, optionsMetricsEntries] = await Promise.all([
       Promise.all(topSymbols.map((s) => computeTopSignal(s, news))),
       fetchOiSnapshots(oiCandidates),
+      optionsMetricsPromise,
     ]);
 
     const aiSignals: Record<string, AISignalResult | null> = {};
     topSymbols.forEach((s, i) => { aiSignals[s] = aiSignalsArr[i]; });
+
+    const optionsMetrics: Record<string, { pcr: PCRResult | null; ls: OptionsLSResult | null }> = {};
+    for (const [underlying, metrics] of optionsMetricsEntries) {
+      // Skip underlyings with neither PCR nor L/S available
+      if (metrics.pcr || metrics.ls) optionsMetrics[underlying] = metrics;
+    }
 
     const inputs: PulseInputs = {
       perpetuals,
@@ -162,6 +186,7 @@ export async function GET() {
       global,
       aiSignals,
       oiSnapshots,
+      optionsMetrics,
     };
 
     const callouts = buildCallouts(inputs);
