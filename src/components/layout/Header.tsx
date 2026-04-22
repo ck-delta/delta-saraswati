@@ -9,7 +9,7 @@ import { useUIStore } from '@/stores/ui-store';
 // ---------------------------------------------------------------------------
 
 function getPageTitle(pathname: string): string {
-  if (pathname === '/') return 'Daily Pulse';
+  if (pathname === '/') return 'Home';
   if (pathname.startsWith('/research')) return 'Research';
   if (pathname.startsWith('/chat')) return 'Chat';
   return 'Delta Saraswati';

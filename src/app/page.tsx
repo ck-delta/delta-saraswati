@@ -10,7 +10,7 @@ import NewsSection from '@/components/home/NewsSection';
 import MarketMoodBar from '@/components/home/MarketMoodBar';
 
 /**
- * Home / Daily Pulse page.
+ * Home page.
  * Premium layout: Markets grid, two-column AI pulse + news, subtle CTA.
  * Auto-fetches on mount, refreshes market data every 30s.
  */
@@ -61,7 +61,7 @@ export default function Home() {
       </section>
 
       {/* ================================================================
-          Two-column: Daily Pulse (3/5) + News (2/5)
+          Two-column: Market Summary (3/5) + News (2/5)
           ================================================================ */}
       <section className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-5">
         <div className="lg:col-span-3">

@@ -15,7 +15,7 @@ import {
 // ---------------------------------------------------------------------------
 
 const NAV_ITEMS = [
-  { label: 'Daily Pulse', href: '/', icon: Home },
+  { label: 'Home', href: '/', icon: Home },
   { label: 'Research', href: '/research', icon: Search },
   { label: 'Chat', href: '/chat', icon: MessageCircle },
 ] as const;

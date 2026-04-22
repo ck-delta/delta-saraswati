@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Geist, Geist_Mono } from 'next/font/google';
 import Sidebar, { MobileSidebar } from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
+import SaraswatiFAB from '@/components/shared/SaraswatiFAB';
 import './globals.css';
 
 // ---------------------------------------------------------------------------
@@ -61,6 +63,11 @@ export default function RootLayout({
             </main>
           </div>
         </div>
+
+        {/* Floating Saraswati assistant — visible on every page except /chat. */}
+        <Suspense fallback={null}>
+          <SaraswatiFAB />
+        </Suspense>
       </body>
     </html>
   );
